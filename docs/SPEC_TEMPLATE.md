@@ -24,6 +24,8 @@ TASKS.md organiza los pasos de ejecución.
 - Mantén el documento breve y proporcional a la funcionalidad. Conserva los comentarios.
 - Un documento completo no está aprobado automáticamente. Solicita aprobación
   antes de marcarlo como Aprobada. No implementes durante esta etapa.
+- Para cambios de significado posteriores a la aprobación, registra una nota
+  breve de cambio, motivo e impacto según AGENTS.md, sin historial separado.
 -->
 
 ## Qué construimos y para quién

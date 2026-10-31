@@ -27,6 +27,8 @@ derivar TASKS.md con tareas, dependencias y comprobaciones.
 - Conserva estos comentarios. No implementes durante la planificación.
 - Solicita aprobación antes de marcar el plan como Aprobado. La autorización
   para implementar debe ser explícita; no se deduce del estado de los documentos.
+- Para cambios de significado posteriores a la aprobación, registra una nota
+  breve de cambio, motivo e impacto según AGENTS.md, sin historial separado.
 -->
 
 ## Contexto técnico verificado
@@ -118,7 +120,9 @@ Una captura aislada no demuestra persistencia ni ausencia de peticiones de red. 
 
 <!-- Esta sección planifica la validación. Durante la implementación, registra
 en TASKS.md o en el informe de validación acordado los resultados y evidencias
-reales. Distingue pruebas ejecutadas, fallidas, no ejecutadas y bloqueadas.
+reales. Usar el cierre de TASKS.md definido en AGENTS.md: CA/evidencia,
+regresión y desviaciones del PLAN. Distingue comprobaciones ejecutadas,
+fallidas, no ejecutadas y bloqueadas.
 Compilar o tener tests en verde no sustituye revisar los criterios de la spec. -->
 
 ## Orden de implementación
@@ -143,6 +147,8 @@ Comprueba que el plan cubre los requisitos, respeta las exclusiones, reutiliza
 componentes verificados y permite demostrar todos los criterios de aceptación.
 Resuelve dudas y marcadores pendientes. Si la spec cambió, revisa su impacto.
 Tras aprobar el plan, deriva TASKS.md con IDs, dependencias, referencias a RF/CA
-y comprobaciones. No marques una tarea terminada sin realizar su validación;
+y comprobaciones. Antes de implementar, realizar el chequeo de coherencia de
+AGENTS.md con esos documentos, sin otro informe ni aprobación adicional.
+No marques una tarea terminada sin realizar su validación;
 si está bloqueada, registra el motivo.
 -->
