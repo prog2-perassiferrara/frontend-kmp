@@ -90,7 +90,7 @@ class KtorRegistrationApiTest {
                 assertFalse(failure.toString().contains("private"))
                 assertEquals(1, requests)
                 if (expected == RegistrationError.INVALID_INPUT && body == validation) {
-                    assertEquals(mapOf("login" to "Pattern", "email" to "Email"), failure.fieldErrors)
+                    assertEquals(setOf("login", "email"), failure.fieldErrors)
                 }
             } finally {
                 client.close()

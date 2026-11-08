@@ -11,7 +11,6 @@ import com.prog2.frontend.registration.data.RegistrationApi
 import com.prog2.frontend.session.SessionManager
 import com.prog2.frontend.session.SessionStatus
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -23,7 +22,6 @@ class RegistrationViewModel(
     private val sessions: SessionManager,
 ) : ViewModel() {
     private val mutableState = mutableStateOf(RegistrationUiState())
-    private var registrationJob: Job? = null
     val state: State<RegistrationUiState> = mutableState
 
     fun changeLogin(value: String) = edit {
@@ -55,7 +53,7 @@ class RegistrationViewModel(
     /** Valida el formulario y limita el alta a un único intento vigente. */
     fun submit() {
         val form = state.value
-        if (form.isSubmitting || form.accountCreated || registrationJob?.isActive == true) return
+        if (form.isSubmitting || form.accountCreated) return
         val login = form.login.lowercase()
         val email = form.email.lowercase()
         val loginError = when {
@@ -68,10 +66,14 @@ class RegistrationViewModel(
         else "La contraseña debe tener entre 6 y 100 caracteres."
         val firstNameError = nameError(form.firstName, "nombre")
         val lastNameError = nameError(form.lastName, "apellido")
+        // El formato completo lo valida @Email en Turnos. Aquí solo se descartan
+        // entradas sin una separación local/dominio reconocible, para no rechazar
+        // correos Unicode o sin punto que el backend sí admite.
+        val at = email.lastIndexOf('@')
         val emailError = when {
             email.isBlank() -> "Ingresá tu correo."
             email.length !in 5..254 -> "El correo debe tener entre 5 y 254 caracteres."
-            !EMAIL_PATTERN.matches(email) -> "Ingresá un correo válido."
+            at <= 0 || at == email.lastIndex -> "Ingresá un correo válido."
             else -> null
         }
         updateState {
@@ -85,7 +87,7 @@ class RegistrationViewModel(
             return
         }
         updateState { it.copy(isSubmitting = true) }
-        registrationJob = viewModelScope.launch {
+        viewModelScope.launch {
             try {
                 registrationApi.register(
                     NewAccount(login, form.password, form.firstName, form.lastName, email),
@@ -157,7 +159,7 @@ class RegistrationViewModel(
         else -> null
     }
 
-    private fun fieldError(field: String, fields: Map<String, String>): String? =
+    private fun fieldError(field: String, fields: Set<String>): String? =
         if (field !in fields) null else when (field) {
             "login" -> "El usuario no es válido."
             "password" -> "La contraseña debe tener entre 6 y 100 caracteres."
@@ -176,12 +178,6 @@ class RegistrationViewModel(
         // backend normaliza a minúsculas antes de validar.
         val LOGIN_PATTERN = Regex(
             "^(?:[A-Za-z0-9!$&*+=?^_`{|}~.-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*|[_.@A-Za-z0-9-]+)$",
-        )
-        // Aproxima @Email de Hibernate: átomos y puntos en la parte local, dominio
-        // con al menos un punto y etiquetas que no empiezan ni terminan en guion.
-        val EMAIL_PATTERN = Regex(
-            "^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*" +
-                "@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$",
         )
         val FIELD_NAMES = setOf("login", "password", "firstName", "lastName", "email")
     }

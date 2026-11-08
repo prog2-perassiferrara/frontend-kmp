@@ -11,7 +11,7 @@ Crear una cuenta activa de usuario final desde Android y dejarla autenticada reu
 ## Alcance
 
 - **RF-01 · Formulario:** pedir `login`, `password`, `firstName`, `lastName` y `email`, los cinco campos obligatorios del contrato. Enviar `langKey` fijo `es` (valor por defecto del backend) y omitir `imageUrl`; no se ofrece carga de fotos.
-- **RF-02 · Validación local:** replicar los límites del backend antes de enviar: login de 1 a 50 caracteres con el patrón JHipster; contraseña de 6 a 100 puntos de código Unicode; nombre y apellido no blancos de 2 a 50; correo válido de 5 a 254. No recortar nombres, login ni contraseña.
+- **RF-02 · Validación local:** replicar los límites del backend antes de enviar: login de 1 a 50 caracteres con el patrón JHipster; contraseña de 6 a 100 puntos de código Unicode; nombre y apellido no blancos de 2 a 50; correo de 5 a 254 con separación local/dominio. El formato completo (`@Email`) lo valida Turnos para no rechazar direcciones Unicode o sin punto que el backend admite. No recortar nombres, login ni contraseña.
 - **RF-03 · Alta:** consumir `POST /api/register` sin bearer y con JSON. Un `201` vacío confirma la creación; no devuelve JWT.
 - **RF-04 · Errores del backend:** un `400 VALIDATION_ERROR` se presenta por campo cuando `fieldErrors` lo permite; un `400 USER_IDENTIFIER_ALREADY_USED` informa que el usuario o el correo ya existen. Ninguno crea sesión.
 - **RF-05 · Login automático:** tras un `201`, autenticar con las mismas credenciales mediante `SessionManager.signIn(..., rememberMe = false)`. Si responde, la sesión queda iniciada y se accede al área autenticada.
@@ -47,7 +47,7 @@ Crear una cuenta activa de usuario final desde Android y dejarla autenticada reu
 ## Criterios de aceptación
 
 - **CA-01 · RF-01, RF-03, RF-05:** datos válidos crean la cuenta y dejan la sesión iniciada con el JWT emitido por Turnos.
-- **CA-02 · RF-02:** login, contraseña, nombre, apellido o correo inválidos impiden la petición y muestran el error de campo.
+- **CA-02 · RF-02:** login, contraseña, nombre o apellido inválidos, o un correo sin separación local/dominio, impiden la petición y muestran el error de campo; un correo con formato inválido para `@Email` se rechaza en Turnos y se presenta por campo sin crear sesión.
 - **CA-03 · RF-04:** `VALIDATION_ERROR` se presenta por campo cuando el backend lo informa; no se crea sesión.
 - **CA-04 · RF-04:** un identificador duplicado se informa como tal, sin sesión y sin borrar los datos para corregir.
 - **CA-05 · RF-07:** timeout, error de transporte, `5xx` o redirección se presentan como resultado incierto, sin éxito ni reintento automático.

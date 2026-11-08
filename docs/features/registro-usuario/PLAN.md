@@ -7,11 +7,11 @@
 ## Decisiones
 
 - `RegistrationApi` aísla `POST /api/register`; `KtorRegistrationApi` usa el mismo `HttpClient` y `ApiConfiguration` que la sesión, sin bearer, cookies ni reintentos.
-- `201` es la única confirmación válida y no requiere cuerpo. `400` con `code = USER_IDENTIFIER_ALREADY_USED` informa duplicado; `400` con `VALIDATION_ERROR` o sin código se presenta como entrada inválida y conserva los `fieldErrors` (`field`, `code`) para ubicarlos.
+- `201` es la única confirmación válida y no requiere cuerpo. `400` con `code = USER_IDENTIFIER_ALREADY_USED` informa duplicado; `400` con `VALIDATION_ERROR` o sin código se presenta como entrada inválida y conserva los nombres de campo de `fieldErrors` para ubicarlos; el código del backend no se usa en la UI.
 - Cualquier otro estado, una redirección, un timeout o un fallo de transporte se trata como resultado incierto: no se afirma éxito ni fallo definitivo y no se repite la petición automáticamente. Un `5xx` puede ocurrir después de crear la cuenta.
-- La validación local replica el contrato de `RegistrationRequest`: login normalizado de 1 a 50 con el patrón JHipster; contraseña de 6 a 100 puntos de código; nombre y apellido no blancos de 2 a 50; correo de 5 a 254 con dominio con punto. El backend sigue siendo la autoridad final.
+- La validación local replica el contrato de `RegistrationRequest`: login normalizado de 1 a 50 con el patrón JHipster; contraseña de 6 a 100 puntos de código; nombre y apellido no blancos de 2 a 50; correo de 5 a 254 con separación local/dominio. El formato completo de correo lo valida `@Email` en Turnos; el cliente no intenta replicarlo para no rechazar direcciones Unicode, sin punto o con parte local entrecomillada. El backend sigue siendo la autoridad final. Ajuste 2026-11-08: se retiró la regex local de correo porque rechazaba entradas válidas para `@Email`.
 - Login y correo se normalizan a minúsculas antes de enviar y de autenticar; no se recortan nombres, login ni contraseña. Las contraseñas con espacios siguen siendo válidas si cumplen la longitud.
-- `RegistrationViewModel` valida, normaliza y ejecuta un único intento mediante un `Job`; las pulsaciones repetidas no crean otra petición. La red se espera fuera de cualquier mutex de sesión.
+- `RegistrationViewModel` valida, normaliza y ejecuta un único intento mediante `isSubmitting`; las pulsaciones repetidas no crean otra petición. La red se espera fuera de cualquier mutex de sesión.
 - Tras el `201`, el ViewModel reutiliza `SessionManager.signIn(login, password, rememberMe = false)`. No duplica almacenamiento ni estado de sesión.
 - Si el alta confirma la cuenta y el login automático falla, el estado queda en `accountCreated`: se limpia la contraseña, se deshabilitan los campos y solo se ofrece volver a Login. No se repite el registro.
 - Un resultado incierto limpia la contraseña, conserva los demás datos para corregir y permite un intento manual; el aviso indica verificar mediante Login.
@@ -23,7 +23,7 @@
 
 | Ruta | Responsabilidad |
 | --- | --- |
-| `shared/src/commonMain/.../registration/RegistrationError.kt` | Errores presentables y excepción con `fieldErrors`. |
+| `shared/src/commonMain/.../registration/RegistrationError.kt` | Errores presentables y excepción con nombres de campo inválidos. |
 | `shared/src/commonMain/.../registration/data/RegistrationApi.kt`, `KtorRegistrationApi.kt` | Contrato de alta, `NewAccount` y consumo Ktor. |
 | `shared/src/commonMain/.../ui/registration/RegistrationUiState.kt`, `RegistrationViewModel.kt`, `RegistrationScreen.kt` | Estado, validación, intento único, login automático y formulario Compose. |
 | `shared/src/commonMain/.../App.kt` | Navegación mínima Login ↔ Registro. |
@@ -35,7 +35,7 @@
 
 ## Validación ejecutada (2026-11-08)
 
-- `./gradlew :shared:testAndroidHostTest` — BUILD SUCCESSFUL. 43 pruebas, 0 fallos: 30 previas de sesión y 13 nuevas (4 de `KtorRegistrationApi`, 9 de `RegistrationViewModel`).
+- `./gradlew :shared:testAndroidHostTest` — BUILD SUCCESSFUL. 44 pruebas, 0 fallos: 30 previas de sesión y 14 nuevas (4 de `KtorRegistrationApi`, 10 de `RegistrationViewModel`, incluida la aceptación de correos Unicode o sin punto admitidos por `@Email`).
 - `./gradlew :androidApp:assembleDebug`, `:androidApp:installDebug` y `:androidApp:lintDebug` — BUILD SUCCESSFUL, sin errores.
 - Emulador Pixel_10_Pro (Android 17) con Turnos en `localhost:8081`: formulario vacío validado localmente; alta real con `CU01PATIENT` normalizado a `cu01patient`, `lang_key = es` y cuenta activa; login automático; archivo `no_backup/user-session.bin` de 643 bytes sin `eyJ` en claro; duplicado informado sin sesión ni borrado de datos; vuelta a Login con contraseña descartada.
 - Un intento con el permiso Android `ACCESS_LOCAL_NETWORK` revocado produjo el aviso de resultado incierto y limpió la contraseña; tras concederlo, el alta y el login automático funcionaron.

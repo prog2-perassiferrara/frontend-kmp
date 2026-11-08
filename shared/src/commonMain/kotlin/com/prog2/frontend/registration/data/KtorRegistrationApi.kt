@@ -60,7 +60,7 @@ class KtorRegistrationApi(
                 return RegistrationException(RegistrationError.IDENTIFIER_ALREADY_USED)
             }
             if (problem == null || problem.code == null || problem.code == "VALIDATION_ERROR") {
-                return RegistrationException(RegistrationError.INVALID_INPUT, problem?.fieldsByField().orEmpty())
+                return RegistrationException(RegistrationError.INVALID_INPUT, problem?.invalidFields().orEmpty())
             }
         }
         // 5xx, redirecciones y estados no previstos pueden ocurrir después de
@@ -86,11 +86,8 @@ private class RegistrationProblem(
     val code: String? = null,
     val fieldErrors: List<RegistrationFieldError> = emptyList(),
 ) {
-    fun fieldsByField(): Map<String, String> = fieldErrors.mapNotNull { error ->
-        val field = error.field ?: return@mapNotNull null
-        field to (error.code ?: "Invalid")
-    }.toMap()
+    fun invalidFields(): Set<String> = fieldErrors.mapNotNull { it.field }.toSet()
 }
 
 @Serializable
-private class RegistrationFieldError(val field: String? = null, val code: String? = null)
+private class RegistrationFieldError(val field: String? = null)

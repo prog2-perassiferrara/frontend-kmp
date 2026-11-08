@@ -10,10 +10,10 @@ enum class RegistrationError(val message: String) {
 /**
  * Propaga un fallo conocido del alta sin conservar la respuesta original.
  *
- * @property fieldErrors código informado por el backend por nombre de campo,
- *   disponible solo para [RegistrationError.INVALID_INPUT].
+ * @property fieldErrors nombres de campo observados en `fieldErrors`, disponible
+ *   solo para [RegistrationError.INVALID_INPUT]; el código del backend no se usa.
  */
 class RegistrationException(
     val error: RegistrationError,
-    val fieldErrors: Map<String, String> = emptyMap(),
+    val fieldErrors: Set<String> = emptySet(),
 ) : Exception(error.message)

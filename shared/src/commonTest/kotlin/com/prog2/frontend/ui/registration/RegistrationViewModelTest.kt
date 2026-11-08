@@ -110,11 +110,28 @@ class RegistrationViewModelTest {
     }
 
     @Test
+    fun acceptsEmailsAdmittedByTheBackendWithoutFalseRejections() = runTest(dispatcher) {
+        for (email in listOf("josé@example.com", "usuario@localhost", "\"john.doe\"@example.com")) {
+            val registrationApi = TestRegistrationApi()
+            val manager = manager()
+            manager.restore()
+            val vm = viewModel(registrationApi, manager)
+            fillValid(vm)
+            vm.changeEmail(email)
+            vm.submit()
+            runCurrent()
+
+            assertEquals(email, registrationApi.requests.single().email)
+            assertNull(vm.state.value.emailError)
+        }
+    }
+
+    @Test
     fun presentsBackendValidationErrorsByFieldWithoutSession() = runTest(dispatcher) {
         val registrationApi = TestRegistrationApi {
             throw RegistrationException(
                 RegistrationError.INVALID_INPUT,
-                mapOf("login" to "Pattern", "email" to "Email"),
+                setOf("login", "email"),
             )
         }
         val authApi = TestAuthApi()
