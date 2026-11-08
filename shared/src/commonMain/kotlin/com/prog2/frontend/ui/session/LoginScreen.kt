@@ -14,6 +14,7 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ class LoginScreen {
         onPassword: (String) -> Unit,
         onRememberMe: (Boolean) -> Unit,
         onSubmit: () -> Unit,
+        onRegister: () -> Unit,
     ) {
         val enabled = !state.isSubmitting
         Text("Iniciar sesión", style = MaterialTheme.typography.h5)
@@ -80,6 +82,9 @@ class LoginScreen {
             Text(if (state.isSubmitting) "Iniciando sesión…" else "Iniciar sesión")
         }
         if (state.isSubmitting) CircularProgressIndicator()
+        TextButton(onClick = onRegister, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+            Text("Crear cuenta")
+        }
     }
 
     @Composable
@@ -94,7 +99,7 @@ private fun LoginScreenPreview() {
     MaterialTheme {
         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             LoginScreen().Content(
-                SessionUiState(session = SessionState(SessionStatus.SIGNED_OUT)), {}, {}, {}, {},
+                SessionUiState(session = SessionState(SessionStatus.SIGNED_OUT)), {}, {}, {}, {}, {},
             )
         }
     }

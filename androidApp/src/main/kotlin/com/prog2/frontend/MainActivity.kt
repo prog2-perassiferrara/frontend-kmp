@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.prog2.frontend.ui.registration.RegistrationScreen
 import com.prog2.frontend.ui.session.AuthenticatedScreen
 import com.prog2.frontend.ui.session.LoginScreen
 
@@ -15,7 +16,13 @@ class MainActivity : ComponentActivity() {
 
         // El manifest fija esta Application; es una frontera Android, no selección de negocio.
         val container = (application as FrontendApplication).container
-        val app = App(container.sessions, LoginScreen(), AuthenticatedScreen())
+        val app = App(
+            container.sessions,
+            container.registrationApi,
+            LoginScreen(),
+            RegistrationScreen(),
+            AuthenticatedScreen(),
+        )
 
         setContent {
             app.Content()

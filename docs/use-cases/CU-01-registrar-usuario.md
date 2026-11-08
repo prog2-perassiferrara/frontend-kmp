@@ -43,10 +43,10 @@
 - No requiere verificación por correo. La app no muestra ni registra contraseñas o JWT en mensajes de diagnóstico.
 - Aplica la [política mobile confirmada](README.md): sin operaciones offline; formulario temporal conservado durante el proceso Android y descartado al terminarlo o cambiar de sesión.
 
-## Fuentes y pendientes
+## Fuentes y documentación
 
 **Fuentes:** [enunciado, sección 3.2](../../../PROJECT_STATEMENT-v1.md); [CU-01 de Turnos](../../../backend-turnos/docs/use-cases/CU-01-registrar-usuario.md).
 
-**Pendiente para la SPEC:** validaciones del usuario final, selección de `langKey` y presentación de `imageUrl`. No se presupone carga de fotos. Aplicar la conservación temporal acordada sin persistir credenciales para reautenticar.
+**SPEC:** [Registro de usuario](../features/registro-usuario/SPEC.md).
 
-**Pendiente para el PLAN:** contrato de registro/login y tratamiento de respuesta perdida, acordados con Turnos.
+**PLAN y TASKS:** [PLAN](../features/registro-usuario/PLAN.md) y [TASKS](../features/registro-usuario/TASKS.md), con las decisiones técnicas y la evidencia de verificación.

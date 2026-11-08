@@ -8,7 +8,7 @@
 
 Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gestión de reservas propias. Android debe permitir completar el flujo funcional requerido por cátedra.
 
-**Estado:** inicio, conservación y cierre de sesión implementados con MVVM. El área autenticada es transitoria: muestra «Sesión iniciada» y permite cerrar sesión. Registro, Búsqueda y procesos se integran en sus respectivos CU. Ver resultados, límites y verificaciones en el [plan técnico de sesión](docs/features/sesion-usuario/PLAN.md).
+**Estado:** registro, inicio, conservación y cierre de sesión implementados con MVVM. El área autenticada es transitoria: muestra «Sesión iniciada» y permite cerrar sesión. Búsqueda y procesos se integran en sus respectivos CU. Ver resultados, límites y verificaciones en los planes de [registro](docs/features/registro-usuario/PLAN.md) y [sesión](docs/features/sesion-usuario/PLAN.md).
 
 ## Requisitos
 
@@ -30,7 +30,7 @@ export JAVA_HOME=/ruta/al/jdk-21
 export ANDROID_HOME=/ruta/al/Android/Sdk
 ```
 
-El archivo `gradle/gradle-daemon-jvm.properties` exige Java 21 sin fijar proveedor. Para iniciar sesión hace falta Turnos y una cuenta activa de usuario final. El registro desde la app todavía no está implementado; no usar credenciales técnicas de cátedra como cuenta de usuario.
+El archivo `gradle/gradle-daemon-jvm.properties` exige Java 21 sin fijar proveedor. Para iniciar sesión o registrarte hace falta Turnos y datos de una cuenta de usuario final. No usar credenciales técnicas de cátedra como cuenta de usuario.
 
 Debug usa los siguientes destinos desde el emulador Android:
 
@@ -50,9 +50,7 @@ declarado solo en debug. Después de instalar, habilitarlo para el emulador:
 adb -s <serial> shell pm grant com.prog2.frontend android.permission.ACCESS_LOCAL_NETWORK
 ```
 
-Si se deniega o revoca, el login informa indisponibilidad y permite reintentar;
-no conserva una sesión por omisión. Release no declara este permiso y usa los
-orígenes HTTPS configurados. Ver [permiso de red local de Android](https://developer.android.com/privacy-and-security/local-network-permission).
+Si se deniega o revoca, el login informa indisponibilidad y el registro un resultado incierto; ambos permiten reintentar y no conservan una sesión por omisión. Release no declara este permiso y usa los orígenes HTTPS configurados. Ver [permiso de red local de Android](https://developer.android.com/privacy-and-security/local-network-permission).
 
 ## Compilación y revisión
 
@@ -62,7 +60,7 @@ Desde la raíz del repositorio:
 ./gradlew check :androidApp:assembleDebug
 ```
 
-`check` ejecuta las pruebas host de sesión y las verificaciones conectadas por los plugins, incluido lint. `assembleDebug` genera `androidApp/build/outputs/apk/debug/androidApp-debug.apk`. Las pruebas host usan reloj controlado y MockEngine; no requieren un backend, emulador ni credenciales reales.
+`check` ejecuta las pruebas host de sesión y registro, y las verificaciones conectadas por los plugins, incluido lint. `assembleDebug` genera `androidApp/build/outputs/apk/debug/androidApp-debug.apk`. Las pruebas host usan reloj controlado y MockEngine; no requieren un backend, emulador ni credenciales reales.
 
 La compilación y lint fueron comprobados en Linux; quedan avisos de versiones y recursos del launcher, sin errores. Windows y `gradlew.bat` no se comprobaron.
 
@@ -93,7 +91,7 @@ La contraseña/formulario se mantienen solo en el ViewModel; no se restauran tra
 
 - `androidApp`: entrada/Application Android, manifest, URLs y recursos por variante. Depende de `shared`.
 - `shared`: UI Compose, ViewModel, coordinador de sesión y cliente HTTP comunes; almacenamiento/ciclo de vida en `androidMain`. Solo target Android.
-- [Plan técnico de sesión](docs/features/sesion-usuario/PLAN.md).
+- [Plan técnico de sesión](docs/features/sesion-usuario/PLAN.md) y [plan técnico de registro](docs/features/registro-usuario/PLAN.md).
 - [SPEC](docs/features/setup-kmp/SPEC.md), [PLAN y diagrama](docs/features/setup-kmp/PLAN.md) y [TASKS](docs/features/setup-kmp/TASKS.md) del setup.
 - [Casos de uso y diagrama](docs/use-cases/README.md) e [issues publicados](https://github.com/prog2-perassiferrara/frontend-kmp/issues).
 - [Instrucciones](AGENTS.md), [reglas de trabajo](docs/GENERIC_RULES.md) y [guía mobile](docs/MOBILE_GUIDELINES.md).
