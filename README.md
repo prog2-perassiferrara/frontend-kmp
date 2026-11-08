@@ -8,7 +8,7 @@
 
 Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gestión de reservas propias. Android debe permitir completar el flujo funcional requerido por cátedra.
 
-**Estado:** registro, inicio, conservación y cierre de sesión implementados con MVVM. El área autenticada es transitoria: muestra «Sesión iniciada» y permite cerrar sesión. Búsqueda y procesos se integran en sus respectivos CU. Ver resultados, límites y verificaciones en los planes de [registro](docs/features/registro-usuario/PLAN.md) y [sesión](docs/features/sesion-usuario/PLAN.md).
+**Estado:** registro, inicio, conservación y cierre de sesión implementados con MVVM. Búsqueda de profesionales implementada sobre Catálogo con filtros, paginación y aviso de copia; el área autenticada muestra esa pantalla. Los procesos de reserva se integran en sus respectivos CU. Ver resultados, límites y verificaciones en los planes de [registro](docs/features/registro-usuario/PLAN.md), [sesión](docs/features/sesion-usuario/PLAN.md) y [búsqueda](docs/features/busqueda-profesionales/PLAN.md).
 
 ## Requisitos
 

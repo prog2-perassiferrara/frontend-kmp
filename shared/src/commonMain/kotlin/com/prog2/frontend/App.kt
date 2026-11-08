@@ -25,12 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.prog2.frontend.catalog.data.CatalogApi
 import com.prog2.frontend.registration.data.RegistrationApi
 import com.prog2.frontend.session.SessionManager
 import com.prog2.frontend.session.SessionStatus
 import com.prog2.frontend.ui.registration.RegistrationScreen
 import com.prog2.frontend.ui.registration.RegistrationViewModel
-import com.prog2.frontend.ui.session.AuthenticatedScreen
+import com.prog2.frontend.ui.search.SearchScreen
+import com.prog2.frontend.ui.search.SearchViewModel
 import com.prog2.frontend.ui.session.LoginScreen
 import com.prog2.frontend.ui.session.SessionViewModel
 
@@ -39,26 +41,34 @@ import com.prog2.frontend.ui.session.SessionViewModel
  *
  * @param sessions Coordinador compartido durante la vida del proceso.
  * @param registrationApi Alta pública usada por el ViewModel de registro.
+ * @param catalogApi Búsqueda protegida de Catálogo usada por el ViewModel de búsqueda.
  */
 class App(
     private val sessions: SessionManager,
     private val registrationApi: RegistrationApi,
+    private val catalogApi: CatalogApi,
     private val loginScreen: LoginScreen,
     private val registrationScreen: RegistrationScreen,
-    private val authenticatedScreen: AuthenticatedScreen,
+    private val searchScreen: SearchScreen,
 ) {
     /** Obtiene los ViewModels del owner Android, conservándolos durante la rotación. */
     @Composable
     fun Content() {
         val sessionViewModel = viewModel { SessionViewModel(sessions) }
         val registrationViewModel = viewModel { RegistrationViewModel(registrationApi, sessions) }
+        val searchViewModel = viewModel { SearchViewModel(catalogApi) }
         val state by sessionViewModel.state
         var showRegistration by rememberSaveable { mutableStateOf(false) }
 
         // Al autenticarse, el registro deja de estar visible para que un logout
-        // posterior vuelva directamente al login.
+        // posterior vuelva directamente al login. Al cerrar sesión se descartan
+        // filtros y resultados, incluso si el cierre lo provocó un 401.
         LaunchedEffect(state.session.status) {
-            if (state.session.status == SessionStatus.SIGNED_IN) showRegistration = false
+            when (state.session.status) {
+                SessionStatus.SIGNED_IN -> showRegistration = false
+                SessionStatus.SIGNED_OUT -> searchViewModel.reset()
+                SessionStatus.RESTORING -> Unit
+            }
         }
 
         MaterialTheme {
@@ -74,7 +84,19 @@ class App(
                                 CircularProgressIndicator()
                                 Text("Restaurando sesión…")
                             }
-                            SessionStatus.SIGNED_IN -> authenticatedScreen.Content(sessionViewModel::signOut)
+                            SessionStatus.SIGNED_IN -> searchScreen.Content(
+                                searchViewModel.state.value,
+                                searchViewModel::changeName,
+                                searchViewModel::changeCategory,
+                                searchViewModel::changeEnabled,
+                                searchViewModel::changeAvailableOn,
+                                searchViewModel::search,
+                                searchViewModel::retry,
+                                searchViewModel::previousPage,
+                                searchViewModel::nextPage,
+                                sessionViewModel::signOut,
+                                searchViewModel::ensureLoaded,
+                            )
                             SessionStatus.SIGNED_OUT -> if (showRegistration) {
                                 registrationScreen.Content(
                                     registrationViewModel.state.value,

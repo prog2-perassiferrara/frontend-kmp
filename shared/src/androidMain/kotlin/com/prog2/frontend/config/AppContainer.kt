@@ -5,6 +5,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.prog2.frontend.network.ApiConfiguration
 import com.prog2.frontend.network.ApiHttpClient
 import com.prog2.frontend.network.AuthenticatedApiClient
+import com.prog2.frontend.catalog.data.KtorCatalogApi
 import com.prog2.frontend.registration.data.KtorRegistrationApi
 import com.prog2.frontend.session.JwtExpiry
 import com.prog2.frontend.session.SessionLifecycleObserver
@@ -38,6 +39,7 @@ class AppContainer(context: Context, configuration: ApiConfiguration) {
     )
     val authenticatedApi = AuthenticatedApiClient(client, configuration, sessions)
     val registrationApi = KtorRegistrationApi(client, configuration)
+    val catalogApi = KtorCatalogApi(authenticatedApi)
 
     init {
         scope.launch { sessions.restore() }
