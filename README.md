@@ -8,7 +8,7 @@
 
 Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gestión de reservas propias. Android debe permitir completar el flujo funcional requerido por cátedra.
 
-**Estado:** setup implementado, compilación debug y ejecución verificadas en un emulador Android API 37.0. Incluye una demo descartable con MVVM para mostrar u ocultar contenido. Los CU de negocio todavía no están implementados.
+**Estado:** inicio, conservación y cierre de sesión implementados con MVVM. El área autenticada es transitoria: muestra «Sesión iniciada» y permite cerrar sesión. Registro, Búsqueda y procesos se integran en sus respectivos CU. Ver resultados, límites y verificaciones en el [plan técnico de sesión](docs/features/sesion-usuario/PLAN.md).
 
 ## Requisitos
 
@@ -30,7 +30,29 @@ export JAVA_HOME=/ruta/al/jdk-21
 export ANDROID_HOME=/ruta/al/Android/Sdk
 ```
 
-El archivo `gradle/gradle-daemon-jvm.properties` exige Java 21 sin fijar proveedor. No se requieren credenciales ni backends para este setup.
+El archivo `gradle/gradle-daemon-jvm.properties` exige Java 21 sin fijar proveedor. Para iniciar sesión hace falta Turnos y una cuenta activa de usuario final. El registro desde la app todavía no está implementado; no usar credenciales técnicas de cátedra como cuenta de usuario.
+
+Debug usa los siguientes destinos desde el emulador Android:
+
+| Servicio | Origen |
+| --- | --- |
+| Turnos | `http://10.0.2.2:8081` |
+| Catálogo | `http://10.0.2.2:8080` |
+
+Las propiedades Gradle `TURNOS_BASE_URL` y `CATALOG_BASE_URL` permiten configurar otros orígenes HTTPS, mediante `-P` o el `gradle.properties` local del usuario. Por ejemplo, `-PTURNOS_BASE_URL=https://turnos.example.test`. Configurar los dos servicios según el entorno; no incluir rutas, query, fragmento ni credenciales en las URLs. En release ambos orígenes HTTPS son obligatorios, sin defaults de producción.
+
+HTTP está permitido únicamente en debug para `10.0.2.2`; no se deshabilita la validación TLS. Un dispositivo físico requiere conectividad hacia orígenes HTTPS configurados. La app no necesita CORS para su cliente Android nativo.
+
+En Android 17/API 37, el acceso a esos destinos locales exige un permiso adicional,
+declarado solo en debug. Después de instalar, habilitarlo para el emulador:
+
+```sh
+adb -s <serial> shell pm grant com.prog2.frontend android.permission.ACCESS_LOCAL_NETWORK
+```
+
+Si se deniega o revoca, el login informa indisponibilidad y permite reintentar;
+no conserva una sesión por omisión. Release no declara este permiso y usa los
+orígenes HTTPS configurados. Ver [permiso de red local de Android](https://developer.android.com/privacy-and-security/local-network-permission).
 
 ## Compilación y revisión
 
@@ -40,13 +62,19 @@ Desde la raíz del repositorio:
 ./gradlew check :androidApp:assembleDebug
 ```
 
-`check` ejecuta las verificaciones conectadas por los plugins, incluido lint. En este setup no hay fuentes de tests; un build correcto no acredita pruebas funcionales automatizadas. `assembleDebug` genera `androidApp/build/outputs/apk/debug/androidApp-debug.apk`.
+`check` ejecuta las pruebas host de sesión y las verificaciones conectadas por los plugins, incluido lint. `assembleDebug` genera `androidApp/build/outputs/apk/debug/androidApp-debug.apk`. Las pruebas host usan reloj controlado y MockEngine; no requieren un backend, emulador ni credenciales reales.
 
-La compilación y lint fueron comprobados en Linux; lint conserva seis avisos de versiones disponibles y recursos del wizard, sin errores. Windows y `gradlew.bat` no se comprobaron.
+La compilación y lint fueron comprobados en Linux; quedan avisos de versiones y recursos del launcher, sin errores. Windows y `gradlew.bat` no se comprobaron.
+
+Con un dispositivo o emulador conectado, ejecutar además las pruebas de Keystore/archivo reales, que no están incluidas en `check`:
+
+```sh
+./gradlew :shared:connectedAndroidDeviceTest
+```
 
 ## Ejecución Android
 
-Seleccionar `androidApp` y un emulador/dispositivo en Android Studio y pulsar **Run**. El título es `FrontendKmp`; el botón muestra u oculta el texto demostrativo. La demo conserva su estado al rotar o regresar del segundo plano con el proceso vivo; un proceso nuevo comienza con el contenido oculto.
+Seleccionar `androidApp` y un emulador/dispositivo en Android Studio y pulsar **Run**. Ingresar usuario o correo y contraseña de una cuenta activa de Turnos. «Recordarme» solicita 30 días en lugar de 24 horas; la app respeta el vencimiento recibido en ambos casos.
 
 Para instalar y abrir desde la terminal, con un dispositivo conectado:
 
@@ -55,17 +83,20 @@ Para instalar y abrir desde la terminal, con un dispositivo conectado:
 adb -s <serial> shell am start -n com.prog2.frontend/.MainActivity
 ```
 
-Ambos comandos se comprobaron en el emulador. Si `adb` no está en el PATH, usar el ejecutable de `platform-tools` del SDK.
+Si `adb` no está en el PATH, usar el ejecutable de `platform-tools` del SDK. Las verificaciones de cada revisión están en el plan de la funcionalidad; instalar o compilar no sustituye comprobar el comportamiento.
 
-`SetupScreen.kt` incluye `SetupScreenPreview`, una preview estática sin ViewModel. Su código compila; el renderizado en el IDE no forma parte de la evidencia de ejecución. Los escenarios y resultados están en [TASKS](docs/features/setup-kmp/TASKS.md).
+`LoginScreen.kt` incluye `LoginScreenPreview`, estática y sin ViewModel/red/almacenamiento. Su código compila; el renderizado en el IDE no forma parte de la evidencia de ejecución.
+
+La contraseña/formulario se mantienen solo en el ViewModel; no se restauran tras terminar el proceso Android. Se conserva únicamente el JWT cifrado con Android Keystore en un archivo privado excluido del backup. Logout y vencimiento/invalidez detectados retiran la sesión y el estado temporal, sin cancelar procesos o reservas. No hay renovación automática, consultas de negocio offline ni cola de solicitudes.
 
 ## Estructura y documentación
 
-- `androidApp`: entrada Android, manifest y recursos. Depende de `shared`.
-- `shared`: UI Compose y ViewModel comunes; solo target Android.
+- `androidApp`: entrada/Application Android, manifest, URLs y recursos por variante. Depende de `shared`.
+- `shared`: UI Compose, ViewModel, coordinador de sesión y cliente HTTP comunes; almacenamiento/ciclo de vida en `androidMain`. Solo target Android.
+- [Plan técnico de sesión](docs/features/sesion-usuario/PLAN.md).
 - [SPEC](docs/features/setup-kmp/SPEC.md), [PLAN y diagrama](docs/features/setup-kmp/PLAN.md) y [TASKS](docs/features/setup-kmp/TASKS.md) del setup.
 - [Casos de uso y diagrama](docs/use-cases/README.md) e [issues publicados](https://github.com/prog2-perassiferrara/frontend-kmp/issues).
 - [Instrucciones](AGENTS.md), [reglas de trabajo](docs/GENERIC_RULES.md) y [guía mobile](docs/MOBILE_GUIDELINES.md).
 - [Plantilla SPEC](docs/SPEC_TEMPLATE.md), [plantilla PLAN](docs/PLAN_TEMPLATE.md) y [prompts del workflow](docs/PROMPTS.md).
 
-El flujo es CU → issue → SPEC → PLAN → TASKS → implementación autorizada. El setup no consume APIs ni agrega sesión, persistencia, navegación de negocio o soporte offline a los CU.
+El flujo es CU → issue → SPEC breve → PLAN breve → TASKS breve → implementación y verificación. Turnos emite el JWT de usuario; el cliente protegido lo envía directamente a ambos backends. La app no recibe JWT técnico ni accede a bases de datos, Redis o Kafka.
