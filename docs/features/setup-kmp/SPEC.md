@@ -68,7 +68,7 @@ criterios, decisiones del plan y tareas. -->
 <!-- Exclusiones acordadas, no deducidas por el agente. Si no hay exclusiones
 adicionales, indícalo tras revisarlo con la persona. -->
 
-- Registro, login, sesión/JWT, búsquedas, disponibilidad, procesos, reservas, cancelación y abandono: permanecen en los issues funcionales.
+- Registro, login, sesión/JWT, búsquedas, disponibilidad, procesos, reservas y cancelación: permanecen en los issues funcionales. El abandono de proceso no está en el contrato de Turnos.
 - Plataformas adicionales, navegación entre pantallas de negocio, clientes HTTP, bases locales, consultas offline, colas y tareas en segundo plano.
 - Configuración de CI, SonarCloud, Kover o un porcentaje obligatorio de cobertura para KMP. Las pruebas automatizadas siguen siendo opcionales; comprobar los criterios acordados sí es necesario.
 

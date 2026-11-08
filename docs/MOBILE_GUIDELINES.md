@@ -18,4 +18,4 @@ Al crear una especificación, tener en cuenta los siguientes puntos y aplicar lo
 - **Idiomas y formatos:** cuando aplique, contemplar traducciones, longitud de textos, fechas, zonas horarias, números y unidades.
 - **Validación en mobile:** incluir pruebas de los escenarios relevantes, como interrupciones, reapertura, cambios de conectividad, permisos y distintos tamaños de pantalla. Complementar los tests automatizados con comprobaciones en dispositivo, emulador o simulador según lo que se necesite validar.
 
-Estos puntos no amplían automáticamente el alcance. Incorporar al SPEC.md los requisitos, decisiones de comportamiento y criterios de aceptación que se deriven de los puntos aplicables y de las decisiones confirmadas. Las decisiones técnicas y sus mecanismos corresponden a PLAN.md; para KMP, respetar las indicaciones arquitectónicas pendientes del profesor.
+Estos puntos no amplían automáticamente el alcance. Incorporar al plan los requisitos, decisiones de comportamiento y criterios de aceptación que se deriven de los puntos aplicables y de las decisiones confirmadas. Las decisiones técnicas y sus mecanismos corresponden al plan.

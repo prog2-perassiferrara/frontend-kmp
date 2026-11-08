@@ -40,7 +40,7 @@
 
 - Esta acción no depende de Catálogo. Turnos controla propiedad y permisos.
 - El diálogo previo y la omisión de motivo fueron confirmados por el usuario; la API central permite cancelación sin body.
-- Se diferencia del abandono de un proceso pendiente (CU-11), aunque Turnos use la operación central de cancelación para ambos.
+- Se aplica solo a una reserva confirmada. Turnos no expone abandono de un proceso pendiente.
 - Un timeout no prueba fallo; no habilita reenvíos indiscriminados.
 - Sin cancelación offline ni cola de solicitudes; el diálogo no confirmado es estado temporal, según [la política acordada](README.md).
 

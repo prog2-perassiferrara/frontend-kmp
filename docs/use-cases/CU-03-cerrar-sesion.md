@@ -36,7 +36,7 @@
 
 ## Reglas y relaciones
 
-- Cerrar sesión no es abandonar: [CU-11](CU-11-abandonar-proceso.md) requiere su propia acción explícita.
+- Cerrar sesión no cancela procesos ni reservas.
 - El cierre no demuestra revocación remota del JWT ni altera el vencimiento del hold.
 - [CU-02](CU-02-iniciar-sesion.md) aplica esta misma limpieza local al detectar vencimiento o rechazo del JWT de usuario como inválido, al abrir/reabrir, volver del segundo plano, antes de una petición protegida o ante rechazo de autenticación del backend. No se fuerza el cierre por temporizador. Se descartan los borradores aunque la misma persona vuelva a autenticarse; las operaciones ya enviadas conservan su progreso en Turnos y se consultan después del login.
 - Al volver con la misma cuenta, CU-02 recupera el proceso pendiente si existe.

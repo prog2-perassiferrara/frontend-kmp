@@ -1,26 +1,18 @@
-# Prompt para iniciar una especificación
+# Prompts para trabajar una funcionalidad
 
-Quiero que me ayudes a escribir la especificación de [funcionalidad] para este repositorio. Seguimos un flujo SPEC → PLAN → TASKS → implementación → evidencia; esta solicitud cubre únicamente la especificación.
+## Iniciar un caso de uso
 
-Los CU y el issue organizan el trabajo previo; no sustituyen la SPEC ni aprueban su implementación. Si el issue todavía es un borrador local, conservar ese estado y no publicarlo.
+Quiero implementar [CU-XX y nombre] en este repositorio, asociado al issue [enlace o borrador].
 
-1. Lee las instrucciones del proyecto, `docs/GENERIC_RULES.md`, `docs/SPEC_TEMPLATE.md` y la documentación pertinente del enunciado y del contrato de integración.
-2. Inspecciona el estado real del repositorio. No presupongas que existe código o comportamiento implementado.
-3. Consulta `docs/MOBILE_GUIDELINES.md` y aplica únicamente los puntos pertinentes a la funcionalidad. No anticipes las decisiones arquitectónicas pendientes del profesor.
-4. Lee el CU pertinente y los acuerdos de los backends. Prepara un borrador de `SPEC.md` en `docs/features/<funcionalidad>/`, con hechos comprobados, alcance, reglas, errores y criterios de aceptación verificables. Usa la plantilla y conserva sus comentarios.
-5. Distingue requisitos confirmados, propuestas y decisiones pendientes. Haz pocas preguntas por vez y actualiza el borrador con mis respuestas. No conviertas propuestas en decisiones aprobadas.
-6. Mantén el diseño técnico para `PLAN.md`. Cuando solicite esa etapa, utiliza `docs/PLAN_TEMPLATE.md` y las decisiones arquitectónicas acordadas para KMP.
+1. Leé `AGENTS.md`, `docs/GENERIC_RULES.md`, el CU y las secciones pertinentes del enunciado y del contrato de integración. Inspeccioná el código real antes de proponer cambios.
+2. Escribí `docs/features/<funcionalidad>/SPEC.md` de forma breve: comportamiento, alcance, requisitos RF y criterios CA verificables. No incluyas diseño técnico.
+3. Escribí `PLAN.md` en la misma carpeta: decisiones técnicas, archivos afectados y validación. Referenciá la SPEC por RF/CA sin copiarla.
+4. Derivá `TASKS.md`: pasos ordenados, dependencias, referencias a RF/CA y método de validación. Sin matrices de trazabilidad.
+5. Implementá el caso de uso completo, con cambios mínimos y las pruebas pertinentes. No agregues pantallas, navegación, capas ni dependencias que el CU todavía no necesite.
+6. Ejecutá las comprobaciones disponibles y registrá en `TASKS.md` la evidencia real, lo pendiente y su motivo. No afirmes resultados no observados.
 
-Mantén los documentos proporcionales al alcance y referencia los acuerdos existentes sin repetirlos. Para cambios sustanciales posteriores a una aprobación, aplica la nota breve definida en `AGENTS.md`.
+La autorización para desarrollar el CU cubre estas etapas: no pidas aprobaciones rutinarias intermedias. Consultá solo decisiones que cambien comportamiento, contratos, alcance o impliquen cambios destructivos. No hagas commits, push ni PR salvo que lo pida explícitamente.
 
-No marques documentos como aprobados sin mi confirmación. No implementes durante la especificación ni la planificación; la implementación requiere una solicitud explícita.
+## Revisar una implementación existente
 
-## Prompt para planificar una funcionalidad
-
-Quiero preparar `PLAN.md` junto a la SPEC aprobada de [funcionalidad], usando `docs/PLAN_TEMPLATE.md`. Revisá los contratos consumidos de Catálogo y Turnos, las decisiones mobile y el estado real del repositorio. Si faltan las indicaciones arquitectónicas del profesor, dejá esa decisión pendiente y no inventes una arquitectura KMP. Consultá las decisiones técnicas abiertas, vinculá la solución y su validación con RF/CA y mantené las propuestas diferenciadas de los acuerdos. No implementes ni marques el PLAN como aprobado sin confirmación.
-
-## Prompt para derivar tareas
-
-Quiero derivar `TASKS.md` del PLAN aprobado de [funcionalidad], en la misma carpeta. Cada tarea tendrá casilla, ID, objetivo, alcance, dependencias, referencias RF/CA y método de validación. Registrá los resultados solo después de ejecutar las comprobaciones. No empieces la implementación sin autorización explícita ni elijas decisiones que siguen pendientes en el PLAN.
-
-Antes de implementar, realizá el chequeo de coherencia definido en `AGENTS.md` y registrá una línea en `TASKS.md`. Al terminar la funcionalidad, completá su cierre breve con CA/evidencia, regresión y desviaciones del PLAN, sin otro reporte.
+Revisá [funcionalidad o archivos] contra su CU, la SPEC, el PLAN, las TASKS y el estado real del repositorio. Señalá problemas concretos de comportamiento, concurrencia, seguridad o pruebas, y explicá el fundamento. No reescribas el trabajo ajeno sin pedido. Si encontrás una contradicción documental, corregí solo las referencias vigentes y preservá el historial.
