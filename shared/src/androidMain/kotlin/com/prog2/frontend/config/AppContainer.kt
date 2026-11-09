@@ -8,6 +8,7 @@ import com.prog2.frontend.network.AuthenticatedApiClient
 import com.prog2.frontend.availability.data.KtorAvailabilityApi
 import com.prog2.frontend.catalog.data.KtorCatalogApi
 import com.prog2.frontend.registration.data.KtorRegistrationApi
+import com.prog2.frontend.reservation.data.KtorReservationsApi
 import com.prog2.frontend.session.JwtExpiry
 import com.prog2.frontend.session.SessionLifecycleObserver
 import com.prog2.frontend.session.SessionManager
@@ -42,6 +43,7 @@ class AppContainer(context: Context, configuration: ApiConfiguration) {
     val registrationApi = KtorRegistrationApi(client, configuration)
     val catalogApi = KtorCatalogApi(authenticatedApi)
     val availabilityApi = KtorAvailabilityApi(authenticatedApi)
+    val reservationsApi = KtorReservationsApi(authenticatedApi)
 
     init {
         scope.launch { sessions.restore() }
