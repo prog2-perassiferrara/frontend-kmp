@@ -53,7 +53,7 @@ class SearchViewModel(private val catalogApi: CatalogApi) : ViewModel() {
         }
         val date = current.availableOn.trim()
         val dateError = if (date.isNotEmpty() && !DATE_PATTERN.matches(date)) {
-            "Usá el formato AAAA-MM-DD."
+            "Elegí una fecha válida."
         } else {
             null
         }

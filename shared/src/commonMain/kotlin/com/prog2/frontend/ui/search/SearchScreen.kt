@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -34,6 +33,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.prog2.frontend.catalog.data.CatalogCategory
 import com.prog2.frontend.catalog.data.Professional
+import com.prog2.frontend.ui.components.DatePickerModal
+import com.prog2.frontend.ui.components.displayDate
+import com.prog2.frontend.ui.components.isoDate
 
 /**
  * Presenta los filtros, resultados y paginación de CU-04. Toda validación,
@@ -52,16 +54,13 @@ class SearchScreen {
         onPrevious: () -> Unit,
         onNext: () -> Unit,
         onSelect: (Professional) -> Unit,
-        onSignOut: () -> Unit,
         onLoad: () -> Unit,
     ) {
         LaunchedEffect(Unit) { onLoad() }
         val enabled = !state.isSearching
+        var datePickerVisible by remember { mutableStateOf(false) }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Buscar profesionales", style = MaterialTheme.typography.h5)
-            TextButton(onClick = onSignOut) { Text("Salir") }
-        }
+        Text("Buscar profesionales", style = MaterialTheme.typography.h5)
 
         OutlinedTextField(
             value = state.name,
@@ -82,17 +81,26 @@ class SearchScreen {
 
         EnabledFilter(state.enabled, enabled, onEnabled)
 
-        OutlinedTextField(
-            value = state.availableOn,
-            onValueChange = onAvailableOn,
-            label = { Text("Disponible el (AAAA-MM-DD)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            enabled = enabled,
-            isError = state.availableOnError != null,
-            keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { if (enabled) onSearch() }),
-        )
+        Text("Disponible el", style = MaterialTheme.typography.body2)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(
+                onClick = { datePickerVisible = true },
+                enabled = enabled,
+            ) {
+                Text(
+                    if (state.availableOn.isBlank()) {
+                        "Seleccionar fecha"
+                    } else {
+                        displayDate(state.availableOn)
+                    },
+                )
+            }
+            if (state.availableOn.isNotBlank()) {
+                TextButton(onClick = { onAvailableOn("") }, enabled = enabled) {
+                    Text("Quitar fecha")
+                }
+            }
+        }
         state.availableOnError?.let { FieldError(it) }
         Text(
             "Filtra por agenda habilitada para ese día de la semana; no garantiza horarios libres.",
@@ -112,7 +120,8 @@ class SearchScreen {
         if (state.hasResult) {
             if (state.catalogOutdated) {
                 Text(
-                    "Aviso: el catálogo puede estar desactualizado; se muestran los últimos datos disponibles.",
+                    "Aviso: la información de profesionales puede estar desactualizada; " +
+                        "se muestran los últimos datos disponibles.",
                     style = MaterialTheme.typography.body2,
                     color = MaterialTheme.colors.error,
                 )
@@ -125,6 +134,18 @@ class SearchScreen {
                 Divider()
             }
             Pagination(state, enabled, onPrevious, onNext)
+        }
+
+        if (datePickerVisible) {
+            DatePickerModal(
+                initialDate = state.availableOn,
+                allowPastDates = true,
+                onDateSelected = { year, month, day ->
+                    datePickerVisible = false
+                    onAvailableOn(isoDate(year, month, day))
+                },
+                onDismiss = { datePickerVisible = false },
+            )
         }
     }
 
@@ -224,7 +245,8 @@ class SearchScreen {
     private fun Pagination(state: SearchUiState, enabled: Boolean, onPrevious: () -> Unit, onNext: () -> Unit) {
         if (state.totalPages <= 0) return
         Text(
-            "Página ${state.page + 1} de ${state.totalPages} · ${state.totalElements} resultado(s)",
+            "Página ${state.page + 1} de ${state.totalPages} · ${state.totalElements} " +
+                "${if (state.totalElements == 1L) "resultado" else "resultados"}",
             style = MaterialTheme.typography.body2,
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -259,7 +281,8 @@ private fun SearchScreenPreview() {
                     ),
                 ),
                 onName = {}, onCategory = {}, onEnabled = {}, onAvailableOn = {},
-                onSearch = {}, onRetry = {}, onPrevious = {}, onNext = {}, onSelect = {}, onSignOut = {}, onLoad = {},
+                onSearch = {}, onRetry = {}, onPrevious = {}, onNext = {}, onSelect = {},
+                onLoad = {},
             )
         }
     }

@@ -338,6 +338,40 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun theOptionalDateIsSentInIsoAndClearedWithoutLosingTheOtherFilters() = runTest(dispatcher) {
+        val api = FakeCatalogApi()
+        api.searchAnswer = { query -> page(listOf(ana), page = query.page, totalPages = 2, totalElements = 2) }
+        val vm = viewModel(api)
+        vm.ensureLoaded()
+        runCurrent()
+
+        vm.changeName("Ana")
+        vm.changeCategory(1)
+        vm.changeEnabled(true)
+        vm.changeAvailableOn("2026-11-09")
+        vm.search()
+        runCurrent()
+        assertEquals("2026-11-09", api.queries.last().availableOn)
+
+        vm.changeAvailableOn("")
+        assertEquals("", vm.state.value.availableOn)
+        assertFalse(vm.state.value.canGoForward)
+        val queriesBeforeSearch = api.queries.size
+        vm.nextPage()
+        runCurrent()
+        assertEquals(queriesBeforeSearch, api.queries.size)
+
+        vm.search()
+        runCurrent()
+        val sent = api.queries.last()
+        assertNull(sent.availableOn)
+        assertEquals("Ana", sent.name)
+        assertEquals(1L, sent.categoryId)
+        assertEquals(true, sent.enabled)
+        assertEquals(0, sent.page)
+    }
+
+    @Test
     fun resetCancelsAPendingCategoriesLoad() = runTest(dispatcher) {
         val api = FakeCatalogApi()
         val categoriesGate = CompletableDeferred<Unit>()

@@ -45,7 +45,7 @@
 
 ## Fuentes y pendientes
 
-**Fuentes:** [CU-05 de Turnos](../../../backend-turnos/docs/use-cases/CU-05-completar-informacion.md); [anexo, secciones 15.4 a 15.9](../../../INTEGRATION_REFERENCE-v2.md).
+**Fuentes:** CU-05 de Turnos; anexo, secciones 15.4 a 15.9.
 
 **Pendiente para la SPEC:** mensajes de validación y presentación del vencimiento. Conservación temporal del formulario ya acordada.
 

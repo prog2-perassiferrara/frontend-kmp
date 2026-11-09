@@ -2,7 +2,7 @@
 
 **Estado:** Implementada y verificada con pruebas; envío real no ejecutado.
 **CU e issue de referencia:** [CU-07](../../use-cases/CU-07-completar-informacion.md); issue #10.
-**Fuentes:** [CU-07 de KMP](../../use-cases/CU-07-completar-informacion.md), [CU-05 de Turnos](../../../../backend-turnos/docs/use-cases/CU-05-completar-informacion.md), [contrato de Turnos](../../../../backend-turnos/docs/CONTRATOS.md#api-propia-de-turnos), [anexo, secciones 15.4 a 15.9](../../../../INTEGRATION_REFERENCE-v2.md) e [instrucciones KMP](../../../AGENTS.md).
+**Fuentes:** [CU-07 de KMP](../../use-cases/CU-07-completar-informacion.md), CU-05 de Turnos, contrato de Turnos, anexo, secciones 15.4 a 15.9 e [instrucciones KMP](../../../AGENTS.md).
 
 ## Objetivo
 

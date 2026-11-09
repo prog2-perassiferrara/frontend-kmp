@@ -32,6 +32,10 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
   - `availableStartTimes` sin valor por defecto; un 200 sin el campo produce error, no una lista vacía.
   - Depende de: T1.
   - Validación: regresión en `KtorAvailabilityApiTest` (5 pruebas).
+- [x] **T7 · Selector de fecha nativo** (RF-02, RF-04, RF-06)
+  - `DatePickerModal` (`expect`) y su implementación Android con `DatePickerDialog`; botón «Seleccionar fecha», fecha visible `DD/MM/AAAA` e internamente `AAAA-MM-DD`. `minDate` es hoy; cancelar no modifica. Se reutiliza `AvailabilityViewModel.changeDate()`, que descarta horarios y selección. El mismo componente, con `allowPastDates`, sirve al filtro de CU-04 sin agregar otro selector.
+  - Depende de: T3.
+  - Validación: `DatePickerPresentationTest` (2 pruebas) y emulador: elegir `10/11/2026`, cancelar sin cambios, rechazo de un día pasado y cambio a `11/11/2026` que invalida los horarios y la marca.
 
 ## Cierre
 
@@ -46,7 +50,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 | CA-05 | Verificado | `AvailabilityViewModelTest`; emulador con Turnos pausado: error de conexión y «Reintentar» devuelve los horarios al reactivarlo. |
 | CA-06 | Verificado | `KtorAvailabilityApiTest` (400/404 no reintentables, 401 cierra sesión); emulador: fecha pasada informa corrección sin reintento; profesional deshabilitado (Mariana Luna) informa «no habilitado» sin reintento. |
 | CA-07 | Verificado | `AvailabilityViewModelTest`: cambiar la fecha cancela y descarta la respuesta pendiente; el reintento usa la fecha vigente. |
-| CA-08 | Verificado | `SearchViewModelTest`; emulador: rotación conserva profesional, fecha, horarios y horario marcado; «Volver» conserva búsqueda; «Salir» vuelve al login y un nuevo inicio parte de filtros vacíos. |
+| CA-08 | Verificado | `SearchViewModelTest`; emulador: rotación conserva profesional, fecha, horarios y horario marcado; «Volver» conserva búsqueda; «Cerrar sesión» (pestaña Cuenta) vuelve al login y un nuevo inicio parte de filtros vacíos. |
 | CA-09 | Verificado | Emulador: la pantalla advierte que consultar no reserva y que iniciar la reserva pertenece al paso siguiente. |
 | CA-10 | Verificado | `AvailabilityViewModelTest` (marca, rechazo de un horario no ofrecido, conservación al rotar y descarte al cambiar fecha); `KtorAvailabilityApiTest` (campo obligatorio); emulador: «12:30» queda marcado como «Horario elegido… Todavía no está reservado» y la marca desaparece al cambiar a `2026-11-10`. |
 
@@ -58,4 +62,4 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 
 ### Desviaciones del PLAN
 
-Ninguna. Límites observados: el retroceso del sistema en la pantalla de disponibilidad no se intercepta (cierra la actividad; la vuelta explícita es «Volver»); el `401` y el `503 CATALOG_NOT_CURRENT` se cubren con pruebas, no se forzaron en el recorrido por no exponer el backend un mecanismo determinista.
+Ninguna. La vuelta desde disponibilidad usa el `NavController` (`popBackStack`): «Volver» y Atrás regresan a Buscar sin cerrar la Activity. Límites observados: el `401` y el `503 CATALOG_NOT_CURRENT` se cubren con pruebas, no se forzaron en el recorrido por no exponer el backend un mecanismo determinista.

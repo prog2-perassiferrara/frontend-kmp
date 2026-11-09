@@ -359,6 +359,248 @@ class KtorReservationsApiTest {
     }
 
     @Test
+    fun ownReservationsReadPendingHistoryAndPagination() = runTest {
+        val manager = manager()
+        manager.signIn("patient", "secret", false)
+        var requests = 0
+        val client = ApiHttpClient().create(MockEngine { http ->
+            requests++
+            assertEquals(HttpMethod.Get, http.method)
+            assertEquals("/api/reservations", http.url.encodedPath)
+            assertEquals("1", http.url.parameters["page"])
+            assertEquals("10", http.url.parameters["size"])
+            assertEquals("Bearer ${testToken()}", http.headers[HttpHeaders.Authorization])
+            respond(
+                """{"pending":$processJson,"history":{"content":[
+                    {"processId":"$processId","professionalId":201,"date":"2026-11-09",
+                     "startTime":"12:30:00","state":"CANCELLED","expiresAt":null,
+                     "reasonCode":null,"requiredField":null,"canSubmitPhone":false,
+                     "professionalFirstName":null,"professionalLastName":null,"cancellation":null},
+                    {"processId":"$phoneRequestId","professionalId":202,"date":"2026-11-10",
+                     "startTime":"09:00:00","state":"CONFIRMED","expiresAt":"2026-11-10T15:30:00Z",
+                     "reasonCode":null,"requiredField":null,"canSubmitPhone":false,
+                     "professionalFirstName":"Ana","professionalLastName":"Torres",
+                     "cancellation":{"status":"PENDING","canRetry":false}}
+                ],"page":1,"size":10,"totalElements":12,"totalPages":2}}""",
+                HttpStatusCode.OK,
+                headersOf(HttpHeaders.ContentType, "application/json"),
+            )
+        })
+        try {
+            val page = KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                .reservations(1, 10)
+            assertEquals(processId, page.pending?.id)
+            assertEquals(2, page.content.size)
+            assertEquals("CANCELLED", page.content[0].state)
+            assertEquals("Ana Torres", page.content[1].professionalName)
+            assertTrue(page.content[1].cancellationPending)
+            assertFalse(page.content[1].canRequestCancellation)
+            assertEquals(1, page.page)
+            assertEquals(10, page.size)
+            assertEquals(12L, page.totalElements)
+            assertEquals(2, page.totalPages)
+            assertEquals(1, requests)
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
+    fun ownReservationsFailureAndTransportAreUncertainReads() = runTest {
+        val manager = manager()
+        manager.signIn("patient", "secret", false)
+        val client = ApiHttpClient().create(MockEngine {
+            respond("", HttpStatusCode.BadRequest, headersOf(HttpHeaders.ContentType, "application/problem+json"))
+        })
+        try {
+            assertEquals(
+                ReservationFailure.UNCERTAIN,
+                assertFailsWith<ReservationException> {
+                    KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                        .reservations(0, 10)
+                }.failure,
+            )
+        } finally {
+            client.close()
+        }
+
+        val other = manager()
+        other.signIn("patient", "secret", false)
+        val offline = ApiHttpClient().create(MockEngine { throw RuntimeException("network") })
+        try {
+            assertEquals(
+                ReservationFailure.UNCERTAIN,
+                assertFailsWith<ReservationException> {
+                    KtorReservationsApi(AuthenticatedApiClient(offline, configuration, other))
+                        .reservations(0, 10)
+                }.failure,
+            )
+        } finally {
+            offline.close()
+        }
+    }
+
+    @Test
+    fun ownReservationsIncompleteHistoryIsAReadFailure() = runTest {
+        val missingHistory = listOf(
+            """{"pending":null}""",
+            """{"history":{}}""",
+            """{"history":{"content":[]}}""",
+            """{"history":{"content":[],"page":0,"size":10,"totalElements":0}}""",
+        )
+        for (body in missingHistory) {
+            val manager = manager()
+            manager.signIn("patient", "secret", false)
+            val client = ApiHttpClient().create(MockEngine {
+                respond(
+                    body,
+                    HttpStatusCode.OK,
+                    headersOf(HttpHeaders.ContentType, "application/json"),
+                )
+            })
+            try {
+                val failure = assertFailsWith<ReservationException> {
+                    KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                        .reservations(0, 10)
+                }
+                assertEquals(ReservationFailure.UNCERTAIN, failure.failure, "body=$body")
+            } finally {
+                client.close()
+            }
+        }
+    }
+
+    @Test
+    fun ownReservationsWithoutPendingAndWithACompleteEmptyHistoryIsEmptyButValid() = runTest {
+        val manager = manager()
+        manager.signIn("patient", "secret", false)
+        val client = ApiHttpClient().create(MockEngine {
+            respond(
+                """{"pending":null,"history":{"content":[],"page":0,"size":10,
+                    "totalElements":0,"totalPages":0}}""",
+                HttpStatusCode.OK,
+                headersOf(HttpHeaders.ContentType, "application/json"),
+            )
+        })
+        try {
+            val page = KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                .reservations(0, 10)
+            assertNull(page.pending)
+            assertTrue(page.content.isEmpty())
+            assertEquals(0, page.page)
+            assertEquals(10, page.size)
+            assertEquals(0L, page.totalElements)
+            assertEquals(0, page.totalPages)
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
+    fun cancelSendsNoBodyAndAcceptsBothSuccessCodes() = runTest {
+        val cancelled = """{"processId":"$processId","professionalId":201,"date":"2026-11-09",
+            "startTime":"12:30:00","state":"CANCELLED","expiresAt":"2026-11-09T15:30:00Z",
+            "reasonCode":null,"requiredField":null,"canSubmitPhone":false,
+            "professionalFirstName":"Ana","professionalLastName":"Torres","cancellation":null}"""
+        val pending = """{"processId":"$processId","professionalId":201,"date":"2026-11-09",
+            "startTime":"12:30:00","state":"CONFIRMED","expiresAt":"2026-11-09T15:30:00Z",
+            "reasonCode":null,"requiredField":null,"canSubmitPhone":false,
+            "professionalFirstName":"Ana","professionalLastName":"Torres",
+            "cancellation":{"status":"PENDING","canRetry":false}}"""
+        for ((status, body) in listOf(HttpStatusCode.OK to cancelled, HttpStatusCode.Accepted to pending)) {
+            val manager = manager()
+            manager.signIn("patient", "secret", false)
+            var requests = 0
+            val client = ApiHttpClient().create(MockEngine { http ->
+                requests++
+                assertEquals(HttpMethod.Post, http.method)
+                assertEquals("/api/reservation-processes/$processId/cancel", http.url.encodedPath)
+                assertEquals("Bearer ${testToken()}", http.headers[HttpHeaders.Authorization])
+                assertTrue(http.body.toByteArray().isEmpty())
+                respond(body, status, headersOf(HttpHeaders.ContentType, "application/json"))
+            })
+            try {
+                val process = KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                    .cancel(processId)
+                assertEquals(processId, process.id)
+                assertEquals(status == HttpStatusCode.OK, process.state == "CANCELLED")
+                assertEquals(status == HttpStatusCode.Accepted, process.cancellationPending)
+                assertEquals(1, requests)
+            } finally {
+                client.close()
+            }
+        }
+    }
+
+    @Test
+    fun cancelMapsKnownRejectionsAndUncertainOutcomes() = runTest {
+        val cases = listOf(
+            Case(409, """{"code":"CANCELLATION_NOT_ALLOWED"}""", ReservationFailure.REJECTED, null),
+            Case(404, """{"code":"RESERVATION_PROCESS_NOT_FOUND"}""", ReservationFailure.NOT_FOUND, null),
+            Case(403, """{"code":"ACCESS_DENIED"}""", ReservationFailure.REJECTED, null),
+            Case(400, "", ReservationFailure.REJECTED, null),
+            Case(503, """{"code":"CANCELLATION_REJECTED"}""", ReservationFailure.UNCERTAIN, null),
+            Case(503, """{"code":"CANCELLATION_UNCERTAIN"}""", ReservationFailure.UNCERTAIN, null),
+            Case(500, """{"code":"INTERNAL_ERROR"}""", ReservationFailure.UNCERTAIN, null),
+        )
+        for (case in cases) {
+            val manager = manager()
+            manager.signIn("patient", "secret", false)
+            var requests = 0
+            val client = ApiHttpClient().create(MockEngine {
+                requests++
+                respond(
+                    case.body,
+                    HttpStatusCode.fromValue(case.status),
+                    headersOf(HttpHeaders.ContentType, "application/problem+json"),
+                )
+            })
+            try {
+                val failure = assertFailsWith<ReservationException> {
+                    KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                        .cancel(processId)
+                }
+                assertEquals(case.failure, failure.failure, "status=${case.status} body=${case.body}")
+                assertEquals(case.processId, failure.processId)
+                assertEquals(1, requests)
+            } finally {
+                client.close()
+            }
+        }
+    }
+
+    @Test
+    fun cancelTransportFailureIsUncertainAndANonUuidIsNotSent() = runTest {
+        val manager = manager()
+        manager.signIn("patient", "secret", false)
+        val client = ApiHttpClient().create(MockEngine { throw RuntimeException("network") })
+        try {
+            val failure = assertFailsWith<ReservationException> {
+                KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager)).cancel(processId)
+            }
+            assertEquals(ReservationFailure.UNCERTAIN, failure.failure)
+        } finally {
+            client.close()
+        }
+
+        val other = manager()
+        other.signIn("patient", "secret", false)
+        var requests = 0
+        val local = ApiHttpClient().create(MockEngine { requests++; respond(processJson) })
+        try {
+            assertEquals(
+                ReservationFailure.NOT_FOUND,
+                assertFailsWith<ReservationException> {
+                    KtorReservationsApi(AuthenticatedApiClient(local, configuration, other)).cancel("../otro")
+                }.failure,
+            )
+            assertEquals(0, requests)
+        } finally {
+            local.close()
+        }
+    }
+
+    @Test
     fun phoneSendsTheContractBodyAndBearerAndAcceptsBothSuccessCodes() = runTest {
         for (status in listOf(HttpStatusCode.Accepted, HttpStatusCode.OK)) {
             val manager = manager()

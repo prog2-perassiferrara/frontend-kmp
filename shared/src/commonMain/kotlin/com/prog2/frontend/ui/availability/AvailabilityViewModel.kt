@@ -73,7 +73,7 @@ class AvailabilityViewModel(private val availabilityApi: AvailabilityApi) : View
         if (!current.canConsult) return
         val date = current.date.trim()
         if (!DATE_PATTERN.matches(date)) {
-            updateState { it.copy(dateError = "Usá el formato AAAA-MM-DD.") }
+            updateState { it.copy(dateError = "Elegí una fecha válida.") }
             return
         }
         request(current.professionalId ?: return, date)

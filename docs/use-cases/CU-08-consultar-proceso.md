@@ -49,7 +49,7 @@
 
 ## Fuentes y pendientes
 
-**Fuentes:** [CU-06 de Turnos](../../../backend-turnos/docs/use-cases/CU-06-consultar-proceso.md); [CU-09 de Turnos](../../../backend-turnos/docs/use-cases/CU-09-recuperar-procesos.md); [decisión de navegación](README.md).
+**Fuentes:** CU-06 de Turnos; CU-09 de Turnos; [decisión de navegación](README.md).
 
 **Pendiente para la SPEC:** vocabulario visible y navegación durante incertidumbre y al finalizar. Aplicar la política de conservación temporal ya acordada.
 

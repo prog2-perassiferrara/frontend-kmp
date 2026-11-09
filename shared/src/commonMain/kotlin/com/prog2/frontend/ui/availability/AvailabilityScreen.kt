@@ -6,30 +6,34 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.prog2.frontend.ui.components.DatePickerModal
+import com.prog2.frontend.ui.components.displayDate
+import com.prog2.frontend.ui.components.isoDate
 
 /**
- * Presenta la disponibilidad de CU-05: profesional, fecha, estados y horarios de
- * Turnos. Permite marcar un horario, pero no reserva ni crea holds.
+ * Presenta la disponibilidad de CU-05: profesional, fecha, estados y horarios.
+ * Permite marcar un horario, pero no reserva ni retiene el horario.
  */
 class AvailabilityScreen {
     @Composable
@@ -44,6 +48,7 @@ class AvailabilityScreen {
         onBack: () -> Unit,
     ) {
         val enabled = !state.isLoading
+        var datePickerVisible by remember { mutableStateOf(false) }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Disponibilidad", style = MaterialTheme.typography.h5)
@@ -54,17 +59,14 @@ class AvailabilityScreen {
             Text(state.categoryName, style = MaterialTheme.typography.body2)
         }
 
-        OutlinedTextField(
-            value = state.date,
-            onValueChange = onDate,
-            label = { Text("Fecha (AAAA-MM-DD)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
+        Text("Fecha", style = MaterialTheme.typography.body2)
+        OutlinedButton(
+            onClick = { datePickerVisible = true },
             enabled = enabled,
-            isError = state.dateError != null,
-            keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { if (state.canConsult) onConsult() }),
-        )
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(if (state.date.isBlank()) "Seleccionar fecha" else displayDate(state.date))
+        }
         state.dateError?.let { FieldError(it) }
 
         Button(onClick = onConsult, enabled = state.canConsult, modifier = Modifier.fillMaxWidth()) {
@@ -113,11 +115,22 @@ class AvailabilityScreen {
                     Text(it, style = MaterialTheme.typography.body2)
                 }
                 Text(
-                    "Consultar no reserva el horario: puede ocuparse antes de reservarlo. " +
-                        "La solicitud queda en curso hasta que Turnos informe el resultado.",
+                    "Consultar no reserva el horario: puede ocuparse antes de que lo solicites. " +
+                        "La solicitud queda pendiente hasta que se confirme.",
                     style = MaterialTheme.typography.body2,
                 )
             }
+        }
+
+        if (datePickerVisible) {
+            DatePickerModal(
+                initialDate = state.date,
+                onDateSelected = { year, month, day ->
+                    datePickerVisible = false
+                    onDate(isoDate(year, month, day))
+                },
+                onDismiss = { datePickerVisible = false },
+            )
         }
     }
 

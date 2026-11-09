@@ -2,7 +2,7 @@
 
 **Estado:** Implementada y verificada con pruebas; prueba de integración real el 2026-11-09.
 **CU e issue de referencia:** [CU-08](../../use-cases/CU-08-consultar-proceso.md); issue #11.
-**Fuentes:** [CU-08 de KMP](../../use-cases/CU-08-consultar-proceso.md), [CU-06 de Turnos](../../../../backend-turnos/docs/use-cases/CU-06-consultar-proceso.md), [CU-09 de Turnos](../../../../backend-turnos/docs/use-cases/CU-09-recuperar-procesos.md), [contrato de Turnos](../../../../backend-turnos/docs/CONTRATOS.md#api-propia-de-turnos) e [instrucciones KMP](../../../AGENTS.md).
+**Fuentes:** [CU-08 de KMP](../../use-cases/CU-08-consultar-proceso.md), CU-06 de Turnos, CU-09 de Turnos, contrato de Turnos e [instrucciones KMP](../../../AGENTS.md).
 
 ## Objetivo
 
@@ -12,12 +12,12 @@ Mostrar el progreso que Turnos informa para el proceso propio, permitir actualiz
 
 - **RF-01 · Consulta:** `GET /api/reservation-processes/{processId}` con el JWT de usuario y sin iniciar un hold ni un proceso nuevo.
 - **RF-02 · Progreso:** presentar la fase, los datos de la selección y el grado de verificación recibidos. `CONFIRMED`, `FAILED`, `EXPIRED` y `CANCELLED` solo se muestran si Turnos los informa.
-- **RF-03 · Vencimiento:** mostrar `expiresAt` como vencimiento UTC informado por Turnos. El reloj del dispositivo no se usa para declarar vencido, cancelado ni confirmado un proceso.
+- **RF-03 · Vencimiento:** mostrar `expiresAt` mientras la solicitud siga abierta, convertido a la zona horaria de atención con la que la aplicación presenta las fechas y horas de los turnos. El contrato lo informa en UTC; un proceso finalizado puede conservarlo en el DTO, pero ya no es relevante. El reloj del dispositivo no se usa para declarar vencido, cancelado ni confirmado un proceso.
 - **RF-04 · Teléfono:** cuando `requiredField=PHONE_NUMBER` o `canSubmitPhone=true`, avisar que falta el teléfono y dejar la acción para CU-07. No se envía ni se solicita el número.
 - **RF-05 · Actualización:** permitir actualizar el proceso conocido sin polling permanente. La actualización no crea efectos.
 - **RF-06 · Pendiente propio:** al iniciar sesión o reabrir la app, consultar `GET /api/reservations?page=0&size=1` y abrir el `pending` solo si Turnos lo devuelve.
 - **RF-07 · Descubrimiento no bloqueante:** si la consulta inicial falla, abrir la búsqueda y mostrar un aviso con “Reintentar”; no deducir ausencia de proceso.
-- **RF-08 · Salir y volver:** salir de la pantalla no cancela ni abandona el proceso. Desde la búsqueda, un aviso permite volver a consultarlo.
+- **RF-08 · Salir y volver:** salir de la pantalla no cancela ni abandona el proceso. El regreso conserva el origen: vuelve a Cuenta si el proceso se abrió allí y a Buscar si se abrió desde el flujo de búsqueda. Desde la búsqueda, un aviso permite volver a consultarlo.
 - **RF-09 · Sesión y respuestas tardías:** una respuesta de una sesión anterior no reabre el proceso ni publica datos de otra cuenta. Un `401` conserva el cierre de sesión existente.
 - **RF-10 · Sin estado local nuevo:** el progreso no se persiste; al reabrir se consulta Turnos. No hay cola offline, polling ni reconciliación propia.
 
@@ -43,18 +43,19 @@ Mostrar el progreso que Turnos informa para el proceso propio, permitir actualiz
 - Un fallo de red no se interpreta como ausencia del proceso ni como resultado final.
 - El pendiente se abre una sola vez por instancia del ViewModel; rotar la pantalla no repite la consulta ni reabre un proceso que la persona dejó.
 - El proceso Android puede descartar el estado temporal; la recuperación se apoya en la sesión conservada y en Turnos.
+- Las fases abiertas se distinguen en pantalla: espera de la solicitud del teléfono, teléfono pendiente y teléfono enviado. Solo `CONFIRMED` anuncia una reserva confirmada.
 - La app no usa `processId` de otra cuenta ni mezcla procesos anteriores con el pendiente.
 
 ## Criterios de aceptación
 
 - **CA-01 · RF-01:** la consulta usa la ruta del proceso y el bearer del usuario, sin crear holds.
 - **CA-02 · RF-02:** la fase y los datos se presentan tal como los informa Turnos, sin completar estados ausentes.
-- **CA-03 · RF-03:** `expiresAt` se muestra como UTC y no se usa el reloj local para declarar vencimiento.
+- **CA-03 · RF-03:** `expiresAt` se muestra como `DD/MM/AAAA · HH:mm` en la zona de atención, con el mismo criterio que las fechas de los turnos, solo mientras el proceso está abierto y sin usar el reloj local para declarar vencimiento.
 - **CA-04 · RF-04:** `requiredField` o `canSubmitPhone` producen un aviso, sin campo ni envío de teléfono.
 - **CA-05 · RF-05:** “Actualizar” repite el `GET` y conserva el último proceso si la actualización falla.
 - **CA-06 · RF-06:** al iniciar sesión o reabrir, un `pending` de Turnos abre el proceso; sin `pending` se muestra la búsqueda.
 - **CA-07 · RF-07:** un fallo de descubrimiento no bloquea la búsqueda y ofrece “Reintentar”.
-- **CA-08 · RF-08:** salir del proceso deja un aviso “Ver estado” y no cancela el proceso.
+- **CA-08 · RF-08:** salir del proceso deja un aviso “Ver estado” y no cancela el proceso. “Volver” regresa a la pestaña Cuenta cuando el proceso se abrió allí, y a Buscar cuando se abrió desde el flujo de búsqueda.
 - **CA-09 · RF-09:** una respuesta tardía tras cerrar sesión no publica el proceso.
 - **CA-10 · RF-10:** no se agrega almacenamiento local, cola, polling ni reconciliación propia.
 

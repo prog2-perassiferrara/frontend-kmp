@@ -83,12 +83,12 @@ data class ReservationUiState(
     val banner: ReservationBannerState?
         get() = when {
             process != null && !process.isFinal -> ReservationBannerState(
-                message = "Tenés un proceso de reserva en curso.",
+                message = "Tenés una solicitud de turno pendiente.",
                 actionLabel = "Ver estado",
                 action = BannerAction.SHOW_PROCESS,
             )
             start == StartStatus.UNCERTAIN -> ReservationBannerState(
-                message = "Hay una solicitud de reserva sin verificar.",
+                message = "No pudimos confirmar el estado de tu solicitud.",
                 actionLabel = "Ver estado",
                 action = BannerAction.SHOW_PROCESS,
             )

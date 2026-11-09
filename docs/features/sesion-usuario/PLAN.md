@@ -14,6 +14,7 @@
 - `KtorAuthApi` aísla `POST /api/authenticate` y mapea 400/401 por estado y `code`; `AuthenticatedApiClient` inyecta el bearer y solo trata el 401 de una API propia como cierre de sesión.
 - `AndroidEncryptedSessionStore` usa AES-GCM con clave en Android Keystore, `AtomicFile` y `noBackupFilesDir`; no guarda la contraseña ni usa `SharedPreferences`.
 - La UI mantiene `LoginScreen`/`AuthenticatedScreen` con `Content()`, `SessionViewModel` y estado de Compose. No se agrega navegación ni `BottomBar`.
+  - **Actualización al cierre (2026-11-09):** el área autenticada incorporó Navigation Compose con `MainScreen`, `AppDestination` y `AppBottomBar`; login y registro permanecen fuera.
 
 ## Archivos principales
 

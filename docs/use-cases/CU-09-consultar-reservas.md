@@ -20,20 +20,19 @@
 
 1. El usuario abre la consulta de reservas propias.
 2. La app muestra carga y solicita los registros a Turnos con su identidad autenticada.
-3. Turnos devuelve registros propios y estado de actualización.
+3. Turnos devuelve registros propios.
 4. La app presenta reservas confirmadas, canceladas y fallidas, y diferencia los procesos pendientes.
 5. El usuario puede consultar un proceso mediante CU-08 o solicitar la cancelación de una reserva confirmada con CU-10.
 
 ## Flujos alternativos y de excepción
 
-- **3a. Sin registros propios:** muestra lista vacía; si Turnos solo pudo consultar sus datos locales, conserva ese aviso. Termina correctamente.
-- **3b. Cátedra inaccesible pero Turnos responde con registros locales:** presenta los datos propios con aviso de posible desactualización; continúa en el paso 4.
+- **3a. Sin registros propios:** muestra lista vacía. Termina correctamente.
 - **2a/3c. Sin conexión con Turnos:** informa fallo de consulta y permite volver a consultar, sin confundirlo con lista vacía ni resolver la vista offline desde datos guardados del dispositivo.
 - **3d. Registros con resultado incierto:** conserva la indicación recibida; permite consultar el proceso, sin inventar un estado definitivo.
 
 ## Postcondiciones
 
-- **Éxito:** registros propios o lista vacía con estados y actualización diferenciados.
+- **Éxito:** registros propios o lista vacía con estados diferenciados.
 - **Fallo:** queda explícito que no pudo realizarse la consulta.
 
 ## Reglas y relaciones
@@ -46,7 +45,7 @@
 
 ## Fuentes y pendientes
 
-**Fuentes:** [CU-07 de Turnos](../../../backend-turnos/docs/use-cases/CU-07-consultar-reservas.md); [anexo, sección 11](../../../INTEGRATION_REFERENCE-v2.md).
+**Fuentes:** CU-07 de Turnos; anexo, sección 11.
 
 **Pendiente para la SPEC:** campos visibles, filtros, orden, paginación y disposición del proceso pendiente e historial. El orden central no impone el orden de la app.
 

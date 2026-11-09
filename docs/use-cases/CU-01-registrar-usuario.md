@@ -45,7 +45,7 @@
 
 ## Fuentes y documentación
 
-**Fuentes:** [enunciado, sección 3.2](../../../PROJECT_STATEMENT-v1.md); [CU-01 de Turnos](../../../backend-turnos/docs/use-cases/CU-01-registrar-usuario.md).
+**Fuentes:** enunciado, sección 3.2; CU-01 de Turnos.
 
 **SPEC:** [Registro de usuario](../features/registro-usuario/SPEC.md).
 

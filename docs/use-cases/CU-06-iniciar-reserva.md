@@ -47,7 +47,7 @@
 
 ## Fuentes y pendientes
 
-**Fuentes:** [CU-04 de Turnos](../../../backend-turnos/docs/use-cases/CU-04-iniciar-reserva.md); [anexo, secciones 9, 10 y 17](../../../INTEGRATION_REFERENCE-v2.md).
+**Fuentes:** CU-04 de Turnos; anexo, secciones 9, 10 y 17.
 
 **Pendiente para la SPEC:** presentación exacta de selección, conflicto y resultado incierto.
 

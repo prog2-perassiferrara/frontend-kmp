@@ -49,6 +49,7 @@ data class ReservationProcess(
     val canSubmitPhone: Boolean,
     val professionalFirstName: String?,
     val professionalLastName: String?,
+    val cancellation: CancellationProgress? = null,
 ) {
     /** Nombre histórico informado por Turnos, si lo conserva. */
     val professionalName: String
@@ -62,11 +63,35 @@ data class ReservationProcess(
     /** Turnos pidió teléfono o habilitó un envío; la forma solo se muestra si `canSubmitPhone`. */
     val phoneRequired: Boolean get() = requiredField == PHONE_NUMBER || canSubmitPhone
 
+    /** Solo una reserva confirmada sin cancelación en curso puede solicitar cancelación. */
+    val canRequestCancellation: Boolean
+        get() = state == CONFIRMED && cancellation?.status != CANCELLATION_PENDING
+
+    val cancellationPending: Boolean get() = cancellation?.status == CANCELLATION_PENDING
+
+    val cancellationRetryRequired: Boolean get() = cancellation?.status == CANCELLATION_RETRY_REQUIRED
+
     private companion object {
         const val PHONE_NUMBER = "PHONE_NUMBER"
+        const val CONFIRMED = "CONFIRMED"
+        const val CANCELLATION_PENDING = "PENDING"
+        const val CANCELLATION_RETRY_REQUIRED = "RETRY_REQUIRED"
         val FINAL_STATES = setOf("FAILED", "EXPIRED", "CONFIRMED", "CANCELLED")
     }
 }
+
+/** Intención de cancelación informada por Turnos; `CANCELLED` es el único cierre. */
+data class CancellationProgress(val status: String, val canRetry: Boolean)
+
+/** Pendiente e historial propios en la misma instantánea, con la paginación de Turnos. */
+data class OwnReservationsPage(
+    val pending: ReservationProcess?,
+    val content: List<ReservationProcess>,
+    val page: Int,
+    val size: Int,
+    val totalElements: Long,
+    val totalPages: Int,
+)
 
 /** Contratos de reserva propios expuestos por Turnos a la app. */
 interface ReservationsApi {
@@ -91,6 +116,24 @@ interface ReservationsApi {
      * @throws ReservationException si la consulta no puede resolverse.
      */
     suspend fun pending(): ReservationProcess?
+
+    /**
+     * Consulta el pendiente y el historial propios en una página.
+     *
+     * @param page página desde cero, según el contrato.
+     * @param size tamaño entre 1 y 100.
+     * @throws ReservationException si la consulta no puede resolverse.
+     */
+    suspend fun reservations(page: Int, size: Int): OwnReservationsPage
+
+    /**
+     * Solicita cancelar una reserva propia confirmada. Turnos responde el proceso
+     * actualizado; solo `CANCELLED` acredita el cierre.
+     *
+     * @throws ReservationException con el rechazo, la inexistencia o la
+     *   incertidumbre informada por el contrato.
+     */
+    suspend fun cancel(processId: String): ReservationProcess
 
     /**
      * Envía el teléfono ya normalizado del proceso propio. Turnos responde el

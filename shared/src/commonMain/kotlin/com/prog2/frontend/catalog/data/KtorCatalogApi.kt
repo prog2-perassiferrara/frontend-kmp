@@ -72,12 +72,12 @@ class KtorCatalogApi(private val api: AuthenticatedApiClient) : CatalogApi {
 
 @Serializable
 private class ProfessionalPageResponse(
-    val content: List<ProfessionalResponse> = emptyList(),
-    val page: Int = 0,
-    val size: Int = ProfessionalQuery.DEFAULT_SIZE,
-    val totalElements: Long = 0,
-    val totalPages: Int = 0,
-    val catalog: CatalogStateResponse? = null,
+    val content: List<ProfessionalResponse>,
+    val page: Int,
+    val size: Int,
+    val totalElements: Long,
+    val totalPages: Int,
+    val catalog: CatalogStateResponse,
 ) {
     fun toPage() = ProfessionalPage(
         content = content.map { it.toProfessional() },
@@ -85,7 +85,7 @@ private class ProfessionalPageResponse(
         size = size,
         totalElements = totalElements,
         totalPages = totalPages,
-        catalog = catalog?.toState() ?: CatalogState("UNKNOWN", copyAvailable = false),
+        catalog = catalog.toState(),
     )
 }
 
@@ -101,7 +101,7 @@ private class ProfessionalResponse(
 }
 
 @Serializable
-private class ProfessionalCategoriesResponse(val content: List<CategoryResponse> = emptyList())
+private class ProfessionalCategoriesResponse(val content: List<CategoryResponse>)
 
 @Serializable
 private class CategoryResponse(val id: Long, val name: String, val enabled: Boolean) {

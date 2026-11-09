@@ -2,7 +2,7 @@
 
 **Estado:** Implementada y verificada el 2026-11-08.
 **CU e issue de referencia:** [CU-01](../../use-cases/CU-01-registrar-usuario.md); issue #4.
-**Fuentes:** [CU-01](../../use-cases/CU-01-registrar-usuario.md), [contrato de Turnos](../../../../backend-turnos/docs/CONTRATOS.md#api-propia-de-turnos), [CU-02](../../use-cases/CU-02-iniciar-sesion.md) e [instrucciones KMP](../../../AGENTS.md).
+**Fuentes:** [CU-01](../../use-cases/CU-01-registrar-usuario.md), contrato de Turnos, [CU-02](../../use-cases/CU-02-iniciar-sesion.md) e [instrucciones KMP](../../../AGENTS.md).
 
 ## Objetivo
 

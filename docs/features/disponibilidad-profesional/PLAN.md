@@ -28,6 +28,7 @@
 5. `App` muestra una pantalla u otra según `searchViewModel.state.selected`; `AppContainer` y `MainActivity` cablean la nueva API y pantalla. Al cerrar sesión se descartan búsqueda y disponibilidad.
 
 **Navegación:** dos destinos autenticados resueltos con el estado existente y una acción “Volver”; no se agrega Navigation Compose ni BottomBar. Una biblioteca de navegación y una barra de secciones no resuelven un problema del CU. El retroceso del sistema en la pantalla de disponibilidad sigue el comportamiento actual de la app (cierra la actividad): la vuelta explícita es el botón, y así queda registrado como límite.
+**Actualización al cierre (2026-11-09):** disponibilidad es un destino secundario del `NavHost`; el Atrás del sistema vuelve a la búsqueda y no cierra la Activity.
 
 **Respuestas fuera de orden:** la consulta cancela la anterior y solo publica si la fecha del estado sigue siendo la consultada. Es una condición del CA-07, no un mecanismo general de concurrencia.
 

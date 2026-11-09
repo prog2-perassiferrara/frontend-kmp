@@ -2,7 +2,7 @@
 
 **Estado:** Implementada y verificada el 2026-11-08.
 **CU e issue de referencia:** [CU-05](../../use-cases/CU-05-consultar-disponibilidad.md); issue #8.
-**Fuentes:** [CU-05 de KMP](../../use-cases/CU-05-consultar-disponibilidad.md), [CU-03 de Turnos](../../../../backend-turnos/docs/use-cases/CU-03-consultar-disponibilidad.md), [contrato de Turnos](../../../../backend-turnos/docs/CONTRATOS.md#api-propia-de-turnos), [anexo, secciones 4 y 8](../../../../INTEGRATION_REFERENCE-v2.md) e [instrucciones KMP](../../../AGENTS.md).
+**Fuentes:** [CU-05 de KMP](../../use-cases/CU-05-consultar-disponibilidad.md), CU-03 de Turnos, contrato de Turnos, anexo, secciones 4 y 8 e [instrucciones KMP](../../../AGENTS.md).
 
 ## Objetivo
 

@@ -5,9 +5,9 @@ package com.prog2.frontend.availability
  * ni detalles internos de Turnos.
  */
 enum class AvailabilityError(val message: String, val retryable: Boolean) {
-    INVALID_QUERY("Revisá la fecha: Turnos no acepta esa consulta. Usá AAAA-MM-DD desde hoy.", false),
+    INVALID_QUERY("Revisá la fecha: no es válida. Elegí una fecha desde hoy.", false),
     PROFESSIONAL_UNAVAILABLE("El profesional no está habilitado para consultar horarios. Volvé a la búsqueda.", false),
-    NOT_FOUND("El profesional ya no existe en el catálogo. Volvé a la búsqueda.", false),
+    NOT_FOUND("El profesional ya no está disponible. Volvé a la búsqueda.", false),
     UNAVAILABLE("No se pudo obtener la disponibilidad. Podés volver a intentar.", true),
 }
 

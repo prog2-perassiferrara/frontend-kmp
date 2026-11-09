@@ -28,6 +28,7 @@
 4. `AppContainer` cablea `KtorCatalogApi(authenticatedApi)`; `MainActivity` compone `App` con `SearchScreen`.
 
 **Navegación:** no se agrega Navigation Compose ni BottomBar. La única pantalla autenticada de este CU se resuelve con el `when` por estado de sesión que ya existe en `App`. Una biblioteca de navegación con un solo destino no resolvería un problema concreto; CU-05 podrá introducirla cuando exista un segundo destino. Es una decisión interna, no un requisito externo.
+**Actualización al cierre (2026-11-09):** al existir dos destinos, se incorporó Navigation Compose con BottomBar en `MainScreen`; esta nota conserva la decisión histórica de CU-04.
 
 **Concurrencia:** `isSearching` evita consultas solapadas y el `Job` se cancela al cerrar sesión. No se agregan épocas, reintentos automáticos ni recuperación.
 
@@ -53,7 +54,7 @@
 ## Datos y contratos
 
 - **Entrada:** `categoryId` (positivo), `name` (≤100, recortado), `enabled` (booleano), `availableOn` (`AAAA-MM-DD`), `page≥0`, `size=20`. Los nulos y textos vacíos se omiten.
-- **Salida:** `content[]` con `id`, `firstName`, `lastName`, `enabled` y `category {id,name,enabled}`; totales; `catalog {state,copyAvailable}`.
+- **Salida:** `content[]` con `id`, `firstName`, `lastName`, `enabled` y `category {id,name,enabled}`; totales; `catalog {state,copyAvailable}`. Todos esos campos son obligatorios: una respuesta incompleta se informa como error de lectura y no como lista vacía. En categorías, `content` es obligatorio; `catalog` no lo consume la app.
 - **Productor:** Catálogo, contrato documentado en `backend-catalogo/docs/CONTRATOS.md` y verificado en el controlador y DTO reales.
 - **Persistencia:** ninguna en el dispositivo. La copia local pertenece a Catálogo; la app solo conserva el estado en memoria del ViewModel.
 - **Orden y paginación:** los define el backend. La app no reordena ni pide páginas fuera de `0..totalPages-1`.
@@ -63,7 +64,7 @@
 
 - **Estado:** `SearchUiState` con filtros, categorías, página, totales, resultados, carga, error y aviso. `hasResult` distingue “sin búsqueda todavía” de vacío válido.
 - **Carga inicial:** `ensureLoaded()` una vez por ViewModel; se vuelve a habilitar tras `reset()`.
-- **Validación local:** nombre recortado >100 y fecha que no cumple `AAAA-MM-DD` bloquean la consulta. La validez real de la fecha y los límites restantes quedan en Catálogo.
+- **Validación local:** nombre recortado >100 y fecha que no cumple `AAAA-MM-DD` bloquean la consulta; el selector entrega siempre ese formato. La validez real de la fecha y los límites restantes quedan en Catálogo.
 - **Conservación:** el ViewModel vive en el owner Android de la Activity, por lo que sobrevive a la rotación. Al cerrar sesión se cancela la consulta y se descarta el estado.
 - **Errores:** 400 → “Revisá los filtros…”; 503 con código `CATALOG_COPY_UNAVAILABLE` → copia inexistente; resto de 5xx/403/transporte/JSON ilegible → indisponibilidad con reintento. El 401 lo resuelve `AuthenticatedApiClient`.
 - **Categorías:** se piden al cargar y al reintentar si fallaron. Su fallo se informa y no impide buscar.
@@ -102,5 +103,5 @@ No se agregan dependencias. Se reutilizan Ktor, kotlinx.serialization, Compose M
 
 ## Riesgos y decisiones pendientes
 
-- **Riesgos:** la fecha se ingresa como texto `AAAA-MM-DD` porque Material 1 no aporta selector sin una dependencia nueva; el backend valida la fecha real. El permiso de red local debe concederse tras cada instalación.
+- **Riesgos:** la fecha se elige con `DatePickerModal` (el mismo `expect/actual` de CU-05 sobre `DatePickerDialog`), habilitando fechas pasadas porque el CU no las restringe; el valor interno sigue siendo `AAAA-MM-DD` y el backend valida la fecha real. El permiso de red local debe concederse tras cada instalación.
 - **Decisiones pendientes:** ninguna de comportamiento. La selección/navegación pertenece a CU-05.

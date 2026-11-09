@@ -43,7 +43,7 @@
 
 ## Fuentes y pendientes
 
-**Fuentes:** [seguridad del enunciado, sección 9](../../../PROJECT_STATEMENT-v1.md); [conservación del proceso en Turnos](../../../backend-turnos/docs/use-cases/CU-10-abandonar-proceso.md); [decisión de sesión](README.md).
+**Fuentes:** seguridad del enunciado, sección 9; conservación del proceso en Turnos; [decisión de sesión](README.md).
 
 **Pendiente para la SPEC:** textos y ubicación de la acción de cierre; los formularios sin enviar se descartan por decisión confirmada.
 
