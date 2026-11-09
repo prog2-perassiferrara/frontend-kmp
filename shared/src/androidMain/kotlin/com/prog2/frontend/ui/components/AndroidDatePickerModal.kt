@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 /**
  * Implementación Android: muestra `DatePickerDialog` y, salvo que se permitan
@@ -48,7 +49,16 @@ actual fun DatePickerModal(
  * sin ellas, nunca abre el calendario antes de hoy.
  */
 private fun initialCalendar(value: String, allowPastDates: Boolean): Calendar {
-    val today = startOfToday()
+    val today = if (allowPastDates) {
+        Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+    } else {
+        startOfToday()
+    }
     val parsed = runCatching {
         SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { isLenient = false }.parse(value)
     }.getOrNull()
@@ -58,10 +68,13 @@ private fun initialCalendar(value: String, allowPastDates: Boolean): Calendar {
     }
 }
 
-/** Medianoche local de hoy, límite inferior aceptado por `DatePickerDialog`. */
-private fun startOfToday(): Long = Calendar.getInstance().apply {
-    set(Calendar.HOUR_OF_DAY, 0)
-    set(Calendar.MINUTE, 0)
-    set(Calendar.SECOND, 0)
-    set(Calendar.MILLISECOND, 0)
-}.timeInMillis
+/** Fecha actual de atención expresada como medianoche local para `DatePickerDialog`. */
+internal fun startOfToday(now: Long = System.currentTimeMillis()): Long {
+    val attention = Calendar.getInstance(TimeZone.getTimeZone(ATTENTION_TIME_ZONE)).apply {
+        timeInMillis = now
+    }
+    return Calendar.getInstance().apply {
+        clear()
+        set(attention.get(Calendar.YEAR), attention.get(Calendar.MONTH), attention.get(Calendar.DAY_OF_MONTH))
+    }.timeInMillis
+}

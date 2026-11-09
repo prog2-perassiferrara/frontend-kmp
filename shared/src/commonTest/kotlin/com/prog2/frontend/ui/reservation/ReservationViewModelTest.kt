@@ -77,6 +77,52 @@ class ReservationViewModelTest {
     )
 
     @Test
+    fun leavingAConfirmedProcessAllowsANewSelectionWithANewRequestId() = runTest(dispatcher) {
+        val api = FakeApi()
+        val secondId = "3907a6f1-e2e3-4ba0-bbf4-d72192013999"
+        api.onStart = { request -> process(id = request.requestId, state = "CONFIRMED") }
+        val vm = viewModel(api, REQUEST_ID, secondId)
+        vm.start(selection)
+        runCurrent()
+        assertEquals("CONFIRMED", vm.state.value.process?.state)
+
+        // La salida del proceso, también por Atrás, ejecuta esta limpieza.
+        vm.dismiss()
+        val anotherSelection = selection.copy(startTime = "13:30:00")
+        vm.start(anotherSelection)
+        runCurrent()
+
+        assertEquals(listOf(REQUEST_ID, secondId), api.starts.map { it.requestId })
+        assertEquals("13:30:00", api.starts.last().startTime)
+        assertEquals(secondId, vm.state.value.process?.id)
+    }
+
+    @Test
+    fun leavingAPendingOrUncertainRequestDoesNotPermitAnotherStart() = runTest(dispatcher) {
+        val pendingApi = FakeApi()
+        val pending = viewModel(pendingApi)
+        pending.start(selection)
+        runCurrent()
+        pending.dismiss()
+        pending.start(selection.copy(startTime = "13:30:00"))
+        runCurrent()
+        assertEquals(1, pendingApi.starts.size)
+        assertEquals(REQUEST_ID, pending.state.value.process?.id)
+
+        val uncertainApi = FakeApi()
+        uncertainApi.onStart = { throw uncertain(START_MESSAGE) }
+        val uncertain = viewModel(uncertainApi)
+        uncertain.start(selection)
+        runCurrent()
+        uncertain.dismiss()
+        uncertain.start(selection.copy(startTime = "13:30:00"))
+        runCurrent()
+        assertEquals(1, uncertainApi.starts.size)
+        assertEquals(StartStatus.UNCERTAIN, uncertain.state.value.start)
+        assertEquals(REQUEST_ID, uncertain.state.value.requestId)
+    }
+
+    @Test
     fun startSendsTheSelectionOnceAndShowsTheReportedProcess() = runTest(dispatcher) {
         val api = FakeApi()
         val vm = viewModel(api)
