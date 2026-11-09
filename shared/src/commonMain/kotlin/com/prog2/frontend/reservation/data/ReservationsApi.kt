@@ -22,6 +22,18 @@ data class StartReservation(
 )
 
 /**
+ * Cuerpo del teléfono ya normalizado. Cada envío o corrección usa un `requestId`
+ * nuevo; repetir la misma clave y contenido solo recupera el envío anterior.
+ */
+data class SubmitPhone(
+    val requestId: String,
+    val phoneNumber: String,
+) {
+    /** El teléfono es un dato personal; no se incluye en representaciones de texto. */
+    override fun toString(): String = "SubmitPhone[requestId=$requestId]"
+}
+
+/**
  * Progreso que informa Turnos. `state` es la fase durable recibida y no se
  * interpreta como confirmación por sí sola.
  */
@@ -47,7 +59,7 @@ data class ReservationProcess(
     /** El contrato de Turnos cierra el proceso en estas fases. */
     val isFinal: Boolean get() = state in FINAL_STATES
 
-    /** Turnos pidió teléfono o habilitó otro envío; CU-07 lo implementará. */
+    /** Turnos pidió teléfono o habilitó un envío; la forma solo se muestra si `canSubmitPhone`. */
     val phoneRequired: Boolean get() = requiredField == PHONE_NUMBER || canSubmitPhone
 
     private companion object {
@@ -79,4 +91,13 @@ interface ReservationsApi {
      * @throws ReservationException si la consulta no puede resolverse.
      */
     suspend fun pending(): ReservationProcess?
+
+    /**
+     * Envía el teléfono ya normalizado del proceso propio. Turnos responde el
+     * proceso actualizado; el envío no confirma la reserva por sí solo.
+     *
+     * @throws ReservationException con el rechazo, la inexistencia o la
+     *   incertidumbre informada por el contrato.
+     */
+    suspend fun submitPhone(processId: String, request: SubmitPhone): ReservationProcess
 }

@@ -45,6 +45,23 @@ internal fun processReason(code: String?): String? = when (code) {
     else -> "Turnos informó el motivo adicional $code."
 }
 
+/**
+ * Aviso del teléfono cuando Turnos no habilita el formulario. No deduce el
+ * motivo: solo distingue un envío ya informado de un envío no disponible.
+ */
+internal fun phoneNotice(process: ReservationProcess): String? = when {
+    process.canSubmitPhone -> null
+    process.state in PHONE_SENT_STATES ->
+        "El teléfono ya fue enviado. Turnos todavía no confirmó la reserva."
+    process.phoneRequired ->
+        "Turnos no admite un nuevo envío de teléfono para este proceso. " +
+            "Actualizá para conocer su estado."
+    else -> null
+}
+
+private val PHONE_SENT_STATES =
+    setOf("PHONE_QUEUED", "WAITING_FOR_RESULT", "RECONCILIATION_REQUIRED")
+
 /** El contrato acepta `HH:mm` y `HH:mm:ss`; la pantalla muestra la hora local de atención. */
 internal fun displayTime(value: String): String = value.take(5)
 

@@ -63,6 +63,22 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
         }
     }
 
+    override suspend fun submitPhone(processId: String, request: SubmitPhone): ReservationProcess {
+        if (!PROCESS_ID.matches(processId)) throw notFound()
+        val response = call(PHONE_UNCERTAIN) {
+            api.post(
+                Backend.TURNOS,
+                "/api/reservation-processes/$processId/phone",
+                json.encodeToString(PhoneBody(request.requestId, request.phoneNumber)),
+            )
+        }
+        if (response.status != 200 && response.status != 202) throw phoneFailure(response)
+        // Un 200/202 ilegible no demuestra que el envío no se registró.
+        return decode(PHONE_UNCERTAIN) {
+            json.decodeFromString<ProcessResponse>(response.body).toProcess()
+        }
+    }
+
     /**
      * Un `code` conocido es un rechazo presentable. El `processId` del problema se
      * conserva para consultar ese proceso; no se interpreta como éxito.
@@ -97,6 +113,37 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
         } else {
             uncertain(READ_UNCERTAIN)
         }
+
+    /**
+     * Un `code` conocido del envío es un rechazo presentable. El estado del
+     * proceso se contrasta después con `GET`; un `503` o `5xx` no acredita fallo.
+     */
+    private fun phoneFailure(response: ApiResponse): ReservationException {
+        val problem = problem(response.body)
+        val processId = problem?.processId
+        return when (problem?.code) {
+            "INVALID_PHONE_NUMBER" ->
+                rejected("El teléfono no tiene un formato válido.", processId)
+            "PHONE_NOT_REQUESTED" ->
+                rejected("Turnos no solicita el teléfono para este proceso.", processId)
+            "PHONE_SUBMISSION_ACTIVE" ->
+                rejected("Ya hay un envío de teléfono en curso para este proceso.", processId)
+            "PHONE_WINDOW_CLOSED" ->
+                rejected("El plazo para enviar el teléfono venció.", processId)
+            "REQUEST_ID_CONFLICT" ->
+                rejected("El envío no coincide con el registrado.", processId)
+            "RESERVATION_PROCESS_NOT_FOUND" -> notFound()
+            else -> when {
+                response.status == 404 -> notFound()
+                response.status in 500..599 -> uncertain(PHONE_UNCERTAIN, processId)
+                response.status == 403 ->
+                    rejected("No tenés permiso para enviar el teléfono.", processId)
+                response.status in 400..499 ->
+                    rejected("Turnos rechazó el teléfono.", processId)
+                else -> uncertain(PHONE_UNCERTAIN, processId)
+            }
+        }
+    }
 
     private fun problem(body: String): ProblemResponse? = try {
         json.decodeFromString<ProblemResponse>(body)
@@ -139,6 +186,8 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
         const val START_UNCERTAIN =
             "No pudimos verificar si Turnos registró la solicitud. La solicitud pudo haberse registrado."
         const val READ_UNCERTAIN = "No pudimos consultar el proceso en Turnos."
+        const val PHONE_UNCERTAIN =
+            "No pudimos verificar si Turnos recibió el teléfono. El envío pudo haberse registrado."
 
         val PROCESS_ID = Regex(
             "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
@@ -153,6 +202,9 @@ private class StartBody(
     val date: String,
     val startTime: String,
 )
+
+@Serializable
+private class PhoneBody(val requestId: String, val phoneNumber: String)
 
 @Serializable
 private class ProcessResponse(

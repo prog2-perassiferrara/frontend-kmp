@@ -3,7 +3,10 @@ package com.prog2.frontend.ui.reservation
 import com.prog2.frontend.reservation.data.ReservationProcess
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ProcessPresentationTest {
@@ -26,7 +29,29 @@ class ProcessPresentationTest {
         assertEquals("Proceso finalizado", processView(process("CANCELLED")).title)
     }
 
-    private fun process(state: String) = ReservationProcess(
+    @Test
+    fun thePhoneFormIsOnlyAnnouncedWhenTurnosEnablesIt() {
+        assertNull(phoneNotice(process("WAITING_FOR_PHONE", canSubmitPhone = true)))
+        assertNull(phoneNotice(process("WAITING_FOR_PHONE")))
+        assertNotNull(phoneNotice(process("WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER")))
+    }
+
+    @Test
+    fun aSentPhoneIsPendingAndNeverConfirmed() {
+        val notice = phoneNotice(process("PHONE_QUEUED", requiredField = "PHONE_NUMBER"))
+        assertTrue(notice!!.contains("ya fue enviado"))
+        assertFalse(notice.contains("confirmada"))
+        assertEquals(
+            "El teléfono ya fue enviado. Turnos todavía no confirmó la reserva.",
+            phoneNotice(process("WAITING_FOR_RESULT", requiredField = "PHONE_NUMBER")),
+        )
+    }
+
+    private fun process(
+        state: String,
+        requiredField: String? = null,
+        canSubmitPhone: Boolean = false,
+    ) = ReservationProcess(
         id = "b7273764-9bc3-43fd-b42c-8a9ca65c5639",
         professionalId = 201,
         date = "2026-11-09",
@@ -34,8 +59,8 @@ class ProcessPresentationTest {
         state = state,
         expiresAt = null,
         reasonCode = null,
-        requiredField = null,
-        canSubmitPhone = false,
+        requiredField = requiredField,
+        canSubmitPhone = canSubmitPhone,
         professionalFirstName = null,
         professionalLastName = null,
     )

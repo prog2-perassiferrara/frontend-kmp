@@ -5,6 +5,7 @@ import com.prog2.frontend.reservation.ReservationFailure
 import com.prog2.frontend.reservation.data.KtorReservationsApi
 import com.prog2.frontend.reservation.data.ReservationProcess
 import com.prog2.frontend.reservation.data.StartReservation
+import com.prog2.frontend.reservation.data.SubmitPhone
 import com.prog2.frontend.session.JwtExpiry
 import com.prog2.frontend.session.MemorySessionStore
 import com.prog2.frontend.session.SessionError
@@ -36,6 +37,7 @@ import kotlin.test.assertTrue
 class KtorReservationsApiTest {
     private val configuration = ApiConfiguration("https://turnos.test", "https://catalog.test")
     private val processId = "b7273764-9bc3-43fd-b42c-8a9ca65c5639"
+    private val phoneRequestId = "11111111-1111-4111-8111-111111111111"
 
     private fun manager() = SessionManager(TestAuthApi(), MemorySessionStore(), JwtExpiry(), TestClock())
 
@@ -50,6 +52,13 @@ class KtorReservationsApiTest {
         {"processId":"$processId","professionalId":201,"date":"2026-11-09",
          "startTime":"12:30:00","state":"HOLD_PENDING","expiresAt":null,
          "reasonCode":null,"requiredField":null,"canSubmitPhone":false,
+         "professionalFirstName":"Ana","professionalLastName":"Torres"}
+    """.trimIndent()
+
+    private val phoneQueuedJson = """
+        {"processId":"$processId","professionalId":201,"date":"2026-11-09",
+         "startTime":"12:30:00","state":"PHONE_QUEUED","expiresAt":"2026-11-09T15:30:00Z",
+         "reasonCode":null,"requiredField":"PHONE_NUMBER","canSubmitPhone":false,
          "professionalFirstName":"Ana","professionalLastName":"Torres"}
     """.trimIndent()
 
@@ -346,6 +355,120 @@ class KtorReservationsApiTest {
             )
         } finally {
             offline.close()
+        }
+    }
+
+    @Test
+    fun phoneSendsTheContractBodyAndBearerAndAcceptsBothSuccessCodes() = runTest {
+        for (status in listOf(HttpStatusCode.Accepted, HttpStatusCode.OK)) {
+            val manager = manager()
+            manager.signIn("patient", "secret", false)
+            var requests = 0
+            val client = ApiHttpClient().create(MockEngine { http ->
+                requests++
+                assertEquals(HttpMethod.Post, http.method)
+                assertEquals("/api/reservation-processes/$processId/phone", http.url.encodedPath)
+                assertEquals("Bearer ${testToken()}", http.headers[HttpHeaders.Authorization])
+                val body = Json.parseToJsonElement(http.body.toByteArray().decodeToString()).jsonObject
+                assertEquals(phoneRequestId, body["requestId"]!!.jsonPrimitive.content)
+                assertEquals("+5491155551234", body["phoneNumber"]!!.jsonPrimitive.content)
+                respond(phoneQueuedJson, status, headersOf(HttpHeaders.ContentType, "application/json"))
+            })
+            try {
+                val process = KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                    .submitPhone(processId, SubmitPhone(phoneRequestId, "+5491155551234"))
+                assertEquals("PHONE_QUEUED", process.state)
+                assertFalse(process.canSubmitPhone)
+                assertFalse(process.isFinal)
+                assertEquals(1, requests)
+            } finally {
+                client.close()
+            }
+        }
+    }
+
+    @Test
+    fun phoneMapsKnownRejectionsAndUncertainOutcomes() = runTest {
+        val cases = listOf(
+            Case(400, """{"code":"INVALID_PHONE_NUMBER","processId":"$processId"}""",
+                ReservationFailure.REJECTED, processId),
+            Case(409, """{"code":"PHONE_NOT_REQUESTED","processId":"$processId"}""",
+                ReservationFailure.REJECTED, processId),
+            Case(409, """{"code":"PHONE_SUBMISSION_ACTIVE","processId":"$processId"}""",
+                ReservationFailure.REJECTED, processId),
+            Case(409, """{"code":"PHONE_WINDOW_CLOSED","processId":"$processId"}""",
+                ReservationFailure.REJECTED, processId),
+            Case(409, """{"code":"REQUEST_ID_CONFLICT","processId":"$processId"}""",
+                ReservationFailure.REJECTED, processId),
+            Case(404, "", ReservationFailure.NOT_FOUND, null),
+            Case(404, """{"code":"RESERVATION_PROCESS_NOT_FOUND"}""",
+                ReservationFailure.NOT_FOUND, null),
+            Case(503, """{"code":"PHONE_PUBLICATION_UNCERTAIN","processId":"$processId"}""",
+                ReservationFailure.UNCERTAIN, processId),
+            Case(503, """{"code":"STORAGE_UNAVAILABLE"}""", ReservationFailure.UNCERTAIN, null),
+            Case(500, """{"code":"INTERNAL_ERROR"}""", ReservationFailure.UNCERTAIN, null),
+            Case(403, """{"code":"ACCESS_DENIED"}""", ReservationFailure.REJECTED, null),
+            Case(400, "", ReservationFailure.REJECTED, null),
+        )
+        for (case in cases) {
+            val manager = manager()
+            manager.signIn("patient", "secret", false)
+            var requests = 0
+            val client = ApiHttpClient().create(MockEngine {
+                requests++
+                respond(
+                    case.body,
+                    HttpStatusCode.fromValue(case.status),
+                    headersOf(HttpHeaders.ContentType, "application/problem+json"),
+                )
+            })
+            try {
+                val failure = assertFailsWith<ReservationException> {
+                    KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                        .submitPhone(processId, SubmitPhone(phoneRequestId, "+5491155551234"))
+                }
+                assertEquals(case.failure, failure.failure, "status=${case.status} body=${case.body}")
+                assertEquals(case.processId, failure.processId)
+                assertTrue(failure.message?.isNotBlank() == true)
+                assertEquals(1, requests)
+            } finally {
+                client.close()
+            }
+        }
+    }
+
+    @Test
+    fun aTransportFailureOnPhoneIsUncertain() = runTest {
+        val manager = manager()
+        manager.signIn("patient", "secret", false)
+        val client = ApiHttpClient().create(MockEngine { throw RuntimeException("network") })
+        try {
+            val failure = assertFailsWith<ReservationException> {
+                KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                    .submitPhone(processId, SubmitPhone(phoneRequestId, "+5491155551234"))
+            }
+            assertEquals(ReservationFailure.UNCERTAIN, failure.failure)
+            assertNull(failure.processId)
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
+    fun phoneRejectsANonUuidProcessWithoutCallingTurnos() = runTest {
+        val manager = manager()
+        manager.signIn("patient", "secret", false)
+        var requests = 0
+        val client = ApiHttpClient().create(MockEngine { requests++; respond(phoneQueuedJson) })
+        try {
+            val failure = assertFailsWith<ReservationException> {
+                KtorReservationsApi(AuthenticatedApiClient(client, configuration, manager))
+                    .submitPhone("../otro", SubmitPhone(phoneRequestId, "+5491155551234"))
+            }
+            assertEquals(ReservationFailure.NOT_FOUND, failure.failure)
+            assertEquals(0, requests)
+        } finally {
+            client.close()
         }
     }
 

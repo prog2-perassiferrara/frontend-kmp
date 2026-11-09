@@ -10,6 +10,7 @@ import com.prog2.frontend.reservation.data.ReservationProcess
 import com.prog2.frontend.reservation.data.ReservationSelection
 import com.prog2.frontend.reservation.data.ReservationsApi
 import com.prog2.frontend.reservation.data.StartReservation
+import com.prog2.frontend.reservation.data.SubmitPhone
 import com.prog2.frontend.session.SessionException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -17,8 +18,8 @@ import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
 
 /**
- * Coordina CU-06 y CU-08 sobre los contratos de Turnos. Genera una clave por
- * acción, no repite efectos sin verificar y presenta el progreso recibido sin
+ * Coordina CU-06, CU-07 y CU-08 sobre los contratos de Turnos. Genera una clave
+ * por acción, no repite efectos sin verificar y presenta el progreso recibido sin
  * reproducir la máquina de estados del backend.
  */
 class ReservationViewModel(
@@ -66,6 +67,59 @@ class ReservationViewModel(
         if (current.start != StartStatus.UNCERTAIN || current.loading) return
         val requestId = current.requestId ?: return
         load(requestId, missingIsUnregistered = true)
+    }
+
+    /** Actualiza el texto del teléfono mientras no haya un envío o verificación en curso. */
+    fun changePhone(value: String) {
+        val current = mutableState.value
+        if (current.phone != PhoneStatus.IDLE) return
+        mutableState.value = current.copy(phoneNumber = value, phoneMessage = null)
+    }
+
+    /**
+     * Envía una sola vez el teléfono ya normalizado. Solo actúa cuando Turnos
+     * habilitó el envío; el `requestId` es nuevo para cada intento.
+     */
+    fun submitPhone() {
+        val current = mutableState.value
+        val process = current.process ?: return
+        if (!current.canSubmitPhone) return
+        val phoneNumber = normalizePhone(current.phoneNumber)
+        if (phoneNumber == null) {
+            mutableState.value = current.copy(phoneMessage = INVALID_PHONE_MESSAGE)
+            return
+        }
+        val requestId = newRequestId()
+        mutableState.value = current.copy(
+            phone = PhoneStatus.SENDING,
+            phoneMessage = null,
+            loading = true,
+        )
+        job?.cancel()
+        job = viewModelScope.launch {
+            try {
+                show(reservations.submitPhone(process.id, SubmitPhone(requestId, phoneNumber)))
+                // El teléfono ya viajó; no se conserva el texto enviado.
+                mutableState.value = mutableState.value.copy(phoneNumber = "")
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: ReservationException) {
+                onPhoneFailure(process.id, failure)
+            } catch (_: SessionException) {
+                // App resuelve el cierre o cambio de sesión; no se publica estado ajeno.
+            }
+        }
+    }
+
+    /**
+     * Verifica con `GET` un envío incierto. Solo una lectura exitosa habilita
+     * volver a enviar; una repetición nunca se hace antes de conocer el estado.
+     */
+    fun verifyPhone() {
+        val current = mutableState.value
+        if (current.phone != PhoneStatus.UNCERTAIN || current.loading) return
+        val process = current.process ?: return
+        load(process.id, missingIsUnregistered = false)
     }
 
     /** Actualiza manualmente un proceso conocido, sin crear efectos. */
@@ -197,6 +251,36 @@ class ReservationViewModel(
         }
     }
 
+    /**
+     * Un rechazo conocido se contrasta con `GET`: el proceso pudo vencer o
+     * cambiar de fase. Un 404 o un fallo de esa lectura no acreditan que el
+     * envío no exista: quedan sin verificar y bloquean otro POST.
+     */
+    private suspend fun onPhoneFailure(processId: String, failure: ReservationException) {
+        if (failure.failure != ReservationFailure.REJECTED) {
+            mutableState.value = mutableState.value.copy(
+                loading = false,
+                phone = PhoneStatus.UNCERTAIN,
+                phoneMessage = failure.message,
+            )
+            return
+        }
+        mutableState.value = mutableState.value.copy(loading = true)
+        try {
+            show(reservations.process(processId), phoneMessage = failure.message)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (loadFailure: ReservationException) {
+            mutableState.value = mutableState.value.copy(
+                loading = false,
+                phone = PhoneStatus.UNCERTAIN,
+                phoneMessage = failure.message,
+            )
+        } catch (_: SessionException) {
+            // Igual que en el resto de las operaciones: el cierre lo resuelve App.
+        }
+    }
+
     private fun loadPending() {
         job?.cancel()
         job = viewModelScope.launch {
@@ -219,13 +303,38 @@ class ReservationViewModel(
         }
     }
 
-    private fun show(process: ReservationProcess, message: String? = null) {
+    private fun show(
+        process: ReservationProcess,
+        message: String? = null,
+        phoneMessage: String? = null,
+    ) {
         mutableState.value = mutableState.value.copy(
             process = process,
             start = StartStatus.IDLE,
             requestId = process.id,
             loading = false,
             message = message,
+            phone = PhoneStatus.IDLE,
+            phoneMessage = phoneMessage,
         )
     }
 }
+
+/**
+ * Regla local equivalente al contrato: quita los separadores permitidos y exige
+ * entre 7 y 15 dígitos, conservando el signo y los ceros iniciales.
+ *
+ * @return teléfono normalizado o `null` si no cumple el contrato.
+ */
+internal fun normalizePhone(value: String): String? = value
+    .replace(" ", "")
+    .replace("-", "")
+    .replace("(", "")
+    .replace(")", "")
+    .replace(".", "")
+    .takeIf { PHONE.matches(it) }
+
+private val PHONE = Regex("^\\+?[0-9]{7,15}$")
+
+private const val INVALID_PHONE_MESSAGE =
+    "Ingresá un teléfono válido de 7 a 15 dígitos; podés usar +, espacios, guiones, paréntesis o puntos."

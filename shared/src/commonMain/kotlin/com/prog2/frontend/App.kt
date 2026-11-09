@@ -132,6 +132,9 @@ class App(
                                         reservationViewModel::refresh,
                                         reservationViewModel::verify,
                                         reservationViewModel::retryStart,
+                                        reservationViewModel::changePhone,
+                                        reservationViewModel::submitPhone,
+                                        reservationViewModel::verifyPhone,
                                         onBackToSearch = {
                                             reservationViewModel.dismiss()
                                             processVisible = false

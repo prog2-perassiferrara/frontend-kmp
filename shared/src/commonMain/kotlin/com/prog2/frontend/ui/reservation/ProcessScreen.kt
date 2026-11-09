@@ -3,10 +3,13 @@ package com.prog2.frontend.ui.reservation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
@@ -14,11 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import com.prog2.frontend.reservation.data.ReservationProcess
 
 /**
  * Presenta el proceso informado por Turnos: envío en curso, fase, vencimiento,
- * incertidumbre y rechazo. No envía teléfono ni cancela; solo muestra lo recibido.
+ * incertidumbre y rechazo. El teléfono solo se envía si Turnos lo habilita y el
+ * resultado se muestra sin declarar una confirmación prematura.
  */
 class ProcessScreen {
     @Composable
@@ -27,6 +33,9 @@ class ProcessScreen {
         onRefresh: () -> Unit,
         onVerify: () -> Unit,
         onRetry: () -> Unit,
+        onPhoneChange: (String) -> Unit,
+        onSubmitPhone: () -> Unit,
+        onVerifyPhone: () -> Unit,
         onBackToSearch: () -> Unit,
         onBackToAvailability: () -> Unit,
     ) {
@@ -53,7 +62,14 @@ class ProcessScreen {
 
         val process = state.process
         when {
-            process != null -> Process(process, state, onRefresh)
+            process != null -> Process(
+                process,
+                state,
+                onRefresh,
+                onPhoneChange,
+                onSubmitPhone,
+                onVerifyPhone,
+            )
             state.start == StartStatus.SENDING -> Sending()
             state.start == StartStatus.UNCERTAIN -> Uncertain(state, onVerify)
             state.start == StartStatus.NOT_REGISTERED -> NotRegistered(state, onRetry)
@@ -72,7 +88,14 @@ class ProcessScreen {
     }
 
     @Composable
-    private fun Process(process: ReservationProcess, state: ReservationUiState, onRefresh: () -> Unit) {
+    private fun Process(
+        process: ReservationProcess,
+        state: ReservationUiState,
+        onRefresh: () -> Unit,
+        onPhoneChange: (String) -> Unit,
+        onSubmitPhone: () -> Unit,
+        onVerifyPhone: () -> Unit,
+    ) {
         val view = processView(process)
         Text(view.title, style = MaterialTheme.typography.subtitle1)
         Text(view.detail)
@@ -83,11 +106,30 @@ class ProcessScreen {
                 style = MaterialTheme.typography.body2,
             )
         }
-        if (process.phoneRequired) {
-            Notice(
-                "Turnos necesita tu número de teléfono para continuar. " +
-                    "La carga se habilitará en el próximo paso.",
-            )
+        when {
+            state.phone == PhoneStatus.SENDING -> {
+                Text("Enviando el teléfono a Turnos…", style = MaterialTheme.typography.body2)
+                CircularProgressIndicator()
+            }
+            state.phone == PhoneStatus.UNCERTAIN -> {
+                Notice(
+                    "No pudimos verificar si Turnos recibió el teléfono. " +
+                        "Verificá el estado antes de volver a enviarlo.",
+                )
+                Button(
+                    onClick = onVerifyPhone,
+                    enabled = !state.loading,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(if (state.loading) "Verificando…" else "Verificar estado")
+                }
+                if (state.loading) CircularProgressIndicator()
+            }
+            process.canSubmitPhone -> PhoneForm(state, onPhoneChange, onSubmitPhone)
+            else -> phoneNotice(process)?.let { Notice(it) }
+        }
+        if (state.phone != PhoneStatus.UNCERTAIN) {
+            state.phoneMessage?.let { Message(it) }
         }
         state.message?.let { Message(it) }
 
@@ -108,14 +150,55 @@ class ProcessScreen {
             ) {
                 Text(
                     when {
+                        state.phone == PhoneStatus.SENDING -> "Enviando teléfono…"
                         state.loading -> "Actualizando…"
                         state.message != null -> "Reintentar"
                         else -> "Actualizar"
                     },
                 )
             }
-            if (state.loading) CircularProgressIndicator()
+            if (state.loading && state.phone != PhoneStatus.SENDING) CircularProgressIndicator()
         }
+    }
+
+    @Composable
+    private fun PhoneForm(
+        state: ReservationUiState,
+        onPhoneChange: (String) -> Unit,
+        onSubmitPhone: () -> Unit,
+    ) {
+        Text(
+            "Turnos solicita tu teléfono para continuar.",
+            style = MaterialTheme.typography.subtitle2,
+        )
+        OutlinedTextField(
+            value = state.phoneNumber,
+            onValueChange = onPhoneChange,
+            label = { Text("Teléfono") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            enabled = !state.loading,
+            isError = state.phoneMessage != null,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Phone,
+                autoCorrectEnabled = false,
+                imeAction = ImeAction.Done,
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { if (state.canSubmitPhone) onSubmitPhone() },
+            ),
+        )
+        Button(
+            onClick = onSubmitPhone,
+            enabled = state.canSubmitPhone,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Enviar teléfono")
+        }
+        Text(
+            "Enviarlo no confirma la reserva. Solo se remite el número a Turnos para el proceso actual.",
+            style = MaterialTheme.typography.body2,
+        )
     }
 
     @Composable
