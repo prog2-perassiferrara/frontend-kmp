@@ -52,6 +52,7 @@ class SearchScreen {
         onPrevious: () -> Unit,
         onNext: () -> Unit,
         onSelect: (Professional) -> Unit,
+        onOpenReservations: () -> Unit,
         onSignOut: () -> Unit,
         onLoad: () -> Unit,
     ) {
@@ -60,7 +61,10 @@ class SearchScreen {
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Buscar profesionales", style = MaterialTheme.typography.h5)
-            TextButton(onClick = onSignOut) { Text("Salir") }
+            Row {
+                TextButton(onClick = onOpenReservations) { Text("Mis reservas") }
+                TextButton(onClick = onSignOut) { Text("Salir") }
+            }
         }
 
         OutlinedTextField(
@@ -259,7 +263,8 @@ private fun SearchScreenPreview() {
                     ),
                 ),
                 onName = {}, onCategory = {}, onEnabled = {}, onAvailableOn = {},
-                onSearch = {}, onRetry = {}, onPrevious = {}, onNext = {}, onSelect = {}, onSignOut = {}, onLoad = {},
+                onSearch = {}, onRetry = {}, onPrevious = {}, onNext = {}, onSelect = {},
+                onOpenReservations = {}, onSignOut = {}, onLoad = {},
             )
         }
     }

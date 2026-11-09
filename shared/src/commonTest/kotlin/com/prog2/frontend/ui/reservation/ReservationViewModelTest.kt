@@ -3,6 +3,7 @@ package com.prog2.frontend.ui.reservation
 import androidx.lifecycle.ViewModelStore
 import com.prog2.frontend.reservation.ReservationException
 import com.prog2.frontend.reservation.ReservationFailure
+import com.prog2.frontend.reservation.data.OwnReservationsPage
 import com.prog2.frontend.reservation.data.ReservationProcess
 import com.prog2.frontend.reservation.data.ReservationSelection
 import com.prog2.frontend.reservation.data.ReservationsApi
@@ -363,6 +364,20 @@ class ReservationViewModelTest {
         runCurrent()
         uncertainVm.dismiss()
         assertEquals(StartStatus.UNCERTAIN, uncertainVm.state.value.start)
+    }
+
+    @Test
+    fun presentingAReportedProcessShowsItWithoutReadingItAgain() = runTest(dispatcher) {
+        val api = FakeApi()
+        val vm = viewModel(api)
+        val reported = process(state = "CONFIRMED")
+
+        vm.present(reported)
+        runCurrent()
+
+        assertEquals(reported, vm.state.value.process)
+        assertTrue(api.processes.isEmpty())
+        assertEquals(0, api.pendings)
     }
 
     @Test
@@ -823,6 +838,13 @@ class ReservationViewModelTest {
             pendings++
             return onPending()
         }
+
+        override suspend fun reservations(
+            page: Int,
+            size: Int,
+        ): OwnReservationsPage = error("not used")
+
+        override suspend fun cancel(processId: String): ReservationProcess = error("not used")
 
         override suspend fun submitPhone(
             processId: String,

@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.prog2.frontend.ui.availability.AvailabilityScreen
 import com.prog2.frontend.ui.registration.RegistrationScreen
+import com.prog2.frontend.ui.reservation.MyReservationsScreen
 import com.prog2.frontend.ui.reservation.ProcessScreen
 import com.prog2.frontend.ui.reservation.ReservationBanner
 import com.prog2.frontend.ui.search.SearchScreen
@@ -30,6 +31,7 @@ class MainActivity : ComponentActivity() {
             SearchScreen(),
             AvailabilityScreen(),
             ProcessScreen(),
+            MyReservationsScreen(),
             ReservationBanner(),
         )
 

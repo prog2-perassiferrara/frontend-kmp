@@ -37,6 +37,8 @@ import com.prog2.frontend.ui.availability.AvailabilityViewModel
 import com.prog2.frontend.ui.registration.RegistrationScreen
 import com.prog2.frontend.ui.registration.RegistrationViewModel
 import com.prog2.frontend.ui.reservation.BannerAction
+import com.prog2.frontend.ui.reservation.MyReservationsScreen
+import com.prog2.frontend.ui.reservation.MyReservationsViewModel
 import com.prog2.frontend.ui.reservation.ProcessScreen
 import com.prog2.frontend.ui.reservation.ReservationBanner
 import com.prog2.frontend.ui.reservation.ReservationViewModel
@@ -54,6 +56,7 @@ import com.prog2.frontend.ui.session.SessionViewModel
  * @param catalogApi Búsqueda protegida de Catálogo usada por el ViewModel de búsqueda.
  * @param availabilityApi Consulta protegida de disponibilidad usada por su ViewModel.
  * @param reservationsApi Contratos protegidos de inicio y consulta de reservas.
+ * @param myReservationsScreen Presentación de las reservas propias y su cancelación.
  */
 class App(
     private val sessions: SessionManager,
@@ -66,6 +69,7 @@ class App(
     private val searchScreen: SearchScreen,
     private val availabilityScreen: AvailabilityScreen,
     private val processScreen: ProcessScreen,
+    private val myReservationsScreen: MyReservationsScreen,
     private val reservationBanner: ReservationBanner,
 ) {
     /** Obtiene los ViewModels del owner Android, conservándolos durante la rotación. */
@@ -76,10 +80,13 @@ class App(
         val searchViewModel = viewModel { SearchViewModel(catalogApi) }
         val availabilityViewModel = viewModel { AvailabilityViewModel(availabilityApi) }
         val reservationViewModel = viewModel { ReservationViewModel(reservationsApi) }
+        val myReservationsViewModel = viewModel { MyReservationsViewModel(reservationsApi) }
         val state by sessionViewModel.state
         val reservation = reservationViewModel.state.value
+        val myReservations = myReservationsViewModel.state.value
         var showRegistration by rememberSaveable { mutableStateOf(false) }
         var processVisible by rememberSaveable { mutableStateOf(false) }
+        var reservationsVisible by rememberSaveable { mutableStateOf(false) }
         var openedProcessId by rememberSaveable { mutableStateOf<String?>(null) }
 
         // Al autenticarse se consulta una vez el pendiente propio sin bloquear la
@@ -92,10 +99,12 @@ class App(
                 }
                 SessionStatus.SIGNED_OUT -> {
                     processVisible = false
+                    reservationsVisible = false
                     openedProcessId = null
                     availabilityViewModel.reset()
                     searchViewModel.reset()
                     reservationViewModel.reset()
+                    myReservationsViewModel.reset()
                 }
                 SessionStatus.RESTORING -> Unit
             }
@@ -147,6 +156,22 @@ class App(
                                             availabilityViewModel.consult()
                                         },
                                     )
+                                } else if (reservationsVisible) {
+                                    myReservationsScreen.Content(
+                                        myReservations,
+                                        onBack = { reservationsVisible = false },
+                                        onRefresh = myReservationsViewModel::refresh,
+                                        onPrevious = myReservationsViewModel::previous,
+                                        onNext = myReservationsViewModel::next,
+                                        onOpenProcess = { process ->
+                                            reservationsVisible = false
+                                            processVisible = true
+                                            reservationViewModel.present(process)
+                                        },
+                                        onOpenCancellation = myReservationsViewModel::openCancellation,
+                                        onDismissCancellation = myReservationsViewModel::dismissCancellation,
+                                        onConfirmCancellation = myReservationsViewModel::confirmCancellation,
+                                    )
                                 } else {
                                     val selected = searchViewModel.state.value.selected
                                     if (selected == null) {
@@ -180,6 +205,10 @@ class App(
                                             searchViewModel::previousPage,
                                             searchViewModel::nextPage,
                                             searchViewModel::select,
+                                            onOpenReservations = {
+                                                reservationsVisible = true
+                                                myReservationsViewModel.load()
+                                            },
                                             sessionViewModel::signOut,
                                             searchViewModel::ensureLoaded,
                                         )

@@ -131,6 +131,16 @@ class ReservationViewModel(
     }
 
     /**
+     * Muestra un proceso ya informado por Turnos, por ejemplo desde Mis reservas,
+     * sin repetir la lectura. Cancela una operación anterior para no publicar tarde.
+     */
+    fun present(process: ReservationProcess) {
+        job?.cancel()
+        job = null
+        mutableState.value = ReservationUiState(process = process)
+    }
+
+    /**
      * Consulta una sola vez el pendiente propio al entrar. La guarda evita repetir
      * la consulta al rotar o al recomponer la pantalla.
      */

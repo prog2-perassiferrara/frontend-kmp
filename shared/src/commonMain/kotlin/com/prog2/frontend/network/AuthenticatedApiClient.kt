@@ -51,20 +51,23 @@ class AuthenticatedApiClient(
     }
 
     /**
-     * Envía una operación de API propia con un cuerpo JSON ya serializado. Un fallo
-     * de transporte no demuestra que el servidor no haya recibido la solicitud: el
-     * consumidor debe tratarlo como resultado incierto cuando la operación tiene efectos.
+     * Envía una operación de API propia con un cuerpo JSON ya serializado o sin
+     * cuerpo cuando el contrato no lo requiere. Un fallo de transporte no
+     * demuestra que el servidor no haya recibido la solicitud: el consumidor debe
+     * tratarlo como resultado incierto cuando la operación tiene efectos.
      *
      * @throws SessionException ante sesión vencida, reemplazada o fallo de comunicación.
      */
-    suspend fun post(backend: Backend, path: String, body: String): ApiResponse {
+    suspend fun post(backend: Backend, path: String, body: String? = null): ApiResponse {
         require(path.startsWith("/api/")) { "Se requiere una ruta relativa de API." }
         val snapshot = sessions.snapshot()
         val response = try {
             client.post(configuration.baseUrl(backend).toString().trimEnd('/') + path) {
                 bearerAuth(snapshot.token)
-                contentType(ContentType.Application.Json)
-                setBody(body)
+                if (body != null) {
+                    contentType(ContentType.Application.Json)
+                    setBody(body)
+                }
             }.let { ApiResponse(it.status.value, it.bodyAsText()) }
         } catch (cancelled: CancellationException) {
             throw cancelled
