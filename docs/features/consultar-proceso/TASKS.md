@@ -31,7 +31,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 | CA-01 | Verificado | `KtorReservationsApiTest.processReadsTheDurableProgressWithTheUserBearer`: ruta y bearer propios, sin POST. |
 | CA-02 | Verificado | `ReservationViewModelTest.discoveryOpensTheOwnPendingProcessOnlyOnce` y `KtorReservationsApiTest.processReadsTheDurableProgressWithTheUserBearer`: campos presentados sin completar ausentes. |
 | CA-03 | Verificado | `ProcessPresentationTest.theExpirationIsShownAsUtcWithoutUsingTheDeviceClock` y `ProcessScreen`: `expiresAt` rotulado UTC, sin comparación local. |
-| CA-04 | Verificado | `ReservationViewModelTest.thePhoneRequirementIsOnlyAnnounced`: se informa `phoneRequired` sin campo ni envío. |
+| CA-04 | Verificado | En CU-08 se informa el requisito sin enviar; el formulario y el envío pertenecen a CU-07 y se validan en `docs/features/completar-telefono/`. |
 | CA-05 | Verificado | `ReservationViewModelTest.aFailedRefreshKeepsTheLastReportedProcess`: conserva el último proceso y muestra el mensaje. `App` vuelve a consultar al pulsar “Ver estado”. |
 | CA-06 | Verificado | `KtorReservationsApiTest.pendingReadsTheOwnProcessAndAnAbsentPendingIsNull` y `ReservationViewModelTest.discoveryOpensTheOwnPendingProcessOnlyOnce`; en emulador, al reiniciar la app el pendiente real se descubrió y el proceso se abrió sin un `POST` nuevo. |
 | CA-07 | Verificado | `ReservationViewModelTest.aDiscoveryFailureDoesNotBlockTheSearchAndCanBeRetried`: la búsqueda sigue disponible y “Reintentar” repite la consulta. |

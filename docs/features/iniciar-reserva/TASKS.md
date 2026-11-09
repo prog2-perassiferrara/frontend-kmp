@@ -37,7 +37,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 | CA-07 | Verificado | `KtorReservationsApiTest.aTransportFailureOnStartIsUncertain` y `ReservationViewModelTest.anUncertainStartIsNotPresentedAsSuccessNorAsFailure`. |
 | CA-08 | Verificado | `ReservationViewModelTest.verifyingAnUnregisteredStartAllowsRetryWithTheSameRequestId`; un 400/403 de verificación no habilita el reintento (`KtorReservationsApiTest.onlyAnAuthenticNotFoundEnablesRetryingTheStart`, `ReservationViewModelTest.aFailedVerificationKeepsTheUncertaintyAndDoesNotEnableAnotherStart`). |
 | CA-09 | Verificado | `ReservationViewModelTest.aPendingProcessHiddenByTheUserRemainsAvailableThroughTheBanner` y `dismissDiscardsFinalRejectedAndUnregisteredProcesses`; en emulador, “Volver” mostró el banner “Tenés un proceso de reserva en curso” y “Ver estado” reabrió el proceso con un `GET` actualizado. |
-| CA-10 | Verificado | `ReservationViewModelTest.thePhoneRequirementIsOnlyAnnounced`; `ProcessScreen` solo muestra el aviso, sin campo ni envío (build/lint). |
+| CA-10 | Verificado | En CU-06 la pantalla solo anunciaba el requisito; la suite de CU-07 cubre ahora el formulario y el envío. El aviso previo se validó con build/lint y el proceso real. |
 
 ### Regresión
 
@@ -61,6 +61,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 
 - No se repitió el `POST`, no se envió teléfono, no se confirmó ni canceló la reserva y no se modificaron datos de otros usuarios.
 - No se ejecutó CU-07 (envío de teléfono) ni CU-10 (cancelación); no hay reserva confirmada.
+- Continuación posterior en la prueba de CU-07 (misma fecha, cuenta documentada id 35, proceso `0fe8784f-…`): se envió el teléfono una vez y Turnos confirmó la reserva `1675`; ver [TASKS de CU-07](../completar-telefono/TASKS.md).
 - El código HTTP exacto del `POST` y el del primer `GET` fallido no quedaron registrados. No se afirma haber observado `202`.
 
 ### Desviaciones del PLAN
