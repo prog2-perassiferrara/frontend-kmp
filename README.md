@@ -1,9 +1,3 @@
-<!-- calidad:inicio -->
-![Calidad](https://img.shields.io/badge/Calidad-sin%20c%C3%B3digo-lightgrey) ![Aprobar](https://img.shields.io/badge/Aprobar-no-red) ![Destacar](https://img.shields.io/badge/Destacar-no-lightgrey)
-
-**Calidad (7 dimensiones):** sin código en `main` (no evaluable).
-<!-- calidad:fin -->
-
 # Aplicación KMP para Android
 
 Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gestión de reservas propias. Android debe permitir completar el flujo funcional requerido por cátedra.
@@ -74,7 +68,7 @@ Con un dispositivo o emulador conectado, ejecutar además las pruebas de Keystor
 
 Seleccionar `androidApp` y un emulador/dispositivo en Android Studio y pulsar **Run**. Ingresar usuario o correo y contraseña de una cuenta activa de Turnos. «Recordarme» solicita 30 días en lugar de 24 horas; la app respeta el vencimiento recibido en ambos casos.
 
-Con la sesión iniciada, la BottomBar permite alternar entre **Buscar** (CU-04/05 y acceso al flujo de reserva) y **Cuenta**, que contiene «Mis reservas» (CU-09/10) y «Cerrar sesión». Disponibilidad y proceso se abren como pantallas secundarias; el botón Atrás del sistema vuelve dentro de la app. Cambiar de pestaña conserva filtros, resultados, selección y proceso porque los ViewModels viven a nivel de Activity. Cerrar sesión descarta esos estados y vuelve al login. En búsqueda, «Seleccionar fecha» abre el calendario nativo, permite quitarla y conserva el formato `AAAA-MM-DD` que espera Catálogo. En disponibilidad, el mismo calendario no permite elegir días pasados. Los vencimientos que el servicio informa en UTC se presentan en `DD/MM/AAAA · HH:mm` con la misma zona horaria de atención que los turnos.
+Con la sesión iniciada, la BottomBar permite alternar entre **Buscar** (CU-04/05 y acceso al flujo de reserva) y **Cuenta**, que contiene «Mis reservas» (CU-09/10) y «Cerrar sesión». Disponibilidad y proceso se abren como pantallas secundarias; el botón Atrás del sistema vuelve dentro de la app y «Volver» en un proceso regresa a Cuenta o a Buscar según su origen. Entrar a Cuenta relee las reservas propias. Cambiar de pestaña conserva filtros, resultados, selección y proceso porque los ViewModels viven a nivel de Activity. Cerrar sesión descarta esos estados y vuelve al login. En búsqueda, «Seleccionar fecha» abre el calendario nativo, permite quitarla y conserva el formato `AAAA-MM-DD` que espera Catálogo. En disponibilidad, el mismo calendario no permite elegir días pasados. Los vencimientos que el servicio informa en UTC se presentan en `DD/MM/AAAA · HH:mm` con la misma zona horaria de atención que los turnos.
 
 Para instalar y abrir desde la terminal, con un dispositivo conectado:
 

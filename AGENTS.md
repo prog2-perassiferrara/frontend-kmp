@@ -2,7 +2,7 @@
 
 ## Lectura y alcance
 
-- Las rutas son relativas a este repositorio. Leer las [instrucciones generales](../AGENTS.md), [las reglas de trabajo](docs/GENERIC_RULES.md) y las secciones pertinentes del [enunciado](../PROJECT_STATEMENT-v1.md) y del [contrato de integración](../INTEGRATION_REFERENCE-v2.md).
+- Las rutas son relativas a este repositorio. Leer las instrucciones generales, [las reglas de trabajo](docs/GENERIC_RULES.md) y las secciones pertinentes del enunciado y del contrato de integración.
 - Si el repositorio se clona por separado y faltan esos documentos, informar qué falta; no inventar su contenido.
 - Responder en español. Priorizar el aprendizaje y explicar decisiones sin implementar soluciones no solicitadas.
 - Mantener aquí reglas estables. El estado vigente se consulta en `../SESSION_HANDOFF.md`, la documentación de la funcionalidad y Git; verificarlo antes de trabajar.

@@ -51,7 +51,7 @@
 
 ## Fuentes y pendientes
 
-**Fuentes:** [enunciado, secciones 3.2 y 9](../../../PROJECT_STATEMENT-v1.md); [CU-02 de Turnos](../../../backend-turnos/docs/use-cases/CU-02-autenticar-usuario.md); [decisiones de esta revisión](README.md).
+**Fuentes:** enunciado, secciones 3.2 y 9; CU-02 de Turnos; [decisiones de esta revisión](README.md).
 
 **Pendiente para la SPEC:** validaciones del login y presentación del aviso no bloqueante/reintento. La navegación ante fallo de consulta inicial ya está acordada.
 

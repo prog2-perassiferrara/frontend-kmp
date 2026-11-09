@@ -2,7 +2,7 @@
 
 **Estado:** Implementada y verificada el 2026-11-08.
 **CU e issue de referencia:** [CU-04](../../use-cases/CU-04-buscar-profesionales.md); issue #7.
-**Fuentes:** [CU-04 de KMP](../../use-cases/CU-04-buscar-profesionales.md), [CU-04 de Catálogo](../../../../backend-catalogo/docs/use-cases/CU-04-buscar-profesionales.md), [contrato de Catálogo](../../../../backend-catalogo/docs/CONTRATOS.md), [enunciado](../../../../PROJECT_STATEMENT-v1.md) e [instrucciones KMP](../../../AGENTS.md).
+**Fuentes:** [CU-04 de KMP](../../use-cases/CU-04-buscar-profesionales.md), CU-04 de Catálogo, contrato de Catálogo, enunciado e [instrucciones KMP](../../../AGENTS.md).
 
 ## Objetivo
 

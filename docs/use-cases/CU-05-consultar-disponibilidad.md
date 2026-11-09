@@ -45,7 +45,7 @@
 
 ## Fuentes y pendientes
 
-**Fuentes:** [CU-03 de Turnos](../../../backend-turnos/docs/use-cases/CU-03-consultar-disponibilidad.md); [anexo, secciones 4 y 8](../../../INTEGRATION_REFERENCE-v2.md).
+**Fuentes:** CU-03 de Turnos; anexo, secciones 4 y 8.
 
 **Pendiente para la SPEC:** fechas permitidas, horarios pasados y formatos visibles. Coordinar restricciones con Turnos y aplicar la conservación temporal acordada.
 

@@ -2,7 +2,7 @@
 
 **Estado:** Implementada y verificada con pruebas y emulador (2026-11-09).
 **CU e issue de referencia:** [CU-09](../../use-cases/CU-09-consultar-reservas.md); issue #12.
-**Fuentes:** [CU-09 de KMP](../../use-cases/CU-09-consultar-reservas.md), [CU-07 de Turnos](../../../../backend-turnos/docs/use-cases/CU-07-consultar-reservas.md), [contrato de Turnos](../../../../backend-turnos/docs/CONTRATOS.md#api-propia-de-turnos) e [instrucciones KMP](../../../AGENTS.md).
+**Fuentes:** [CU-09 de KMP](../../use-cases/CU-09-consultar-reservas.md), CU-07 de Turnos, contrato de Turnos e [instrucciones KMP](../../../AGENTS.md).
 
 ## Objetivo
 
@@ -10,7 +10,7 @@ Mostrar las reservas propias informadas por Turnos, diferenciando el historial d
 
 ## Alcance
 
-- **RF-01 · Consulta:** `GET /api/reservations?page={n}&size={m}` con el JWT de usuario existente. No se consulta Catálogo ni se guardan datos en el dispositivo.
+- **RF-01 · Consulta:** `GET /api/reservations?page={n}&size={m}` con el JWT de usuario existente. Cada entrada a la pestaña Cuenta relee la primera página; no se consulta Catálogo ni se guardan datos en el dispositivo.
 - **RF-02 · Contenido:** se muestran el nombre histórico del profesional (o una referencia por identificador si Turnos no lo conserva), la fecha, la hora local de atención, el estado y el motivo informado. No se inventan datos ausentes.
 - **RF-03 · Pendiente separado:** el `pending` se presenta como proceso en curso, nunca como reserva confirmada, y permite abrir CU-08 con el estado ya recibido.
 - **RF-04 · Estados de la consulta:** carga inicial, lista vacía, error con reintento y actualización manual de la página actual.
@@ -20,7 +20,6 @@ Mostrar las reservas propias informadas por Turnos, diferenciando el historial d
 
 - Cancelar reservas (CU-10), buscar o filtrar reservas, consultas offline y persistencia.
 - Enriquecer nombres con Catálogo o repetir consultas que Turnos no ofrece.
-- Representar el flujo alternativo 3b de CU-09 (aviso de copia de catálogo desactualizada durante la consulta): el contrato de listado de Turnos no expone estado ni aviso de desactualización. No se declara cumplido ni se modifica el backend.
 
 ## Flujo de usuario
 
@@ -35,6 +34,7 @@ Mostrar las reservas propias informadas por Turnos, diferenciando el historial d
 - Un fallo de consulta no se muestra como lista vacía; conserva los datos previos si existían.
 - `CONFIRMED`, `CANCELLED`, `FAILED` y `EXPIRED` se presentan como estados distintos.
 - Un `state` no reconocido se muestra tal cual, sin deducir su significado.
+- Un aviso de cancelación se conserva solo durante la lectura que reconcilia un rechazo o un resultado incierto; una lectura posterior lo retira porque la fila ya muestra el estado vigente.
 - La sesión vencida la resuelve el cliente HTTP existente; la pantalla no conserva datos ajenos.
 
 ## Criterios de aceptación

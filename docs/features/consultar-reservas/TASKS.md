@@ -13,8 +13,8 @@ Cada RF tiene CA y validación en el PLAN; las tareas no agregan alcance. Sin de
   - `OwnReservationsPage`, `CancellationProgress` y `reservations(page, size)`; lectura de `pending` e `history` con la paginación de Turnos. `pending()` se conserva para CU-08.
   - Validación: `KtorReservationsApiTest.ownReservationsReadPendingHistoryAndPagination`, `ownReservationsIncompleteHistoryIsAReadFailure`, `ownReservationsWithoutPendingAndWithACompleteEmptyHistoryIsEmptyButValid` y `ownReservationsFailureAndTransportAreUncertainReads`.
 - [x] **T2 · Estado de la pantalla** (RF-04, RF-05)
-  - `MyReservationsUiState` y `MyReservationsViewModel`: carga, vacío, error, actualización, anterior/siguiente y relectura al reabrir. Tamaño fijo 10.
-  - Validación: `MyReservationsViewModelTest` (13 pruebas al cierre: carga, paginación, cancelación y la regresión de I-1).
+  - `MyReservationsUiState` y `MyReservationsViewModel`: carga, vacío, error, actualización, anterior/siguiente y relectura al reabrir o volver a la pestaña Cuenta. Tamaño fijo 10.
+  - Validación: `MyReservationsViewModelTest` (15 pruebas al cierre correctivo: carga, paginación, cancelación, avisos de cancelación y la regresión de I-1).
 - [x] **T3 · Presentación y navegación** (RF-02, RF-03)
   - `MyReservationsScreen` dentro de la pestaña “Cuenta” de `MainScreen` (BottomBar), que también contiene «Cerrar sesión»; el pendiente ofrece “Ver estado” mediante `ReservationViewModel.present(process)`, sin otra lectura.
   - Validación: `MyReservationsPresentationTest` (4 pruebas); `ReservationViewModelTest.presentingAReportedProcessShowsItWithoutReadingItAgain`.
@@ -47,5 +47,11 @@ Cada RF tiene CA y validación en el PLAN; las tareas no agregan alcance. Sin de
 - No se crearon reservas ni se modificó la base. La cuenta no tenía un pendiente real en esta etapa: la separación se verificó con pruebas y con los datos de CU-07.
 - La paginación múltiple se verificó con dobles; la cuenta real solo tiene una página.
 - En la cancelación real de CU-10, “Mis reservas” releyó 6 registros, mostró la reserva 1677 como `CANCELLED` y conservó el estado al salir y reabrir.
-- El flujo alternativo 3b de CU-09 no se representa: el contrato de listado de Turnos no incluye estado ni aviso de copia de catálogo desactualizada. No se declara cumplido ni se modificó el backend.
+
+### Cierre correctivo (2026-11-09)
+
+- **Relectura al volver a Cuenta:** el destino `Reservations` ejecuta `MyReservationsViewModel.load()` al entrar y `reopeningTheScreenReadsTheFirstPageAgain` cubre la relectura del ViewModel. En el emulador, `Buscar → Cuenta → Buscar → Cuenta` mostró el listado, pero no se capturó la nueva petición HTTP.
+- **Avisos de cancelación:** `read()` conserva `cancelMessage` solo en la lectura que reconcilia un rechazo o un resultado incierto; las posteriores lo retiran. `aCancellationNoticeSurvivesTheReconcilingReadAndClearsOnTheNextOne` y `aCompletedCancellationNoticeDoesNotSurviveALaterRead` lo verifican.
+- **Regreso desde Cuenta:** si un proceso se abre desde la pestaña Cuenta, «Volver» hace `popBackStack()` y regresa allí; desde el flujo de búsqueda conserva el comportamiento anterior. Se reutiliza el `NavController` existente.
+- La navegación desde Cuenta hacia un proceso real no pudo observarse porque la cuenta de prueba no tenía un pendiente; queda cubierta por la lectura del código y por los estados ya verificados.
 - Sin cambios en `backend-turnos`, `backend-catalogo` ni en CU-01/CU-08.

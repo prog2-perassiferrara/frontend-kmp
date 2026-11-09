@@ -2,7 +2,7 @@
 
 **Estado:** Diez casos activos revisados y aprobados por el usuario el 2026-10-07. CU-11 se retira del alcance activo; su ficha queda en el historial de Git. Estos casos describen comportamiento y no sustituyen el plan técnico de cada funcionalidad ni autorizan implementar.
 
-**Fuentes:** [enunciado](../../../PROJECT_STATEMENT-v1.md), secciones 3.2, 4, 5, 7 a 9 y 10.1; [contrato de integración](../../../INTEGRATION_REFERENCE-v2.md), secciones 2, 4, 8 a 13, 15.4 a 15.10, 17 y 18; [CU de Catálogo](../../../backend-catalogo/docs/use-cases/README.md); [CU aprobados de Turnos](../../../backend-turnos/docs/use-cases/README.md); [continuidad](../../../SESSION_HANDOFF.md).
+**Fuentes:** enunciado, secciones 3.2, 4, 5, 7 a 9 y 10.1; contrato de integración, secciones 2, 4, 8 a 13, 15.4 a 15.10, 17 y 18; CU de Catálogo; CU aprobados de Turnos; continuidad.
 
 ## Estructura de las descripciones
 
@@ -80,7 +80,7 @@ Las asociaciones indican participación, no secuencia temporal. Registro incluye
 | [CU-06](CU-06-iniciar-reserva.md) | Una acción inicia hold y confirmación inicial; sin falso éxito ni segundo proceso pendiente. Aprobado. |
 | [CU-07](CU-07-completar-informacion.md) | Teléfono enviado a Turnos y rechazo corregible hasta vencimiento. Aprobado. |
 | [CU-08](CU-08-consultar-proceso.md) | Progreso propio recuperado desde Turnos y acciones acordes con su estado. Aprobado. |
-| [CU-09](CU-09-consultar-reservas.md) | Reservas y procesos propios con estados diferenciados y aviso cuando solo hay datos locales del backend. Aprobado. |
+| [CU-09](CU-09-consultar-reservas.md) | Reservas y procesos propios con estados diferenciados. Aprobado. |
 | [CU-10](CU-10-cancelar-reserva.md) | Solicitud explícita de cancelación y presentación del resultado verificado. Aprobado. |
 
 CU-11 se retiró del alcance activo el 2026-11-08: Turnos no expone abandono de proceso. La ficha se eliminó del árbol vigente y permanece solo en el historial de Git; no debe implementarse. La cancelación de una reserva confirmada pertenece a CU-10.
@@ -92,7 +92,7 @@ CU-11 se retiró del alcance activo el 2026-11-08: Turnos no expone abandono de 
 - Última copia consistente de Catálogo con aviso durante sincronización o fallo. Reservas y procesos locales de Turnos con aviso si cátedra no está disponible. Esto no establece soporte offline en el dispositivo.
 - Una acción inicia hold y confirmación REST. La aceptación inicial o el envío del teléfono no constituyen reserva confirmada.
 - Un proceso pendiente por usuario, también si el cierre sigue incierto. Pueden existir varias reservas confirmadas e historial propio.
-- Volver atrás, cerrar la app o cerrar sesión conserva el proceso en Turnos sin ampliar `expiresAt`; la app no solicita abandono. La [aclaración docente registrada en Turnos](../../../backend-turnos/docs/use-cases/README.md) permite cancelar holds; los mensajes reales siguen pendientes de validación del backend.
+- Volver atrás, cerrar la app o cerrar sesión conserva el proceso en Turnos sin ampliar `expiresAt`; la app no solicita abandono. La aclaración docente registrada en Turnos permite cancelar holds; los mensajes reales siguen pendientes de validación del backend.
 - Teléfono rechazado corregible antes del vencimiento. Resultados inciertos, confirmación, cancelación, fallo y vencimiento deben distinguirse; el reloj de la pantalla no verifica un resultado central.
 
 **Decisión para sesión:** Confirmada el 2026-10-07 y aclarada en esta revisión: conservar sesión al cerrar y reabrir mientras el JWT sea válido; cierre explícito; sin renovación automática. Comprobar vencimiento al abrir/reabrir, volver del segundo plano y antes de una petición protegida; si se detecta vencido, no enviar esa petición. Al detectar vencimiento o rechazo de autenticación del JWT de usuario por el backend (401), aplicar la misma limpieza local que el logout manual: retirar sesión y vistas privadas, descartar formularios/filtros/selecciones y pedir login, aunque vuelva la misma persona. No forzar cierre por temporizador mientras permanece en una pantalla. Un 403 por falta de permiso, timeout, indisponibilidad o problema de autenticación técnica entre servicios no provoca logout automático. No solicitar abandono ni cancelación ni presumir fallida una operación enviada. Después de autenticarse, consultar el progreso en Turnos sin repetir operaciones enviadas cuyo resultado siga desconocido; una respuesta tardía no restablece la sesión ni los borradores descartados ni cierra una sesión nueva. Los backends validan el JWT; el control local no sustituye esa validación.

@@ -46,7 +46,7 @@
 
 ## Fuentes y pendientes
 
-**Fuentes:** [enunciado, sección 4.1](../../../PROJECT_STATEMENT-v1.md); [CU-04 de Catálogo](../../../backend-catalogo/docs/use-cases/CU-04-buscar-profesionales.md); [CU-06 de Catálogo](../../../backend-catalogo/docs/use-cases/CU-06-estado-de-sincronizacion.md).
+**Fuentes:** enunciado, sección 4.1; CU-04 de Catálogo; CU-06 de Catálogo.
 
 **Pendiente para la SPEC:** valores predeterminados, combinación concreta de filtros, búsqueda por nombre, orden y paginación. Conservación temporal ya acordada.
 

@@ -2,7 +2,7 @@
 
 **Estado:** Implementada y verificada el 2026-11-08.
 **CU e issue de referencia:** [CU-02](../../use-cases/CU-02-iniciar-sesion.md), [CU-03](../../use-cases/CU-03-cerrar-sesion.md); issues #5 y #6.
-**Fuentes:** [seguridad del enunciado](../../../../PROJECT_STATEMENT-v1.md), [CU-02](../../use-cases/CU-02-iniciar-sesion.md), [CU-03](../../use-cases/CU-03-cerrar-sesion.md), [contrato de integración](../../../../INTEGRATION_REFERENCE-v2.md) e [instrucciones KMP](../../../AGENTS.md).
+**Fuentes:** seguridad del enunciado, [CU-02](../../use-cases/CU-02-iniciar-sesion.md), [CU-03](../../use-cases/CU-03-cerrar-sesion.md), contrato de integración e [instrucciones KMP](../../../AGENTS.md).
 
 ## Objetivo
 

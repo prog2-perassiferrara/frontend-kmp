@@ -2,7 +2,7 @@
 
 **Estado:** Implementada y verificada con pruebas; cancelación real no ejecutada (2026-11-09).
 **CU e issue de referencia:** [CU-10](../../use-cases/CU-10-cancelar-reserva.md); issue #12.
-**Fuentes:** [CU-10 de KMP](../../use-cases/CU-10-cancelar-reserva.md), [CU-08 de Turnos](../../../../backend-turnos/docs/use-cases/CU-08-cancelar-reserva.md), [contrato de Turnos](../../../../backend-turnos/docs/CONTRATOS.md#api-propia-de-turnos) e [instrucciones KMP](../../../AGENTS.md).
+**Fuentes:** [CU-10 de KMP](../../use-cases/CU-10-cancelar-reserva.md), CU-08 de Turnos, contrato de Turnos e [instrucciones KMP](../../../AGENTS.md).
 
 ## Objetivo
 

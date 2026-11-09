@@ -2,7 +2,7 @@
 
 **Estado:** Implementada y verificada con pruebas; prueba de integración real el 2026-11-09.
 **CU e issue de referencia:** [CU-06](../../use-cases/CU-06-iniciar-reserva.md); issue #9.
-**Fuentes:** [CU-06 de KMP](../../use-cases/CU-06-iniciar-reserva.md), [CU-04 de Turnos](../../../../backend-turnos/docs/use-cases/CU-04-iniciar-reserva.md), [contrato de Turnos](../../../../backend-turnos/docs/CONTRATOS.md#api-propia-de-turnos), [anexo, secciones 9, 10 y 17](../../../../INTEGRATION_REFERENCE-v2.md) e [instrucciones KMP](../../../AGENTS.md).
+**Fuentes:** [CU-06 de KMP](../../use-cases/CU-06-iniciar-reserva.md), CU-04 de Turnos, contrato de Turnos, anexo, secciones 9, 10 y 17 e [instrucciones KMP](../../../AGENTS.md).
 
 ## Objetivo
 

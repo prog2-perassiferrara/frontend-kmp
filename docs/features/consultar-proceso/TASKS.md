@@ -57,6 +57,12 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 - Estado final: pendiente con hold vigente y sin `reservation_id`; no confirmado. No se envió teléfono, no se canceló y no se esperó el vencimiento.
 - No se detectaron defectos funcionales en el cliente.
 
+### Cierre correctivo (2026-11-09)
+
+- **Fases abiertas:** `WAITING_FOR_REQUEST` muestra «Esperando que se solicite el teléfono», `WAITING_FOR_PHONE` «Falta completar información» y `PHONE_QUEUED` «Teléfono enviado»; solo `CONFIRMED` anuncia «Reserva confirmada». `ProcessPresentationTest.theOpenPhasesDistinguishPendingRequestPendingPhoneAndSentPhone` lo verifica.
+- **Vencimiento en procesos abiertos:** `expirationNotice(process)` devuelve `null` para `CONFIRMED`, `CANCELLED`, `FAILED` y `EXPIRED` aunque el DTO conserve `expiresAt`; conserva la conversión a la zona de atención. `ProcessPresentationTest.theExpirationIsOnlyShownWhileTheRequestIsOpen` lo cubre.
+- **Regreso según origen:** «Volver» usa el back stack; desde Cuenta vuelve a Cuenta y desde el flujo de búsqueda conserva el comportamiento anterior. No se agregó otro mecanismo de navegación.
+
 ### Límites
 
 - La sesión correspondía a una cuenta local de prueba (id 33) cuya titularidad no está confirmada; no se cambió de cuenta.

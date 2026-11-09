@@ -46,6 +46,6 @@
 
 ## Fuentes y pendientes
 
-**Fuentes:** [CU-08 de Turnos](../../../backend-turnos/docs/use-cases/CU-08-cancelar-reserva.md); [anexo, secciones 12 y 15.10](../../../INTEGRATION_REFERENCE-v2.md).
+**Fuentes:** CU-08 de Turnos; anexo, secciones 12 y 15.10.
 
 **Pendiente para la SPEC/PLAN:** textos del diálogo y presentación del resultado pendiente; acordar contrato y recuperación de respuesta perdida. No enviar un motivo elegido libremente desde la app.

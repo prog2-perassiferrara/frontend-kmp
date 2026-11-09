@@ -54,7 +54,7 @@
 ## Datos y contratos
 
 - **Entrada:** `categoryId` (positivo), `name` (≤100, recortado), `enabled` (booleano), `availableOn` (`AAAA-MM-DD`), `page≥0`, `size=20`. Los nulos y textos vacíos se omiten.
-- **Salida:** `content[]` con `id`, `firstName`, `lastName`, `enabled` y `category {id,name,enabled}`; totales; `catalog {state,copyAvailable}`.
+- **Salida:** `content[]` con `id`, `firstName`, `lastName`, `enabled` y `category {id,name,enabled}`; totales; `catalog {state,copyAvailable}`. Todos esos campos son obligatorios: una respuesta incompleta se informa como error de lectura y no como lista vacía. En categorías, `content` es obligatorio; `catalog` no lo consume la app.
 - **Productor:** Catálogo, contrato documentado en `backend-catalogo/docs/CONTRATOS.md` y verificado en el controlador y DTO reales.
 - **Persistencia:** ninguna en el dispositivo. La copia local pertenece a Catálogo; la app solo conserva el estado en memoria del ViewModel.
 - **Orden y paginación:** los define el backend. La app no reordena ni pide páginas fuera de `0..totalPages-1`.
