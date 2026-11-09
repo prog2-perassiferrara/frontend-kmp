@@ -8,7 +8,7 @@
 
 Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gestión de reservas propias. Android debe permitir completar el flujo funcional requerido por cátedra.
 
-**Estado:** registro, inicio, conservación y cierre de sesión implementados con MVVM. El área autenticada es transitoria: muestra «Sesión iniciada» y permite cerrar sesión. Búsqueda y procesos se integran en sus respectivos CU. Ver resultados, límites y verificaciones en los planes de [registro](docs/features/registro-usuario/PLAN.md) y [sesión](docs/features/sesion-usuario/PLAN.md).
+**Estado:** registro, inicio, conservación y cierre de sesión implementados con MVVM. Búsqueda de profesionales implementada sobre Catálogo con filtros, paginación y aviso de copia, y consulta de disponibilidad real sobre Turnos para el profesional elegido. Los procesos de reserva se integran en sus respectivos CU. Ver resultados, límites y verificaciones en los planes de [registro](docs/features/registro-usuario/PLAN.md), [sesión](docs/features/sesion-usuario/PLAN.md), [búsqueda](docs/features/busqueda-profesionales/PLAN.md) y [disponibilidad](docs/features/disponibilidad-profesional/PLAN.md).
 
 ## Requisitos
 
@@ -60,7 +60,7 @@ Desde la raíz del repositorio:
 ./gradlew check :androidApp:assembleDebug
 ```
 
-`check` ejecuta las pruebas host de sesión y registro, y las verificaciones conectadas por los plugins, incluido lint. `assembleDebug` genera `androidApp/build/outputs/apk/debug/androidApp-debug.apk`. Las pruebas host usan reloj controlado y MockEngine; no requieren un backend, emulador ni credenciales reales.
+`check` ejecuta las pruebas host de sesión, registro, búsqueda y disponibilidad, y las verificaciones conectadas por los plugins, incluido lint. `assembleDebug` genera `androidApp/build/outputs/apk/debug/androidApp-debug.apk`. Las pruebas host usan reloj controlado y MockEngine; no requieren un backend, emulador ni credenciales reales.
 
 La compilación y lint fueron comprobados en Linux; quedan avisos de versiones y recursos del launcher, sin errores. Windows y `gradlew.bat` no se comprobaron.
 

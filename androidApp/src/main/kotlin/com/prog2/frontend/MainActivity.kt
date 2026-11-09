@@ -4,8 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.prog2.frontend.ui.availability.AvailabilityScreen
 import com.prog2.frontend.ui.registration.RegistrationScreen
-import com.prog2.frontend.ui.session.AuthenticatedScreen
+import com.prog2.frontend.ui.search.SearchScreen
 import com.prog2.frontend.ui.session.LoginScreen
 
 /** Punto de entrada Android y composición de los componentes de presentación. */
@@ -19,9 +20,12 @@ class MainActivity : ComponentActivity() {
         val app = App(
             container.sessions,
             container.registrationApi,
+            container.catalogApi,
+            container.availabilityApi,
             LoginScreen(),
             RegistrationScreen(),
-            AuthenticatedScreen(),
+            SearchScreen(),
+            AvailabilityScreen(),
         )
 
         setContent {
