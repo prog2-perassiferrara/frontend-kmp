@@ -1,5 +1,7 @@
 # SPEC: [nombre de la funcionalidad]
 
+> Documento obligatorio y breve por funcionalidad. Usá solo las secciones que aporten; referenciá el PLAN/TASKS en lugar de repetir su contenido y evitá matrices de trazabilidad. La autorización para desarrollar el CU cubre esta etapa.
+
 **Estado:** Borrador <!-- Borrador | En revisión | Aprobada -->
 **CU e issue de referencia:** [ruta al CU y enlace al issue, si existen; indicar borrador local o No aplica]
 **Fuentes y acuerdos relacionados:** [documentos y secciones pertinentes; contratos productores/consumidores y decisiones confirmadas]
@@ -22,8 +24,10 @@ TASKS.md organiza los pasos de ejecución.
 - No incluyas diseño de clases, tablas, componentes, archivos o algoritmos:
   esos detalles pertenecen a PLAN.md. Sí registra restricciones explícitas del pedido.
 - Mantén el documento breve y proporcional a la funcionalidad. Conserva los comentarios.
-- Un documento completo no está aprobado automáticamente. Solicita aprobación
-  antes de marcarlo como Aprobada. No implementes durante esta etapa.
+- Una autorización explícita para desarrollar el CU cubre esta etapa junto con
+  el PLAN, las TASKS y la implementación; no solicites una aprobación separada.
+  Sin esa autorización, no marques el documento como Aprobada ni implementes.
+  Consulta solo decisiones que cambien comportamiento, contratos o alcance.
 - Para cambios de significado posteriores a la aprobación, registra una nota
   breve de cambio, motivo e impacto según AGENTS.md, sin historial separado.
 -->
@@ -117,14 +121,12 @@ Repite el formato según sea necesario. -->
 
 ## Cómo se comprueba el comportamiento
 
-<!-- Una fila por criterio: escenario y resultado que debemos comprobar.
-La selección de tests, herramientas, comandos y evidencias se desarrolla en PLAN.md.
+<!-- Para cada criterio, indicá condiciones y resultado esperado en una línea.
+La selección de tests, comandos y evidencias se desarrolla en PLAN.md y TASKS.md.
 No marques los criterios como superados durante la especificación. -->
 
-| Criterio | Condiciones y pasos | Resultado esperado |
-| --- | --- | --- |
-| CA-01 | [PENDIENTE] | [PENDIENTE] |
-| CA-02 | [PENDIENTE] | [PENDIENTE] |
+- **CA-01:** [condiciones y resultado esperado]
+- **CA-02:** [condiciones y resultado esperado]
 
 ## Decisiones pendientes
 
@@ -133,7 +135,7 @@ no queden pendientes funcionales ni restricciones por decidir. -->
 
 - [PENDIENTE]
 
-<!-- ANTES DE SOLICITAR APROBACIÓN
+<!-- ANTES DE PASAR AL PLAN
 Comprueba que el alcance está acordado, los flujos son coherentes, los puntos
 mobile relevantes están cubiertos y cada requisito tiene criterios comprobables.
 Resuelve las dudas y los marcadores pendientes. Mantén el diseño técnico en PLAN.md.

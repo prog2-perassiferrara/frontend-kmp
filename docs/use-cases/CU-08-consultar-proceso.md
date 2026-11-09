@@ -21,7 +21,7 @@
 1. La app consulta Turnos para el proceso propio, sin iniciar un nuevo hold.
 2. Turnos verifica propiedad y devuelve progreso, información requerida, vencimiento y grado de verificación disponibles.
 3. La app muestra el estado de ese proceso, distinguiendo espera, información requerida, resultado conocido e incertidumbre.
-4. Si permite continuar, ofrece completar teléfono con CU-07 o abandonar explícitamente con CU-11.
+4. Si permite continuar, ofrece completar teléfono con CU-07. No existe abandono de proceso en el contrato de Turnos.
 5. Al recibir el resultado final desde Turnos, lo presenta y deja de ofrecer acciones incompatibles.
 
 ## Flujos alternativos y de excepción
@@ -32,7 +32,7 @@
 - **2c. Turnos entrega estado local sin verificación central:** muestra el aviso y las acciones permitidas por el backend; continúa en el paso 3.
 - **3a. Plazo mostrado agotado con resultado incierto:** impide nuevos envíos de teléfono; consulta el resultado en Turnos sin declarar vencimiento central verificado ni habilitar otro proceso.
 - **3b. Proceso terminado:** muestra resultado conocido, sin reabrirlo; continúa en el paso 5.
-- **4a. Volver atrás o cerrar la app:** deja la consulta y conserva el proceso en Turnos; no ejecuta CU-11. Al regresar, vuelve al paso 1.
+- **4a. Volver atrás o cerrar la app:** deja la consulta y conserva el proceso en Turnos; no ejecuta operaciones de cancelación. Al regresar, vuelve al paso 1.
 
 ## Postcondiciones
 

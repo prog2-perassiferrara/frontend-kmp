@@ -2,77 +2,56 @@
 
 ## Lectura y alcance
 
-Las rutas de este documento son relativas a la raíz de este repositorio.
+- Las rutas son relativas a este repositorio. Leer las [instrucciones generales](../AGENTS.md), [las reglas de trabajo](docs/GENERIC_RULES.md) y las secciones pertinentes del [enunciado](../PROJECT_STATEMENT-v1.md) y del [contrato de integración](../INTEGRATION_REFERENCE-v2.md).
+- Si el repositorio se clona por separado y faltan esos documentos, informar qué falta; no inventar su contenido.
+- Responder en español. Priorizar el aprendizaje y explicar decisiones sin implementar soluciones no solicitadas.
+- Mantener aquí reglas estables. El estado vigente se consulta en `../SESSION_HANDOFF.md`, la documentación de la funcionalidad y Git; verificarlo antes de trabajar.
+- Revisar `git status --short` antes de editar y conservar cambios del usuario. Una tarea local no autoriza a modificar los otros repositorios.
+- El usuario maneja Git: no crear ramas, preparar staging, commitear, hacer fetch/pull/push, merge/rebase ni eliminar referencias sin pedido explícito.
 
-- Antes de planificar, revisar o modificar, leer explícitamente [las instrucciones generales](../AGENTS.md) y [las reglas de trabajo](docs/GENERIC_RULES.md). No suponer que el archivo padre o los enlaces se cargan automáticamente. Si ya fueron leídos en la tarea y siguen vigentes, no repetir la lectura.
-- Consultar las secciones pertinentes del [enunciado](../PROJECT_STATEMENT-v1.md) y del [contrato de integración](../INTEGRATION_REFERENCE-v2.md). Las reglas locales especializan las generales; no sustituyen los requisitos ni los contratos de cátedra.
-- Si el repositorio se abre o clona por separado y faltan los documentos compartidos, o sus permisos impiden leerlos, informar qué falta y solicitar su ubicación para el trabajo que dependa de ellos. No inventar su contenido ni copiarlos como versiones independientes.
-- Responder en español. Priorizar el aprendizaje: explicar decisiones y orientar las revisiones sin implementar soluciones no solicitadas.
-- Mantener aquí reglas estables. Consultar `../SESSION_HANDOFF.md`, los documentos de la funcionalidad y Git para conocer el estado vigente; verificarlo antes de trabajar. No generar código ni elegir dependencias por la sola presencia de estas instrucciones.
-- Revisar `git status --short` en este repositorio antes de editar. Conservar cambios del usuario; una tarea local no autoriza a modificar los otros repositorios.
+## Flujo de trabajo
 
-## Flujo por funcionalidad
+- Partir del CU y del issue correspondiente. Mantener en `docs/features/<funcionalidad>/` los tres documentos obligatorios y breves: `SPEC.md` (comportamiento, alcance y RF/CA), `PLAN.md` (decisiones técnicas, archivos y validación) y `TASKS.md` (pasos, dependencias y evidencia). Flujo: CU/issue → SPEC → PLAN → TASKS → implementación y verificación.
+- La autorización para desarrollar el CU habilita todas las etapas; no solicitar aprobaciones rutinarias intermedias. Consultar solo decisiones que cambien comportamiento, contratos, alcance o impliquen cambios destructivos. Implementar solo ante pedido explícito y no repetir autorizaciones ya dadas.
+- Mantener el alcance mínimo: no agregar pantallas vacías, navegación futura, capas, dependencias ni abstracciones especulativas. El código necesario para el CU pedido se implementa completo.
+- Registrar en `TASKS.md` la validación realmente ejecutada y sus límites. No marcar como verificado lo que no se ejecutó ni reutilizar evidencia de otra implementación.
+- Si cambia un contrato o un comportamiento acordado, dejar una nota breve en el documento afectado y consultarlo antes de continuar. Evitar matrices de trazabilidad y repetir la SPEC o las tareas en varios documentos.
 
-1. Leer `docs/SPEC_TEMPLATE.md` para especificar y `docs/PLAN_TEMPLATE.md` para planificar. Usar `docs/PROMPTS.md` como ayuda, no como requisitos del producto.
-2. Mantener los documentos en `docs/features/<nombre-de-funcionalidad>/`. Reutilizar la carpeta existente al continuar una funcionalidad. No crear documentos de funcionalidades no solicitadas.
-3. Completar `SPEC.md` con comportamiento, alcance y criterios verificables, distinguiendo hechos, propuestas y pendientes. Mantener los IDs `RF-` y `CA-` de la plantilla; conservar su estructura y comentarios. No introducir diseño técnico en la SPEC.
-4. Tras aprobación explícita de la SPEC, preparar `PLAN.md` con responsabilidades, contratos, decisiones técnicas y validación. Referenciar requisitos y criterios sin copiar la SPEC. No alterar las plantillas compartidas por una funcionalidad puntual.
-5. Tras aprobación explícita del PLAN, derivar `TASKS.md`: tareas pequeñas y ordenadas, cada una con casilla de seguimiento, ID, objetivo, alcance, dependencias, criterios relacionados y método de validación.
-6. Antes de implementar, comprobar una vez la coherencia: todo RF tiene CA; todo CA tiene validación en PLAN y tareas asociadas; ninguna tarea introduce alcance nuevo; no quedan decisiones bloqueantes. Usar las referencias existentes, sin otra matriz ni informe. Registrar una línea con el resultado en `TASKS.md`; si falla un punto, corregirlo antes de implementar el trabajo afectado. Repetir solo la parte afectada por cambios sustanciales, sin agregar una aprobación nueva.
-7. Implementar únicamente ante autorización explícita del usuario. No deducirla de un documento completo o aprobado, ni solicitar de nuevo autorizaciones ya otorgadas.
-8. Registrar resultados y evidencias reales en `TASKS.md`. Si ya hay un informe de validación, enlazarlo sin copiarlo. No marcar tareas completas con comprobaciones pendientes.
+## Stack y arquitectura
 
-Mantener SDD proporcional al alcance: SPEC concentra comportamiento y aceptación; PLAN, decisiones técnicas y validación; TASKS, ejecución y evidencia breve. Referenciar lo ya documentado en lugar de repetirlo, conservando las secciones, comentarios y aprobaciones.
+- Proyecto Kotlin Multiplatform con una aplicación Android ejecutable en `androidApp/` y el código compartido en `shared/`.
+- Compose Material 1, MVVM ligero, Ktor y kotlinx. Mantener las versiones del catálogo salvo necesidad demostrada.
+- Pantallas como clases con `@Composable fun Content(...)`. El estado de presentación vive en un `ViewModel`; las dependencias se reciben por constructor y se cablean en `AppContainer`/`FrontendApplication`.
+- No trasladar la arquitectura hexagonal de los backends. No agregar frameworks de DI ni módulos nuevos.
+- La navegación definitiva se incorpora al implementar búsqueda, con Navigation Compose. Hasta entonces no se crean destinos ni `BottomBar`.
+- Código en inglés; KDoc y comentarios en español para responsabilidades, contratos y decisiones no evidentes.
 
-### Cierre de TASKS.md
+## Sesión y APIs
 
-Usar una sección breve `Cierre` al terminar la funcionalidad, o actualizar la evidencia existente si ya contiene estos datos:
-
-- **CA y evidencia:** una fila por CA con estado (verificado, pendiente o bloqueado) y prueba, resultado o enlace que lo sustente. Referenciar evidencia previa en lugar de repetirla.
-- **Regresión:** comprobación o comando real, resultado, fecha/revisión y límites relevantes. Distinguir validación manual en dispositivo/emulador y pruebas automatizadas; no presentar resultados anteriores como una ejecución nueva.
-- **Desviaciones del PLAN:** `Ninguna` o cambio, motivo e impacto en contratos, tareas y validación. Si afecta alcance o aceptación, revisar la SPEC y obtener la confirmación correspondiente.
-
-No agregar un reporte separado ni imponer un build a cambios solo documentales. Los controles pendientes mantienen el cierre incompleto. Aplicar a nuevos cierres; no reformatear funcionalidades ya cerradas.
-
-### Ajustes posteriores a una aprobación
-
-Si cambia alcance, contrato, aceptación o una decisión técnica de una SPEC/PLAN aprobada, dejar una nota breve en el documento afectado: fecha, cambio, motivo, impacto (RF/CA/tareas/validación) y confirmación cuando corresponda. Revisar la aprobación afectada antes de implementar. Una aclaración editorial sin cambio de significado no exige historial ni nueva aprobación; no crear un changelog separado.
-
-Las funcionalidades que cruzan repositorios deben referenciar los contratos y documentos relacionados, identificando productor, consumidor y decisiones pendientes. No declarar acordado un contrato unilateralmente.
-
-Los casos de uso de `docs/use-cases/` deben mantener el formato de `../backend-catalogo/docs/use-cases/`: identificación en tabla y las mismas secciones y orden en las fichas; README con estructura de las descripciones, actores y límite, diagrama Mermaid `usecase-beta` e índice. Adaptar actores y responsabilidad a la app y registrar su propio estado de revisión, sin copiar aprobaciones de los backends.
-
-## Issues, PR y commits
-
-- Los issues siguen la estructura de los issues funcionales de Catálogo: `## Objetivo y referencias`, `## Alcance`, `## Criterios de aceptación`, `## Dependencias y decisiones pendientes` y `## Preparación e implementación`. Conservar decisiones confirmadas, referencias y pendientes pertinentes a KMP; no trasladar arquitectura ni obligaciones de pruebas de los backends.
-- Los borradores locales sirven para revisión previa y no autorizan publicar. No se requiere una carpeta de issues permanente en el repositorio; una vez publicados y verificados, pueden retirarse los borradores y sus enlaces locales, utilizando los issues reales como referencia.
-- Los PR se escriben en español, con título que identifique el cambio y cuerpo con `## Alcance` y `## Verificación`, seguido de `Closes #N` para los issues que resuelvan. Describir únicamente cambios finales y verificaciones realmente ejecutadas; señalar comprobaciones pendientes cuando corresponda. Es el formato del PR de setup de Catálogo, adaptado al alcance de cada cambio.
-- Los commits siguen Conventional Commits en inglés: `<type>(<scope>): <description>` o `<type>: <description>` si no necesitan scope. Descripción imperativa, sin punto final; `docs(use-cases)` para CU y `docs(sdd)` para reglas/plantillas son las convenciones verificadas en los backends. Mantener unidades coherentes por funcionalidad y separar cambios sin relación.
-- No crear issues, PR, commits ni hacer push sin indicación explícita del usuario.
+- Conservar el JWT únicamente en `AndroidEncryptedSessionStore` (AES-GCM, clave en Android Keystore, `noBackupFilesDir`). No guardar contraseñas ni usar almacenamiento sin cifrar.
+- `SessionManager` es la única fuente de sesión. El `epoch` distingue aperturas: una respuesta o un 401 tardío no publica datos ni cierra una sesión posterior. El logout es local, espera una escritura aceptada y elimina el token; si la limpieza falla, bloquea un login nuevo hasta reintentarla.
+- Controlar vencimiento al restaurar, volver del segundo plano y antes de una petición protegida. Un 401 de una API protegida cierra la sesión; 403, timeout o error de transporte no. No hay refresh ni temporizador de expulsión.
+- `JwtExpiry` solo lee `exp`; la firma y los permisos los validan los backends. El JWT, la contraseña y los cuerpos privados nunca aparecen en logs, mensajes ni `toString`.
+- KMP consulta directamente Catálogo para búsquedas y Turnos para cuentas, disponibilidad, procesos y reservas, usando el JWT de usuario. No acceder a bases, Redis, Kafka ni credenciales técnicas de cátedra.
 
 ## Responsabilidad de la aplicación
 
-- Ofrecer en Android los flujos requeridos de registro e inicio de sesión, búsqueda y filtros, disponibilidad, reserva con información adicional, consulta y cancelación de reservas propias.
-- Consumir las APIs de los backends del proyecto con la identidad del usuario final. No acceder directamente a bases de datos, Redis o Kafka de cátedra ni recibir sus credenciales o JWT técnico.
-- Reflejar los resultados del backend: una confirmación inicial o una acción local no equivalen por sí solas a una reserva confirmada.
-- Referenciar los contratos de los backends al especificar cada flujo. Marcar como pendientes las operaciones o respuestas aún no acordadas; no inventar APIs para completar una pantalla.
-- KMP consulta directamente Catálogo para búsquedas y estado resumido de sincronización, y Turnos para cuentas, disponibilidad real, procesos y reservas. Turnos emite el JWT de usuario que ambos backends validan.
-- Conservar el login automático tras registro, el único proceso pendiente por usuario y el abandono explícito acordados en los CU de Turnos. Salir de una pantalla, cerrar la app o cerrar sesión no solicita cancelación ni extiende el vencimiento. Un resultado incierto no habilita crear otro proceso.
-- Decisión de sesión confirmada: conservarla al reabrir mientras el JWT siga válido y ofrecer cierre explícito, sin renovación automática. Comprobar vencimiento al abrir/reabrir, volver del segundo plano y antes de una petición protegida; si se detecta vencido, no enviar la petición. Al detectar vencimiento o rechazo de autenticación del JWT de usuario por el backend (401), aplicar la misma limpieza local que el logout manual, incluyendo formularios/filtros/selecciones y vistas privadas, y solicitar login aunque vuelva la misma persona. No forzar cierre por temporizador mientras permanece en una pantalla. Un 403 por falta de permiso, timeout, indisponibilidad o error de autenticación técnica entre servicios no provoca logout automático. No cancelar ni abandonar procesos; consultar el progreso en Turnos después de autenticarse, sin repetir a ciegas operaciones enviadas. Las respuestas tardías no restablecen la sesión ni los datos descartados ni cierran una sesión nueva; el mecanismo se define en el PLAN.
-- Decisiones de navegación y acciones confirmadas: abrir automáticamente el pendiente propio al entrar solo si se verifica que existe. Su consulta no bloquea el resto de la app; sin pendiente o ante fallo, abrir Búsqueda. Ante fallo, aviso no bloqueante y opción de reintentar, sin deducir ausencia ni omitir el control de Turnos antes de otra reserva. Cancelar y abandonar requieren un diálogo previo que identifique profesional, fecha y hora; no solicitar motivo. Volver desde el diálogo no envía la operación.
-- Alcance mobile confirmado el 2026-10-07: sin consultas offline ni cola de operaciones. Formularios sin enviar, filtros y selecciones se conservan al navegar, rotar o pasar a segundo plano mientras viva el proceso Android; se descartan al terminarlo, cerrar sesión, detectar vencimiento/invalidez de la sesión o cambiar cuenta. La sesión válida sí se conserva para reabrir; el progreso enviado se consulta en Turnos, sin extender vencimientos ni prometer recuperar estados que el contrato todavía no permite verificar.
-
-## Planificación y comportamiento mobile
-
-- Consultar `docs/MOBILE_GUIDELINES.md` al especificar, planificar y validar. Aplicar solo los aspectos pertinentes y registrar el motivo de los no aplicables.
-- Definir con el usuario estados de carga, vacío, error y éxito; navegación, interrupciones, restauración de estado, conectividad y prevención de envíos duplicados según la funcionalidad.
-- No presumir soporte offline, persistencia local, reintentos de reservas o almacenamiento de credenciales. Distinguir los requisitos confirmados de decisiones por resolver.
-- La arquitectura KMP queda pendiente de las indicaciones del profesor. No trasladar automáticamente la skill hexagonal de los backends ni adoptar una arquitectura o librería de otro ejemplo.
-- Mantener separadas la especificación del comportamiento y las decisiones técnicas del PLAN. No elegir plataformas adicionales, librerías, versiones o módulos sin necesidad vinculada al pedido.
+- Cubrir registro, login, búsqueda y filtros, disponibilidad, reserva con información adicional, consulta y cancelación de reservas propias.
+- Reflejar el resultado de los backends: una confirmación inicial o una acción local no equivalen por sí solas a una reserva confirmada. No inventar endpoints ni estados para completar una pantalla.
+- Mantener un solo proceso pendiente por usuario cuando Turnos lo verifique. Salir de una pantalla, cerrar la app o cerrar sesión no cancela ni abandona operaciones.
+- CU-11 no está en el alcance activo: Turnos no expone abandono de proceso. La cancelación de una reserva confirmada pertenece a CU-10 y conserva su diálogo de confirmación.
+- Sin consultas offline ni cola de operaciones. Conservar formularios, filtros y selecciones mientras viva el proceso Android; descartarlos al terminarlo, cerrar sesión, detectar vencimiento/invalidez o cambiar de cuenta. La sesión válida sí se conserva al reabrir.
 
 ## Verificación
 
-- Identificar comandos reales de compilación y pruebas a partir de wrappers y archivos de build; documentarlos en el README, sin inventarlos.
-- Cuando se implemente, seleccionar evidencia adecuada para cada criterio: comprobaciones automatizadas o manuales en dispositivo/emulador según el comportamiento. Las pruebas automatizadas KMP son opcionales según el enunciado; eso no elimina la validación de los criterios acordados.
-- Una captura no demuestra persistencia, recuperación tras cierre ni comportamiento de red. Registrar las comprobaciones reales y sus limitaciones.
-- Para cambios solo documentales, revisar coherencia, rutas y referencias; no ejecutar builds ajenos ni crear pruebas artificiales.
+- Comandos reales: `./gradlew :shared:testAndroidHostTest` y `./gradlew :androidApp:assembleDebug`. Con dispositivo o emulador, `./gradlew :shared:connectedAndroidDeviceTest`.
+- Elegir evidencia adecuada: pruebas automatizadas para lógica y contratos; dispositivo/emulador para almacenamiento cifrado, ciclo de vida, teclado y flujo integrado. Una captura no demuestra persistencia ni red.
+- Las pruebas KMP son opcionales según el enunciado, pero los criterios acordados del CU deben validarse. CI y Sonar no se exigen para este repositorio.
+- Informar qué se ejecutó, qué falló y qué quedó bloqueado por el entorno. No afirmar resultados no observados.
+
+## Issues, PR y commits
+
+- Issues con `## Objetivo y referencias`, `## Alcance`, `## Criterios de aceptación`, `## Dependencias y decisiones pendientes` y `## Preparación e implementación`.
+- PR en español con `## Alcance`, `## Verificación` y `Closes #N`, describiendo solo cambios finales y comprobaciones ejecutadas.
+- Commits en Conventional Commits, en inglés e imperativo, agrupados por funcionalidad coherente.
+- No crear issues, PR, commits ni push sin indicación explícita. No incluir secretos en el repositorio ni en la documentación.
