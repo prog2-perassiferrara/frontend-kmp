@@ -100,11 +100,8 @@ class ProcessScreen {
         Text(view.title, style = MaterialTheme.typography.subtitle1)
         Text(view.detail)
         processReason(process.reasonCode)?.let { Text(it, style = MaterialTheme.typography.body2) }
-        process.expiresAt?.let {
-            Text(
-                "La solicitud vence el ${displayExpiration(it)}.",
-                style = MaterialTheme.typography.body2,
-            )
+        expirationNotice(process)?.let {
+            Text(it, style = MaterialTheme.typography.body2)
         }
         when {
             state.phone == PhoneStatus.SENDING -> {

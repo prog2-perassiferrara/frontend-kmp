@@ -236,6 +236,54 @@ class MyReservationsViewModelTest {
     }
 
     @Test
+    fun aCancellationNoticeSurvivesTheReconcilingReadAndClearsOnTheNextOne() = runTest(dispatcher) {
+        val api = FakeApi()
+        val target = confirmed(PROCESS_ID)
+        api.onReservations = { page, size -> page(listOf(target), page, size, total = 1) }
+        api.onCancel = {
+            throw ReservationException(ReservationFailure.REJECTED, message = "Esta reserva no se puede cancelar.")
+        }
+        val vm = viewModel(api)
+        vm.load()
+        runCurrent()
+
+        vm.openCancellation(target)
+        vm.confirmCancellation()
+        runCurrent()
+
+        // La lectura que reconcilia el rechazo conserva el aviso para explicar el bloqueo.
+        assertEquals("Esta reserva no se puede cancelar.", vm.state.value.cancelMessage)
+        assertNull(vm.state.value.cancelBlockedId)
+
+        vm.refresh()
+        runCurrent()
+
+        // Una lectura posterior muestra el estado vigente y vuelve obsoleto el aviso.
+        assertNull(vm.state.value.cancelMessage)
+        assertEquals(listOf(0, 0, 0), api.pages)
+    }
+
+    @Test
+    fun aCompletedCancellationNoticeDoesNotSurviveALaterRead() = runTest(dispatcher) {
+        val api = FakeApi()
+        val target = confirmed(PROCESS_ID)
+        api.onReservations = { page, size -> page(listOf(target), page, size, total = 1) }
+        api.onCancel = { target.copy(state = "CANCELLED") }
+        val vm = viewModel(api)
+        vm.load()
+        runCurrent()
+
+        vm.openCancellation(target)
+        vm.confirmCancellation()
+        runCurrent()
+        assertEquals("Tu turno fue cancelado.", vm.state.value.cancelMessage)
+
+        vm.refresh()
+        runCurrent()
+        assertNull(vm.state.value.cancelMessage)
+    }
+
+    @Test
     fun anUncertainCancellationBlocksUntilAReadVerifiesTheReservation() = runTest(dispatcher) {
         val api = FakeApi()
         val target = confirmed(PROCESS_ID)

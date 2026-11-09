@@ -124,6 +124,10 @@ class MyReservationsViewModel(
         try {
             val result = reservations.reservations(page, PAGE_SIZE)
             val current = mutableState.value
+            // Un aviso de cancelación solo sobrevive a la lectura que reconcilia un
+            // rechazo o un resultado incierto; una lectura posterior lo vuelve obsoleto
+            // porque la fila ya muestra el estado informado por Turnos.
+            val reconcilesCancellation = current.cancelBlockedId != null
             mutableState.value = current.copy(
                 loading = false,
                 loaded = true,
@@ -133,6 +137,7 @@ class MyReservationsViewModel(
                 page = result.page,
                 totalPages = result.totalPages,
                 totalElements = result.totalElements,
+                cancelMessage = if (reconcilesCancellation) current.cancelMessage else null,
                 cancelBlockedId = null,
             )
         } catch (cancelled: CancellationException) {

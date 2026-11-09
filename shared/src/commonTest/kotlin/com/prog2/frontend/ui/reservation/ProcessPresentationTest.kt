@@ -31,6 +31,35 @@ class ProcessPresentationTest {
     }
 
     @Test
+    fun theOpenPhasesDistinguishPendingRequestPendingPhoneAndSentPhone() {
+        assertEquals(
+            "Esperando que se solicite el teléfono",
+            processView(process("WAITING_FOR_REQUEST")).title,
+        )
+        assertEquals("Falta completar información", processView(process("WAITING_FOR_PHONE")).title)
+        assertEquals("Teléfono enviado", processView(process("PHONE_QUEUED")).title)
+        assertEquals("Reserva confirmada", processView(process("CONFIRMED")).title)
+
+        val sent = processView(process("PHONE_QUEUED"))
+        assertFalse(sent.title.contains("Falta"))
+        assertFalse(sent.detail.contains("confirmada"))
+    }
+
+    @Test
+    fun theExpirationIsOnlyShownWhileTheRequestIsOpen() {
+        assertEquals(
+            "La solicitud vence el 09/11/2026 · 12:30.",
+            expirationNotice(process("WAITING_FOR_PHONE", expiresAt = "2026-11-09T15:30:00Z")),
+        )
+        assertNull(expirationNotice(process("WAITING_FOR_PHONE")))
+
+        // Un proceso finalizado puede conservar `expiresAt` en el DTO.
+        listOf("CONFIRMED", "CANCELLED", "FAILED", "EXPIRED").forEach { state ->
+            assertNull(expirationNotice(process(state, expiresAt = "2026-11-09T15:30:00Z")))
+        }
+    }
+
+    @Test
     fun failedExpiredAndCancelledRequestsAreDistinguished() {
         assertEquals("Solicitud fallida", processView(process("FAILED")).title)
         assertEquals("Solicitud vencida", processView(process("EXPIRED")).title)
@@ -59,13 +88,14 @@ class ProcessPresentationTest {
         state: String,
         requiredField: String? = null,
         canSubmitPhone: Boolean = false,
+        expiresAt: String? = null,
     ) = ReservationProcess(
         id = "b7273764-9bc3-43fd-b42c-8a9ca65c5639",
         professionalId = 201,
         date = "2026-11-09",
         startTime = "12:30:00",
         state = state,
-        expiresAt = null,
+        expiresAt = expiresAt,
         reasonCode = null,
         requiredField = requiredField,
         canSubmitPhone = canSubmitPhone,

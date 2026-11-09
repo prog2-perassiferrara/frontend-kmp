@@ -153,10 +153,10 @@ class MainScreen {
                     }
                     composable(AppDestination.Reservations.route) {
                         val myReservations = myReservationsViewModel.state.value
+                        // Cada entrada a la pestaña relee la primera página; el
+                        // `LaunchedEffect` depende del destino, no de recomposiciones.
                         LaunchedEffect(Unit) {
-                            if (!myReservationsViewModel.state.value.loaded) {
-                                myReservationsViewModel.load()
-                            }
+                            myReservationsViewModel.load()
                         }
                         ScreenLayout {
                             myReservationsScreen.Content(
@@ -235,12 +235,19 @@ class MainScreen {
                                 reservationViewModel::verifyPhone,
                                 onBackToSearch = {
                                     reservationViewModel.dismiss()
-                                    availabilityViewModel.reset()
-                                    searchViewModel.backToSearch()
-                                    navController.popBackStack(
-                                        AppDestination.Search.route,
-                                        inclusive = false,
-                                    )
+                                    if (navController.previousBackStackEntry?.destination?.route ==
+                                        AppDestination.Reservations.route
+                                    ) {
+                                        // El proceso se abrió desde Cuenta: se vuelve a esa pestaña.
+                                        navController.popBackStack()
+                                    } else {
+                                        availabilityViewModel.reset()
+                                        searchViewModel.backToSearch()
+                                        navController.popBackStack(
+                                            AppDestination.Search.route,
+                                            inclusive = false,
+                                        )
+                                    }
                                 },
                                 onBackToAvailability = {
                                     reservationViewModel.dismiss()

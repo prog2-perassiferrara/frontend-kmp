@@ -99,6 +99,77 @@ class KtorCatalogApiTest {
     }
 
     @Test
+    fun anEmptyPageWithTheRequiredFieldsIsAValidResult() = runTest {
+        val manager = manager()
+        manager.signIn("patient", "secret", false)
+        val client = ApiHttpClient().create(MockEngine {
+            respond(
+                """{"content":[],"page":0,"size":20,"totalElements":0,"totalPages":0,""" +
+                    """"catalog":{"state":"CURRENT","copyAvailable":true}}""",
+            )
+        })
+        try {
+            val page = KtorCatalogApi(AuthenticatedApiClient(client, configuration, manager))
+                .searchProfessionals(ProfessionalQuery())
+            assertTrue(page.content.isEmpty())
+            assertEquals(0, page.totalElements)
+            assertEquals(0, page.totalPages)
+            assertEquals(CatalogState("CURRENT", true), page.catalog)
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
+    fun anIncompletePageIsAnErrorInsteadOfAnEmptyResult() = runTest {
+        val cases = listOf(
+            """{"content":[]}""",
+            """{"page":0,"size":20,"totalElements":0,"totalPages":0,""" +
+                """"catalog":{"state":"CURRENT","copyAvailable":true}}""",
+            """{"content":[],"page":0,"size":20,"totalElements":0,"totalPages":0}""",
+        )
+        for (body in cases) {
+            val manager = manager()
+            manager.signIn("patient", "secret", false)
+            var requests = 0
+            val client = ApiHttpClient().create(MockEngine {
+                requests++
+                respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            })
+            try {
+                val failure = assertFailsWith<CatalogException> {
+                    KtorCatalogApi(AuthenticatedApiClient(client, configuration, manager))
+                        .searchProfessionals(ProfessionalQuery())
+                }
+                assertEquals(CatalogError.UNAVAILABLE, failure.error)
+                assertEquals(1, requests)
+            } finally {
+                client.close()
+            }
+        }
+    }
+
+    @Test
+    fun anEmptyCategoryListIsValidButAMissingFieldIsNot() = runTest {
+        val manager = manager()
+        manager.signIn("patient", "secret", false)
+        var body = """{"content":[]}"""
+        val client = ApiHttpClient().create(MockEngine {
+            respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+        })
+        try {
+            val api = KtorCatalogApi(AuthenticatedApiClient(client, configuration, manager))
+            assertTrue(api.categories().isEmpty())
+
+            body = """{"catalog":{"state":"CURRENT","copyAvailable":true}}"""
+            val failure = assertFailsWith<CatalogException> { api.categories() }
+            assertEquals(CatalogError.UNAVAILABLE, failure.error)
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
     fun mapsSearchErrorsWithoutRetrying() = runTest {
         val cases = listOf(
             400 to """{"code":"INVALID_SEARCH_CRITERIA"}""" to CatalogError.INVALID_CRITERIA,

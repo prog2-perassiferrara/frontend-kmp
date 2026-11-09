@@ -17,9 +17,17 @@ internal fun processView(process: ReservationProcess): ProcessView = when (proce
         "Preparando la reserva",
         "Estamos reservando el horario. La reserva todavía no está confirmada.",
     )
-    "WAITING_FOR_REQUEST", "WAITING_FOR_PHONE", "PHONE_QUEUED" -> ProcessView(
+    "WAITING_FOR_REQUEST" -> ProcessView(
+        "Esperando que se solicite el teléfono",
+        "Todavía no hace falta completar información. La reserva no está confirmada.",
+    )
+    "WAITING_FOR_PHONE" -> ProcessView(
         "Falta completar información",
         "Necesitamos un dato adicional para continuar. La reserva todavía no está confirmada.",
+    )
+    "PHONE_QUEUED" -> ProcessView(
+        "Teléfono enviado",
+        "Estamos esperando el resultado de la reserva.",
     )
     "WAITING_FOR_RESULT", "RECONCILIATION_REQUIRED" -> ProcessView(
         "Esperando el resultado",
@@ -81,3 +89,14 @@ internal fun displayTime(value: String): String = value.take(5)
  */
 internal fun displayExpiration(value: String): String =
     formatInstantInZone(value, ATTENTION_TIME_ZONE) ?: displayDate(value.substringBefore('T'))
+
+/**
+ * Vencimiento presentable solo mientras la solicitud sigue abierta. Un proceso
+ * finalizado puede conservar `expiresAt` en el DTO, pero ya no es relevante.
+ */
+internal fun expirationNotice(process: ReservationProcess): String? =
+    if (process.isFinal) {
+        null
+    } else {
+        process.expiresAt?.let { "La solicitud vence el ${displayExpiration(it)}." }
+    }
