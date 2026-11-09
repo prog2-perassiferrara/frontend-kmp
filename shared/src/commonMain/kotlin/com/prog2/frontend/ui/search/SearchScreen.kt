@@ -1,5 +1,6 @@
 package com.prog2.frontend.ui.search
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +51,7 @@ class SearchScreen {
         onRetry: () -> Unit,
         onPrevious: () -> Unit,
         onNext: () -> Unit,
+        onSelect: (Professional) -> Unit,
         onSignOut: () -> Unit,
         onLoad: () -> Unit,
     ) {
@@ -119,7 +121,7 @@ class SearchScreen {
                 Text("No se encontraron profesionales con esos filtros.")
             }
             state.results.forEach { professional ->
-                ProfessionalRow(professional)
+                ProfessionalRow(professional, enabled, onSelect)
                 Divider()
             }
             Pagination(state, enabled, onPrevious, onNext)
@@ -185,8 +187,16 @@ class SearchScreen {
     }
 
     @Composable
-    private fun ProfessionalRow(professional: Professional) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    private fun ProfessionalRow(
+        professional: Professional,
+        enabled: Boolean,
+        onSelect: (Professional) -> Unit,
+    ) {
+        Column(
+            Modifier.fillMaxWidth()
+                .clickable(enabled = enabled) { onSelect(professional) }
+                .padding(vertical = 8.dp),
+        ) {
             Text(
                 "${professional.firstName} ${professional.lastName}",
                 style = MaterialTheme.typography.subtitle1,
@@ -202,6 +212,11 @@ class SearchScreen {
                     color = MaterialTheme.colors.error,
                 )
             }
+            Text(
+                "Ver disponibilidad ›",
+                style = MaterialTheme.typography.body2,
+                color = MaterialTheme.colors.primary,
+            )
         }
     }
 
@@ -244,7 +259,7 @@ private fun SearchScreenPreview() {
                     ),
                 ),
                 onName = {}, onCategory = {}, onEnabled = {}, onAvailableOn = {},
-                onSearch = {}, onRetry = {}, onPrevious = {}, onNext = {}, onSignOut = {}, onLoad = {},
+                onSearch = {}, onRetry = {}, onPrevious = {}, onNext = {}, onSelect = {}, onSignOut = {}, onLoad = {},
             )
         }
     }

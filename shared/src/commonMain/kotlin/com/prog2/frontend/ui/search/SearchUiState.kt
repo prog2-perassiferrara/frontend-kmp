@@ -18,6 +18,7 @@ data class SearchUiState(
     val totalPages: Int = 0,
     val totalElements: Long = 0,
     val results: List<Professional> = emptyList(),
+    val selected: Professional? = null,
     val isSearching: Boolean = false,
     val hasResult: Boolean = false,
     val paginationStale: Boolean = false,

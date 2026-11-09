@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.prog2.frontend.catalog.CatalogError
 import com.prog2.frontend.catalog.CatalogException
 import com.prog2.frontend.catalog.data.CatalogApi
+import com.prog2.frontend.catalog.data.Professional
 import com.prog2.frontend.catalog.data.ProfessionalQuery
 import com.prog2.frontend.session.SessionException
 import kotlinx.coroutines.CancellationException
@@ -73,6 +74,15 @@ class SearchViewModel(private val catalogApi: CatalogApi) : ViewModel() {
         val current = state.value
         if (!current.isSearching && current.canGoForward) perform(current.page + 1)
     }
+
+    /** Abre la disponibilidad del profesional elegido sin descartar la búsqueda. */
+    fun select(professional: Professional) {
+        if (state.value.isSearching) return
+        updateState { it.copy(selected = professional) }
+    }
+
+    /** Vuelve a los resultados conservando filtros, página y totales. */
+    fun backToSearch() = updateState { it.copy(selected = null) }
 
     fun previousPage() {
         val current = state.value

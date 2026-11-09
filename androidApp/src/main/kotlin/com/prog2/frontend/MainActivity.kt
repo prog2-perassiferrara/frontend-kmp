@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.prog2.frontend.ui.availability.AvailabilityScreen
 import com.prog2.frontend.ui.registration.RegistrationScreen
 import com.prog2.frontend.ui.search.SearchScreen
 import com.prog2.frontend.ui.session.LoginScreen
@@ -20,9 +21,11 @@ class MainActivity : ComponentActivity() {
             container.sessions,
             container.registrationApi,
             container.catalogApi,
+            container.availabilityApi,
             LoginScreen(),
             RegistrationScreen(),
             SearchScreen(),
+            AvailabilityScreen(),
         )
 
         setContent {

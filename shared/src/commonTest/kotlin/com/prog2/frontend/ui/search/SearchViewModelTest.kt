@@ -261,6 +261,56 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun selectingAProfessionalOpensAvailabilityAndBackKeepsTheSearchState() = runTest(dispatcher) {
+        val api = FakeCatalogApi()
+        api.searchAnswer = { query -> page(listOf(ana), page = query.page, totalPages = 3, totalElements = 60) }
+        val vm = viewModel(api)
+        vm.ensureLoaded()
+        runCurrent()
+        vm.changeName("Ana")
+        vm.changeCategory(1)
+        vm.search()
+        runCurrent()
+        vm.nextPage()
+        runCurrent()
+        assertEquals(1, vm.state.value.page)
+        val queriesBeforeSelection = api.queries.size
+
+        vm.select(ana)
+
+        assertEquals(ana, vm.state.value.selected)
+        assertEquals(listOf(ana), vm.state.value.results)
+        assertEquals("Ana", vm.state.value.name)
+        assertEquals(1L, vm.state.value.categoryId)
+        assertEquals(1, vm.state.value.page)
+        assertEquals(queriesBeforeSelection, api.queries.size)
+
+        vm.backToSearch()
+
+        assertNull(vm.state.value.selected)
+        assertEquals(listOf(ana), vm.state.value.results)
+        assertEquals("Ana", vm.state.value.name)
+        assertEquals(1L, vm.state.value.categoryId)
+        assertEquals(1, vm.state.value.page)
+        assertEquals(queriesBeforeSelection, api.queries.size)
+    }
+
+    @Test
+    fun resetAlsoDiscardsTheSelectedProfessional() = runTest(dispatcher) {
+        val api = FakeCatalogApi()
+        api.searchAnswer = { page(listOf(ana)) }
+        val vm = viewModel(api)
+        vm.ensureLoaded()
+        runCurrent()
+        vm.select(ana)
+
+        vm.reset()
+
+        assertNull(vm.state.value.selected)
+        assertEquals(SearchUiState(), vm.state.value)
+    }
+
+    @Test
     fun editingAFilterInvalidatesThePreviousPaginationUntilTheNextSearch() = runTest(dispatcher) {
         val api = FakeCatalogApi()
         api.searchAnswer = { query -> page(listOf(ana), page = query.page, totalPages = 3, totalElements = 3) }
