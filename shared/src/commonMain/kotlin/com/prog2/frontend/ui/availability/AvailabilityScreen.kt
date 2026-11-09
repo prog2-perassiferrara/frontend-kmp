@@ -39,6 +39,8 @@ class AvailabilityScreen {
         onConsult: () -> Unit,
         onTime: (String) -> Unit,
         onRetry: () -> Unit,
+        onReserve: () -> Unit,
+        reservationBlocked: String?,
         onBack: () -> Unit,
     ) {
         val enabled = !state.isLoading
@@ -94,9 +96,25 @@ class AvailabilityScreen {
                         style = MaterialTheme.typography.body2,
                     )
                 }
+                if (state.selectedTime == null) {
+                    Text(
+                        "Elegí un horario para solicitar la reserva.",
+                        style = MaterialTheme.typography.body2,
+                    )
+                }
+                Button(
+                    onClick = onReserve,
+                    enabled = state.selectedTime != null && !state.isLoading && reservationBlocked == null,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Solicitar reserva")
+                }
+                reservationBlocked?.let {
+                    Text(it, style = MaterialTheme.typography.body2)
+                }
                 Text(
                     "Consultar no reserva el horario: puede ocuparse antes de reservarlo. " +
-                        "Elegir un horario solo lo marca; iniciar la reserva pertenece al paso siguiente.",
+                        "La solicitud queda en curso hasta que Turnos informe el resultado.",
                     style = MaterialTheme.typography.body2,
                 )
             }
@@ -144,7 +162,8 @@ private fun AvailabilityScreenPreview() {
                     selectedTime = "12:30:00",
                     hasResult = true,
                 ),
-                onDate = {}, onConsult = {}, onTime = {}, onRetry = {}, onBack = {},
+                onDate = {}, onConsult = {}, onTime = {}, onRetry = {},
+                onReserve = {}, reservationBlocked = null, onBack = {},
             )
         }
     }
