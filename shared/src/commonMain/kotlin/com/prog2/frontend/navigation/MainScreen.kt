@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.BackHandler
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -224,6 +225,35 @@ class MainScreen {
                     }
                     composable(PROCESS_ROUTE) {
                         val reservation = reservationViewModel.state.value
+                        val backToSearch = {
+                            reservationViewModel.dismiss()
+                            if (navController.previousBackStackEntry?.destination?.route ==
+                                AppDestination.Reservations.route
+                            ) {
+                                navController.popBackStack()
+                            } else {
+                                availabilityViewModel.reset()
+                                searchViewModel.backToSearch()
+                                navController.popBackStack(AppDestination.Search.route, inclusive = false)
+                            }
+                            Unit
+                        }
+                        val backToAvailability = {
+                            reservationViewModel.dismiss()
+                            availabilityViewModel.consult()
+                            navController.popBackStack(AVAILABILITY_ROUTE, inclusive = false)
+                            Unit
+                        }
+                        BackHandler {
+                            if (reservation.process == null &&
+                                (reservation.start == StartStatus.REJECTED ||
+                                    reservation.start == StartStatus.NOT_REGISTERED)
+                            ) {
+                                backToAvailability()
+                            } else {
+                                backToSearch()
+                            }
+                        }
                         ScreenLayout {
                             processScreen.Content(
                                 reservation,
@@ -233,30 +263,8 @@ class MainScreen {
                                 reservationViewModel::changePhone,
                                 reservationViewModel::submitPhone,
                                 reservationViewModel::verifyPhone,
-                                onBackToSearch = {
-                                    reservationViewModel.dismiss()
-                                    if (navController.previousBackStackEntry?.destination?.route ==
-                                        AppDestination.Reservations.route
-                                    ) {
-                                        // El proceso se abrió desde Cuenta: se vuelve a esa pestaña.
-                                        navController.popBackStack()
-                                    } else {
-                                        availabilityViewModel.reset()
-                                        searchViewModel.backToSearch()
-                                        navController.popBackStack(
-                                            AppDestination.Search.route,
-                                            inclusive = false,
-                                        )
-                                    }
-                                },
-                                onBackToAvailability = {
-                                    reservationViewModel.dismiss()
-                                    availabilityViewModel.consult()
-                                    navController.popBackStack(
-                                        AVAILABILITY_ROUTE,
-                                        inclusive = false,
-                                    )
-                                },
+                                onBackToSearch = backToSearch,
+                                onBackToAvailability = backToAvailability,
                             )
                         }
                     }
