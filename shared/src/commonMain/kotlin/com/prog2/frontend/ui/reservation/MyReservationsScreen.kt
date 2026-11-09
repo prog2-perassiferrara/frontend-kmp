@@ -28,7 +28,6 @@ class MyReservationsScreen {
     @Composable
     fun Content(
         state: MyReservationsUiState,
-        onBack: () -> Unit,
         onRefresh: () -> Unit,
         onPrevious: () -> Unit,
         onNext: () -> Unit,
@@ -36,6 +35,7 @@ class MyReservationsScreen {
         onOpenCancellation: (ReservationProcess) -> Unit,
         onDismissCancellation: () -> Unit,
         onConfirmCancellation: () -> Unit,
+        onSignOut: () -> Unit,
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Mis reservas", style = MaterialTheme.typography.h5)
@@ -44,7 +44,7 @@ class MyReservationsScreen {
                     onClick = onRefresh,
                     enabled = !state.loading && state.cancellingId == null,
                 ) { Text(if (state.loading) "Actualizando…" else "Actualizar") }
-                TextButton(onClick = onBack) { Text("Volver") }
+                TextButton(onClick = onSignOut) { Text("Cerrar sesión") }
             }
         }
 
@@ -77,7 +77,7 @@ class MyReservationsScreen {
                 text = {
                     Text(
                         "¿Cancelar la reserva con ${reservationProfessional(target)} del " +
-                            "${reservationSchedule(target)}? Turnos confirmará si la cancelación se concretó.",
+                            "${reservationSchedule(target)}? La cancelación se confirmará cuando se complete.",
                     )
                 },
                 confirmButton = {
@@ -92,8 +92,8 @@ class MyReservationsScreen {
 
     @Composable
     private fun PendingProcess(process: ReservationProcess, onOpenProcess: (ReservationProcess) -> Unit) {
-        Text("Proceso de reserva en curso", style = MaterialTheme.typography.subtitle1)
-        Text("No es una reserva confirmada.", style = MaterialTheme.typography.body2)
+        Text("Solicitud de turno pendiente", style = MaterialTheme.typography.subtitle1)
+        Text("Todavía no es un turno confirmado.", style = MaterialTheme.typography.body2)
         Text(reservationProfessional(process), style = MaterialTheme.typography.body1)
         Text(reservationSchedule(process), style = MaterialTheme.typography.body2)
         Text("Estado: ${reservationStateLabel(process.state)}", style = MaterialTheme.typography.body2)
@@ -144,7 +144,8 @@ class MyReservationsScreen {
     ) {
         if (state.totalPages <= 0) return
         Text(
-            "Página ${state.page + 1} de ${state.totalPages} · ${state.totalElements} reserva(s)",
+            "Página ${state.page + 1} de ${state.totalPages} · ${state.totalElements} " +
+                "${if (state.totalElements == 1L) "reserva" else "reservas"}",
             style = MaterialTheme.typography.body2,
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

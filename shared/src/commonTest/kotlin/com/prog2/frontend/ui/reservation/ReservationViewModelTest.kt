@@ -350,7 +350,7 @@ class ReservationViewModelTest {
         assertEquals(ReservationUiState(), vm.state.value)
 
         val rejectedApi = FakeApi()
-        rejectedApi.onStart = { throw rejected("Turnos rechazó la solicitud.") }
+        rejectedApi.onStart = { throw rejected("No pudimos iniciar la reserva.") }
         val rejectedVm = viewModel(rejectedApi)
         rejectedVm.start(selection)
         runCurrent()
@@ -811,7 +811,7 @@ class ReservationViewModelTest {
         ReservationException(ReservationFailure.UNCERTAIN, message = message)
 
     private fun notFound() =
-        ReservationException(ReservationFailure.NOT_FOUND, message = "Turnos no registró este proceso.")
+        ReservationException(ReservationFailure.NOT_FOUND, message = "No encontramos esta solicitud.")
 
     private class FakeApi : ReservationsApi {
         val starts = mutableListOf<StartReservation>()
@@ -876,10 +876,10 @@ class ReservationViewModelTest {
         const val PHONE_REQUEST_ID = "11111111-1111-4111-8111-111111111111"
         const val PHONE_REQUEST_ID_2 = "22222222-2222-4222-8222-222222222222"
         const val PHONE = "+54 9 11 5555-1234"
-        const val START_MESSAGE = "No pudimos verificar si Turnos registró la solicitud."
-        const val READ_MESSAGE = "No pudimos consultar el proceso en Turnos."
+        const val START_MESSAGE = "No pudimos confirmar si tu solicitud quedó registrada. Pudo haberse registrado."
+        const val READ_MESSAGE = "No pudimos actualizar el estado de tu solicitud."
         const val PHONE_UNCERTAIN_MESSAGE =
-            "No pudimos verificar si Turnos recibió el teléfono. El envío pudo haberse registrado."
-        const val ACTIVE_MESSAGE = "Ya tenés un proceso de reserva activo."
+            "No pudimos confirmar si recibimos tu teléfono. El envío pudo haberse registrado."
+        const val ACTIVE_MESSAGE = "Ya tenés una solicitud de turno pendiente."
     }
 }

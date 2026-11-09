@@ -10,7 +10,7 @@ Permitir que una persona autenticada encuentre profesionales sobre la copia loca
 
 ## Alcance
 
-- **RF-01 · Filtros:** ofrecer categoría (opciones de Catálogo), nombre (fragmento de nombre completo, máximo 100 caracteres), estado (todos, habilitados, deshabilitados) y disponibilidad (fecha ISO `AAAA-MM-DD`). Los filtros se combinan con AND y los vacíos se omiten.
+- **RF-01 · Filtros:** ofrecer categoría (opciones de Catálogo), nombre (fragmento de nombre completo, máximo 100 caracteres), estado (todos, habilitados, deshabilitados) y disponibilidad (fecha opcional elegida con el calendario de la plataforma y enviada como `AAAA-MM-DD`). Los filtros se combinan con AND y los vacíos se omiten.
 - **RF-02 · Disponibilidad:** el filtro de fecha significa agenda habilitada para ese día de la semana; no promete horarios libres.
 - **RF-03 · Consulta:** `GET /api/catalog/professionals` con el JWT de usuario, página inicial 0 y tamaño 20. No se consulta cátedra, Redis ni Kafka, ni se ejecuta sincronización.
 - **RF-04 · Resultados:** mostrar nombre y apellido, categoría, habilitación del profesional y de su categoría, y totales. El orden lo define Catálogo (apellido, nombre, ID).
@@ -42,6 +42,7 @@ Permitir que una persona autenticada encuentre profesionales sobre la copia loca
 - Catálogo es la autoridad de filtros, orden, límites y formato de fecha; la app solo descarta nombre de más de 100 caracteres y fechas que no respetan `AAAA-MM-DD`.
 - El nombre se envía sin espacios exteriores y un nombre vacío omite el filtro.
 - El filtro de estado admite “Todos” (parámetro omitido), habilitados y deshabilitados.
+- La fecha de disponibilidad se muestra como `DD/MM/AAAA`, se envía como `AAAA-MM-DD` y puede quitarse. Cambiarla o quitarla invalida la paginación anterior hasta la próxima búsqueda; los demás filtros se conservan.
 - Las categorías deshabilitadas se muestran en resultados y opciones; no se ocultan.
 - Una página posterior al final conserva los totales reales; la app solo navega entre páginas válidas.
 - El aviso de desactualización no convierte la búsqueda en un error ni impide paginar.

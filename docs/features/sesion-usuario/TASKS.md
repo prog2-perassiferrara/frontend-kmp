@@ -53,4 +53,6 @@
 
 **Regresión:** 30 pruebas host, 3 pruebas de dispositivo, `assembleDebug`, `installDebug` y `lintDebug` ejecutados sobre el árbol actual el 2026-11-08. La única modificación de código durante la verificación fue el fallback de limpieza (`store.save("")`), cubierto por CA-08. No se crearon reservas ni se modificaron datos ajenos.
 
-**Desviaciones del PLAN:** ninguna de alcance o comportamiento. El 401 no se puede provocar desde la UI porque todavía no hay una pantalla protegida; se verificó con backend real y una sonda temporal eliminada.
+> **Situación al cierre del frontend (2026-11-09):** aquella cifra corresponde a la verificación histórica de este CU. La suite host suma 155 pruebas y el área autenticada incorpora la navegación con BottomBar y pantallas secundarias; ver [README](../../../README.md) y [MainScreen](../../../shared/src/commonMain/kotlin/com/prog2/frontend/navigation/MainScreen.kt).
+
+**Desviaciones del PLAN:** ninguna de alcance o comportamiento. En esa etapa el 401 no se podía provocar desde la UI porque todavía no había una pantalla protegida; se verificó con backend real y una sonda temporal eliminada.

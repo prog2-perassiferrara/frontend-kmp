@@ -16,14 +16,14 @@
 | `ReservationProcessResponse` | `.../web/dto` | `state`, `expiresAt`, `reasonCode`, `requiredField`, `canSubmitPhone`. |
 | `ReservationPhase` | `.../domain/enums` | Fases informadas; no se replica la máquina de estados. |
 
-**Contrato de lectura:** la fase es durable y local; `expiresAt` es UTC y puede ser `null`; `requiredField` solo indica una acción pendiente. Un `503` de lectura no demuestra ausencia de proceso.
+**Contrato de lectura:** la fase es durable y local; `expiresAt` es un instante UTC y puede ser `null`; `requiredField` solo indica una acción pendiente. Un `503` de lectura no demuestra ausencia de proceso.
 
 ## Solución
 
 1. `ReservationsApi.process(processId)` consume el `GET` por proceso. Solo `404` o `RESERVATION_PROCESS_NOT_FOUND` se traducen a `NOT_FOUND`; el resto es `UNCERTAIN`.
 2. `ReservationsApi.pending()` consume `GET /api/reservations?page=0&size=1` y devuelve solo `pending`. No se persiste ni se completa con el historial.
 3. `ReservationViewModel.discover()` corre una vez por instancia y solo si el estado sigue intacto; abre el pendiente y `App` lo muestra. Rotar no repite la consulta; `reset()` reinicia la guarda.
-4. La pantalla presenta la fase agrupada en textos, el vencimiento UTC y un aviso de teléfono. No calcula vencimientos ni estados.
+4. La pantalla presenta la fase agrupada en textos, el vencimiento convertido a la zona de atención y un aviso de teléfono. No calcula vencimientos ni estados.
 5. `refresh()` repite el `GET` del proceso conocido. Si falla, conserva el último proceso y muestra el mensaje con “Reintentar”.
 6. `App` conserva la visibilidad con `rememberSaveable`. Al salir de un proceso pendiente, la búsqueda muestra un banner “Ver estado”; al pulsarlo consulta Turnos (`refresh` para un proceso conocido, `verify` para uno incierto). Un proceso final o un rechazo se descartan con `dismiss()`.
 7. Un fallo de descubrimiento queda en `message` con `start == IDLE`; el banner ofrece “Reintentar” y la búsqueda sigue disponible.
@@ -60,7 +60,7 @@
 - `refresh()` conserva el proceso anterior ante un fallo; no lo reemplaza por un estado vacío.
 - `verify()` de CU-06 usa el mismo `GET` y distingue `404` de un fallo de transporte.
 - `dismiss()` descarta un proceso final o un rechazo; conserva un proceso pendiente o incierto. `reset()` descarta todo al cerrar sesión.
-- `expiresAt` se presenta como `AAAA-MM-DD HH:mm:ss UTC`, sin compararlo con el reloj local.
+- `expiresAt` se presenta como `DD/MM/AAAA · HH:mm` mediante `formatInstantInZone` con `ATTENTION_TIME_ZONE` (`America/Argentina/Buenos_Aires`), la misma zona de las horas locales de atención, sin compararlo con el reloj del dispositivo ni modificar el valor recibido.
 - El teléfono solo se anuncia; `canSubmitPhone` no habilita un envío en esta funcionalidad.
 - Solo un `404` o el código `RESERVATION_PROCESS_NOT_FOUND` acredita inexistencia; `400`, `403` y `5xx` no habilitan repetir el inicio.
 
@@ -74,7 +74,7 @@ No se agregan dependencias ni configuración. Se reutilizan Ktor, kotlinx.serial
 | --- | --- | --- |
 | CA-01 | `KtorReservationsApiTest` | Ruta, bearer y ausencia de POST. |
 | CA-02 | `KtorReservationsApiTest`, `ReservationViewModelTest` | Fases y campos presentados sin completar ausentes. |
-| CA-03 | `ProcessPresentationTest`; emulador | `expiresAt` rotulado UTC; sin comparación local. |
+| CA-03 | `ProcessPresentationTest`, `InstantFormatTest` | `expiresAt` convertido de UTC a la zona de atención, con cambio de día cuando corresponde; sin comparación con el reloj local. |
 | CA-04 | `ReservationViewModelTest`; emulador | Aviso de teléfono sin campo de envío. |
 | CA-05 | `ReservationViewModelTest` | Actualización exitosa y fallo que conserva el proceso. |
 | CA-06 | `KtorReservationsApiTest`, `ReservationViewModelTest`; emulador | `pending` abre el proceso; ausencia deja búsqueda. |

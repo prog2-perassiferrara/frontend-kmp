@@ -17,20 +17,28 @@ class ProcessPresentationTest {
     }
 
     @Test
-    fun theExpirationIsShownAsUtcWithoutUsingTheDeviceClock() {
-        assertEquals("2026-11-09 15:30:00 UTC", displayUtc("2026-11-09T15:30:00Z"))
-        assertTrue(displayUtc("2026-11-09T15:30:00Z").endsWith(" UTC"))
+    fun theExpirationIsShownInTheSameTimeZoneAsTheAppointmentsWithoutTheDeviceClock() {
+        assertEquals("09/11/2026 · 12:30", displayExpiration("2026-11-09T15:30:00Z"))
+        assertFalse(displayExpiration("2026-11-09T15:30:00Z").contains("UTC"))
+        assertEquals("09/11/2026 · 23:30", displayExpiration("2026-11-10T02:30:00Z"))
     }
 
     @Test
     fun onlyTheConfirmedStateAnnouncesAConfirmedReservation() {
         assertEquals("Reserva confirmada", processView(process("CONFIRMED")).title)
         assertNotEquals("Reserva confirmada", processView(process("WAITING_FOR_PHONE")).title)
-        assertEquals("Proceso finalizado", processView(process("CANCELLED")).title)
+        assertEquals("Turno cancelado", processView(process("CANCELLED")).title)
     }
 
     @Test
-    fun thePhoneFormIsOnlyAnnouncedWhenTurnosEnablesIt() {
+    fun failedExpiredAndCancelledRequestsAreDistinguished() {
+        assertEquals("Solicitud fallida", processView(process("FAILED")).title)
+        assertEquals("Solicitud vencida", processView(process("EXPIRED")).title)
+        assertEquals("Turno cancelado", processView(process("CANCELLED")).title)
+    }
+
+    @Test
+    fun thePhoneFormIsOnlyAnnouncedWhenTheServiceEnablesIt() {
         assertNull(phoneNotice(process("WAITING_FOR_PHONE", canSubmitPhone = true)))
         assertNull(phoneNotice(process("WAITING_FOR_PHONE")))
         assertNotNull(phoneNotice(process("WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER")))
@@ -42,7 +50,7 @@ class ProcessPresentationTest {
         assertTrue(notice!!.contains("ya fue enviado"))
         assertFalse(notice.contains("confirmada"))
         assertEquals(
-            "El teléfono ya fue enviado. Turnos todavía no confirmó la reserva.",
+            "El teléfono ya fue enviado. Todavía no recibimos la confirmación de la reserva.",
             phoneNotice(process("WAITING_FOR_RESULT", requiredField = "PHONE_NUMBER")),
         )
     }

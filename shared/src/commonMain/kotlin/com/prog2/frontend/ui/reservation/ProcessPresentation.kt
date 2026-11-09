@@ -1,38 +1,49 @@
 package com.prog2.frontend.ui.reservation
 
 import com.prog2.frontend.reservation.data.ReservationProcess
+import com.prog2.frontend.ui.components.ATTENTION_TIME_ZONE
+import com.prog2.frontend.ui.components.displayDate
+import com.prog2.frontend.ui.components.formatInstantInZone
 
-/** Texto presentable de una fase informada por Turnos. */
+/** Texto presentable de una fase informada por el servicio de turnos. */
 internal data class ProcessView(val title: String, val detail: String)
 
 /**
  * Agrupa las fases del contrato en textos presentables. No deduce transiciones ni
- * declara vencimientos: solo describe lo que Turnos informó.
+ * declara vencimientos: solo describe lo que el servicio informó.
  */
 internal fun processView(process: ReservationProcess): ProcessView = when (process.state) {
     "HOLD_PENDING", "HELD", "CONFIRMATION_PENDING" -> ProcessView(
         "Preparando la reserva",
-        "Turnos está reteniendo y confirmando el horario. La reserva todavía no está confirmada.",
+        "Estamos reservando el horario. La reserva todavía no está confirmada.",
     )
     "WAITING_FOR_REQUEST", "WAITING_FOR_PHONE", "PHONE_QUEUED" -> ProcessView(
         "Falta completar información",
-        "Turnos necesita datos adicionales para continuar. La reserva todavía no está confirmada.",
+        "Necesitamos un dato adicional para continuar. La reserva todavía no está confirmada.",
     )
     "WAITING_FOR_RESULT", "RECONCILIATION_REQUIRED" -> ProcessView(
         "Esperando el resultado",
-        "Turnos todavía no informó un resultado final para este proceso.",
+        "Todavía no tenemos un resultado final para esta solicitud.",
     )
     "CONFIRMED" -> ProcessView(
         "Reserva confirmada",
-        "Turnos informó que la reserva quedó confirmada.",
+        "Tu turno quedó confirmado.",
     )
-    "FAILED", "EXPIRED", "CANCELLED" -> ProcessView(
-        "Proceso finalizado",
-        "Turnos informó que el proceso terminó.",
+    "FAILED" -> ProcessView(
+        "Solicitud fallida",
+        "No se pudo completar la reserva.",
+    )
+    "EXPIRED" -> ProcessView(
+        "Solicitud vencida",
+        "El tiempo para completar la solicitud venció.",
+    )
+    "CANCELLED" -> ProcessView(
+        "Turno cancelado",
+        "La reserva fue cancelada.",
     )
     else -> ProcessView(
-        "Estado informado por Turnos",
-        "Turnos informó el estado ${process.state}. Actualizá para conocer su avance.",
+        "Estado de la solicitud",
+        "No podemos mostrar el detalle de este estado. Actualizá para conocer su avance.",
     )
 }
 
@@ -40,22 +51,21 @@ internal fun processView(process: ReservationProcess): ProcessView = when (proce
 internal fun processReason(code: String?): String? = when (code) {
     null -> null
     "SLOT_NOT_AVAILABLE" -> "El horario dejó de estar disponible."
-    "HOLD_EXPIRED" -> "El hold venció antes de confirmar la reserva."
-    "CONFIRMATION_REJECTED" -> "La cátedra rechazó la confirmación inicial."
-    else -> "Turnos informó el motivo adicional $code."
+    "HOLD_EXPIRED" -> "Se venció el tiempo para completar la reserva."
+    "CONFIRMATION_REJECTED" -> "No se pudo confirmar la reserva."
+    else -> "No se pudo completar la solicitud por un motivo no detallado."
 }
 
 /**
- * Aviso del teléfono cuando Turnos no habilita el formulario. No deduce el
+ * Aviso del teléfono cuando el servicio no habilita el formulario. No deduce el
  * motivo: solo distingue un envío ya informado de un envío no disponible.
  */
 internal fun phoneNotice(process: ReservationProcess): String? = when {
     process.canSubmitPhone -> null
     process.state in PHONE_SENT_STATES ->
-        "El teléfono ya fue enviado. Turnos todavía no confirmó la reserva."
+        "El teléfono ya fue enviado. Todavía no recibimos la confirmación de la reserva."
     process.phoneRequired ->
-        "Turnos no admite un nuevo envío de teléfono para este proceso. " +
-            "Actualizá para conocer su estado."
+        "No es posible enviar el teléfono nuevamente. Actualizá para conocer el estado."
     else -> null
 }
 
@@ -65,6 +75,9 @@ private val PHONE_SENT_STATES =
 /** El contrato acepta `HH:mm` y `HH:mm:ss`; la pantalla muestra la hora local de atención. */
 internal fun displayTime(value: String): String = value.take(5)
 
-/** `expiresAt` es un instante UTC; se muestra rotulado y sin compararlo con el reloj local. */
-internal fun displayUtc(value: String): String =
-    value.replace('T', ' ').removeSuffix("Z") + " UTC"
+/**
+ * `expiresAt` es un instante UTC; se presenta en la zona de atención con la que la
+ * aplicación muestra las fechas de los turnos, sin usar el reloj del dispositivo.
+ */
+internal fun displayExpiration(value: String): String =
+    formatInstantInZone(value, ATTENTION_TIME_ZONE) ?: displayDate(value.substringBefore('T'))

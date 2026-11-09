@@ -9,6 +9,8 @@ import com.prog2.frontend.reservation.data.ReservationProcess
 import com.prog2.frontend.reservation.data.ReservationsApi
 import com.prog2.frontend.reservation.data.StartReservation
 import com.prog2.frontend.reservation.data.SubmitPhone
+import com.prog2.frontend.session.SessionError
+import com.prog2.frontend.session.SessionException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -185,7 +187,7 @@ class MyReservationsViewModelTest {
         runCurrent()
         assertNull(vm.state.value.cancellingId)
         assertEquals("CANCELLED", vm.state.value.reservations.single().state)
-        assertEquals("Turnos confirmó la cancelación.", vm.state.value.cancelMessage)
+        assertEquals("Tu turno fue cancelado.", vm.state.value.cancelMessage)
     }
 
     @Test
@@ -207,7 +209,7 @@ class MyReservationsViewModelTest {
         val row = vm.state.value.reservations.single()
         assertEquals("CONFIRMED", row.state)
         assertTrue(row.cancellationPending)
-        assertTrue(vm.state.value.cancelMessage!!.contains("procesando"))
+        assertTrue(vm.state.value.cancelMessage!!.contains("en curso"))
         assertFalse(vm.state.value.canCancel(row))
     }
 
@@ -217,7 +219,7 @@ class MyReservationsViewModelTest {
         val target = confirmed(PROCESS_ID)
         api.onReservations = { page, size -> page(listOf(target), page, size, total = 1) }
         api.onCancel = {
-            throw ReservationException(ReservationFailure.REJECTED, message = "Turnos no permite cancelar esta reserva.")
+            throw ReservationException(ReservationFailure.REJECTED, message = "Esta reserva no se puede cancelar.")
         }
         val vm = viewModel(api)
         vm.load()
@@ -228,7 +230,7 @@ class MyReservationsViewModelTest {
         runCurrent()
 
         assertEquals("CONFIRMED", vm.state.value.reservations.single().state)
-        assertEquals("Turnos no permite cancelar esta reserva.", vm.state.value.cancelMessage)
+        assertEquals("Esta reserva no se puede cancelar.", vm.state.value.cancelMessage)
         assertNull(vm.state.value.cancellingId)
         assertEquals(listOf(0, 0), api.pages)
     }
@@ -251,7 +253,7 @@ class MyReservationsViewModelTest {
         api.onCancel = {
             throw ReservationException(
                 ReservationFailure.UNCERTAIN,
-                message = "No pudimos verificar si Turnos recibió la cancelación.",
+                message = "No pudimos confirmar si la cancelación se completó.",
             )
         }
         val vm = viewModel(api)
@@ -292,7 +294,7 @@ class MyReservationsViewModelTest {
         api.onCancel = {
             throw ReservationException(
                 ReservationFailure.UNCERTAIN,
-                message = "No pudimos verificar si Turnos recibió la cancelación.",
+                message = "No pudimos confirmar si la cancelación se completó.",
             )
         }
         val vm = viewModel(api)
@@ -328,7 +330,7 @@ class MyReservationsViewModelTest {
         api.onCancel = {
             throw ReservationException(
                 ReservationFailure.REJECTED,
-                message = "Turnos no permite cancelar esta reserva.",
+                message = "Esta reserva no se puede cancelar.",
             )
         }
         val vm = viewModel(api)
@@ -343,7 +345,7 @@ class MyReservationsViewModelTest {
         assertEquals(PROCESS_ID, vm.state.value.cancelBlockedId)
         assertFalse(vm.state.value.canCancel(vm.state.value.reservations.single()))
         assertEquals("CONFIRMED", vm.state.value.reservations.single().state)
-        assertEquals("Turnos no permite cancelar esta reserva.", vm.state.value.cancelMessage)
+        assertEquals("Esta reserva no se puede cancelar.", vm.state.value.cancelMessage)
         assertEquals(listOf(0, 0), api.pages)
 
         api.onReservations = { page, size -> page(listOf(target), page, size, total = 1) }
@@ -351,6 +353,39 @@ class MyReservationsViewModelTest {
         runCurrent()
         assertNull(vm.state.value.cancelBlockedId)
         assertTrue(vm.state.value.canCancel(vm.state.value.reservations.single()))
+    }
+
+    @Test
+    fun aRejectedCancellationWhoseReadLosesTheSessionKeepsTheBlockWithoutEscaping() = runTest(dispatcher) {
+        val api = FakeApi()
+        val target = confirmed(PROCESS_ID)
+        var reads = 0
+        api.onReservations = { page, size ->
+            reads++
+            if (reads > 1) throw SessionException(SessionError.SESSION_REQUIRED)
+            page(listOf(target), page, size, total = 1)
+        }
+        api.onCancel = {
+            throw ReservationException(
+                ReservationFailure.REJECTED,
+                message = "Esta reserva no se puede cancelar.",
+            )
+        }
+        val vm = viewModel(api)
+        vm.load()
+        runCurrent()
+
+        vm.openCancellation(target)
+        vm.confirmCancellation()
+        runCurrent()
+
+        // La sesión se perdió al reconciliar: no escapa una excepción y la fila
+        // anterior sigue bloqueada hasta que App descarte el estado.
+        assertEquals(PROCESS_ID, vm.state.value.cancelBlockedId)
+        assertNull(vm.state.value.cancellingId)
+        assertEquals("Esta reserva no se puede cancelar.", vm.state.value.cancelMessage)
+        assertEquals("CONFIRMED", vm.state.value.reservations.single().state)
+        assertFalse(vm.state.value.canCancel(vm.state.value.reservations.single()))
     }
 
     @Test

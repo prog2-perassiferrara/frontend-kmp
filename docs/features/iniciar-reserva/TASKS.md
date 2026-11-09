@@ -1,7 +1,7 @@
 # TASKS: Iniciar una reserva
 
 **SPEC:** [SPEC.md](SPEC.md) · **PLAN:** [PLAN.md](PLAN.md) · **CU:** [CU-06](../../use-cases/CU-06-iniciar-reserva.md) · **Issue:** #9
-**Estado:** Implementada y verificada con un proceso y un hold reales el 2026-11-09; pendiente de teléfono, sin confirmar.
+**Estado:** Implementada y verificada con un proceso y un hold reales el 2026-11-09. La prueba de CU-06 terminó pendiente de teléfono; CU-07 la continuó y Turnos confirmó la reserva.
 
 ## Coherencia previa
 
@@ -16,7 +16,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
   - `ReservationUiState`, `ReservationViewModel.start`, `verify`, `retryStart`, `dismiss` y cancelación de respuestas tardías.
   - Validación: `ReservationViewModelTest` (21 pruebas, todas en verde).
 - [x] **T3 · Pantalla y cableado** (RF-09, RF-10)
-  - `ProcessScreen`, botón “Solicitar reserva”, `ReservationBanner`, `App`, `AppContainer` y `MainActivity`.
+  - `ProcessScreen`, botón “Solicitar reserva”, `ReservationBanner`, `MainScreen`, `AppContainer` y `MainActivity`.
   - Validación: build, lint y recorrido de solo lectura.
 - [x] **T4 · Verificación integral** (CA-01–CA-10)
   - Suite host, build, lint y recorrido real CU-05 → CU-06 con un único `POST` el 2026-11-09.
@@ -43,7 +43,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 
 - `./gradlew :shared:testAndroidHostTest`: 114 pruebas, 0 fallos (incluye 11 de contrato, 21 del ViewModel y 3 de presentación).
 - `./gradlew :androidApp:assembleDebug :androidApp:lintDebug`: BUILD SUCCESSFUL; 5 avisos de lint preexistentes (versión de AGP, versión disponible y `ObsoleteSdkInt`), ninguno en el código nuevo.
-- Simplificación verificada: salir durante una actualización no bloquea el siguiente intento porque la visibilidad vive en `App` y la guarda `loading` se libera al terminar o al `reset`. “Ver estado” consulta Turnos (`refresh`/`verify`), cubierto por `aPendingProcessHiddenByTheUserRemainsAvailableThroughTheBanner`.
+- Simplificación verificada: salir durante una actualización no bloquea el siguiente intento porque la visibilidad del proceso vive en la navegación (`MainScreen`) y la guarda `loading` se libera al terminar o al `reset`. “Ver estado” consulta Turnos (`refresh`/`verify`), cubierto por `aPendingProcessHiddenByTheUserRemainsAvailableThroughTheBanner`.
 - Invalidación por cancelación: `aLateStartResponseAfterResetDoesNotPublishState`, `aLateRefreshResponseAfterResetDoesNotPublishState` y `aResponseFromAPreviousOperationDoesNotReplaceTheNewerOne`.
 
 ### Prueba real de CU-06/CU-08 (2026-11-09)
@@ -67,4 +67,4 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 ### Desviaciones del PLAN
 
 - `ReservationError` (12 valores) pasó a `ReservationFailure` (3 clasificaciones) con mensaje en la excepción. Se eliminaron `StartedReservation.replayed`, `ReservationCancellation`, `warningCode`, `phoneRequestId`, las etapas `Started/Idle/...` y los campos `visible`, `notice`, `error`, `retryable`, `isRefreshing`, `processId`, `discoveryFailure` y `discoveryRetryable`.
-- La visibilidad, el banner y la acción “Ver estado” viven en `App`; `ReservationViewModel.dismiss()` solo decide qué estado se conserva. No cambian RF, CA ni contratos.
+- La visibilidad, el banner y la acción “Ver estado” viven en el cableado de navegación (`MainScreen`); `ReservationViewModel.dismiss()` solo decide qué estado se conserva. No cambian RF, CA ni contratos.

@@ -118,16 +118,16 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
         return when (problem?.code) {
             "INVALID_RESERVATION_SELECTION" -> rejected("La selección dejó de ser válida.", processId)
             "PROFILE_NOT_RESERVABLE" -> rejected("El perfil no permite iniciar reservas.", processId)
-            "ACTIVE_RESERVATION_PROCESS" -> rejected("Ya tenés un proceso de reserva activo.", processId)
-            "REQUEST_ID_CONFLICT" -> rejected("La solicitud no coincide con el inicio registrado.", processId)
+            "ACTIVE_RESERVATION_PROCESS" -> rejected("Ya tenés una solicitud de turno pendiente.", processId)
+            "REQUEST_ID_CONFLICT" -> rejected("La solicitud no coincide con la ya registrada.", processId)
             "SLOT_NOT_AVAILABLE" -> rejected("El horario dejó de estar disponible.", processId)
-            "HOLD_EXPIRED" -> rejected("El hold venció antes de confirmar la reserva.", processId)
-            "CONFIRMATION_REJECTED" -> rejected("La cátedra rechazó la confirmación inicial.", processId)
+            "HOLD_EXPIRED" -> rejected("Se venció el tiempo para completar la reserva.", processId)
+            "CONFIRMATION_REJECTED" -> rejected("No se pudo confirmar la reserva.", processId)
             "ACCESS_DENIED" -> rejected("No tenés permiso para iniciar esta reserva.", processId)
             else -> when {
                 response.status in 500..599 -> uncertain(START_UNCERTAIN, processId)
                 response.status == 403 -> rejected("No tenés permiso para iniciar esta reserva.", processId)
-                response.status in 400..499 -> rejected("Turnos rechazó la solicitud.", processId)
+                response.status in 400..499 -> rejected("No pudimos iniciar la reserva.", processId)
                 else -> uncertain(START_UNCERTAIN, processId)
             }
         }
@@ -154,13 +154,13 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
             "INVALID_PHONE_NUMBER" ->
                 rejected("El teléfono no tiene un formato válido.", processId)
             "PHONE_NOT_REQUESTED" ->
-                rejected("Turnos no solicita el teléfono para este proceso.", processId)
+                rejected("No hace falta enviar el teléfono para esta solicitud.", processId)
             "PHONE_SUBMISSION_ACTIVE" ->
-                rejected("Ya hay un envío de teléfono en curso para este proceso.", processId)
+                rejected("Ya hay un envío de teléfono en curso.", processId)
             "PHONE_WINDOW_CLOSED" ->
                 rejected("El plazo para enviar el teléfono venció.", processId)
             "REQUEST_ID_CONFLICT" ->
-                rejected("El envío no coincide con el registrado.", processId)
+                rejected("El envío no coincide con el ya registrado.", processId)
             "RESERVATION_PROCESS_NOT_FOUND" -> notFound()
             else -> when {
                 response.status == 404 -> notFound()
@@ -168,7 +168,7 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
                 response.status == 403 ->
                     rejected("No tenés permiso para enviar el teléfono.", processId)
                 response.status in 400..499 ->
-                    rejected("Turnos rechazó el teléfono.", processId)
+                    rejected("No pudimos registrar el teléfono.", processId)
                 else -> uncertain(PHONE_UNCERTAIN, processId)
             }
         }
@@ -183,11 +183,11 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
         return when {
             response.status == 404 || code == "RESERVATION_PROCESS_NOT_FOUND" -> notFound()
             response.status == 409 || code == "CANCELLATION_NOT_ALLOWED" ->
-                rejected("Turnos no permite cancelar esta reserva.")
+                rejected("Esta reserva no se puede cancelar.")
             response.status == 403 ->
                 rejected("No tenés permiso para cancelar esta reserva.")
             response.status in 500..599 -> uncertain(CANCEL_UNCERTAIN)
-            response.status in 400..499 -> rejected("Turnos rechazó la cancelación.")
+            response.status in 400..499 -> rejected("No pudimos cancelar la reserva.")
             else -> uncertain(CANCEL_UNCERTAIN)
         }
     }
@@ -223,7 +223,7 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
 
     private fun notFound() = ReservationException(
         ReservationFailure.NOT_FOUND,
-        message = "Turnos no registró este proceso.",
+        message = "No encontramos esta solicitud.",
     )
 
     private fun uncertain(message: String, processId: String? = null) =
@@ -231,13 +231,14 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
 
     private companion object {
         const val START_UNCERTAIN =
-            "No pudimos verificar si Turnos registró la solicitud. La solicitud pudo haberse registrado."
-        const val READ_UNCERTAIN = "No pudimos consultar el proceso en Turnos."
+            "No pudimos confirmar si tu solicitud quedó registrada. Pudo haberse registrado."
+        const val READ_UNCERTAIN = "No pudimos actualizar el estado de tu solicitud."
         const val LIST_UNCERTAIN = "No pudimos consultar tus reservas."
         const val PHONE_UNCERTAIN =
-            "No pudimos verificar si Turnos recibió el teléfono. El envío pudo haberse registrado."
+            "No pudimos confirmar si recibimos tu teléfono. El envío pudo haberse registrado."
         const val CANCEL_UNCERTAIN =
-            "No pudimos verificar si Turnos recibió la cancelación. Consultá el estado de la reserva antes de reintentarlo."
+            "No pudimos confirmar si la cancelación se completó. " +
+                "Consultá el estado de la reserva antes de reintentarlo."
 
         val PROCESS_ID = Regex(
             "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",

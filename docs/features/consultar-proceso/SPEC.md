@@ -12,7 +12,7 @@ Mostrar el progreso que Turnos informa para el proceso propio, permitir actualiz
 
 - **RF-01 · Consulta:** `GET /api/reservation-processes/{processId}` con el JWT de usuario y sin iniciar un hold ni un proceso nuevo.
 - **RF-02 · Progreso:** presentar la fase, los datos de la selección y el grado de verificación recibidos. `CONFIRMED`, `FAILED`, `EXPIRED` y `CANCELLED` solo se muestran si Turnos los informa.
-- **RF-03 · Vencimiento:** mostrar `expiresAt` como vencimiento UTC informado por Turnos. El reloj del dispositivo no se usa para declarar vencido, cancelado ni confirmado un proceso.
+- **RF-03 · Vencimiento:** mostrar `expiresAt`, que el contrato informa en UTC, convertido a la zona horaria de atención con la que la aplicación presenta las fechas y horas de los turnos. El reloj del dispositivo no se usa para declarar vencido, cancelado ni confirmado un proceso.
 - **RF-04 · Teléfono:** cuando `requiredField=PHONE_NUMBER` o `canSubmitPhone=true`, avisar que falta el teléfono y dejar la acción para CU-07. No se envía ni se solicita el número.
 - **RF-05 · Actualización:** permitir actualizar el proceso conocido sin polling permanente. La actualización no crea efectos.
 - **RF-06 · Pendiente propio:** al iniciar sesión o reabrir la app, consultar `GET /api/reservations?page=0&size=1` y abrir el `pending` solo si Turnos lo devuelve.
@@ -49,7 +49,7 @@ Mostrar el progreso que Turnos informa para el proceso propio, permitir actualiz
 
 - **CA-01 · RF-01:** la consulta usa la ruta del proceso y el bearer del usuario, sin crear holds.
 - **CA-02 · RF-02:** la fase y los datos se presentan tal como los informa Turnos, sin completar estados ausentes.
-- **CA-03 · RF-03:** `expiresAt` se muestra como UTC y no se usa el reloj local para declarar vencimiento.
+- **CA-03 · RF-03:** `expiresAt` se muestra como `DD/MM/AAAA · HH:mm` en la zona de atención, con el mismo criterio que las fechas de los turnos, y no se usa el reloj local para declarar vencimiento.
 - **CA-04 · RF-04:** `requiredField` o `canSubmitPhone` producen un aviso, sin campo ni envío de teléfono.
 - **CA-05 · RF-05:** “Actualizar” repite el `GET` y conserva el último proceso si la actualización falla.
 - **CA-06 · RF-06:** al iniciar sesión o reabrir, un `pending` de Turnos abre el proceso; sin `pending` se muestra la búsqueda.

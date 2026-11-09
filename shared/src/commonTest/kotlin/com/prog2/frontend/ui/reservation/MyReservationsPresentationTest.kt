@@ -8,23 +8,26 @@ import kotlin.test.assertNull
 
 class MyReservationsPresentationTest {
     @Test
-    fun knownStatesAreTranslatedAndUnknownStatesAreShownAsInformed() {
+    fun knownStatesAreTranslatedAndUnknownStatesStayPending() {
         assertEquals("Confirmada", reservationStateLabel("CONFIRMED"))
         assertEquals("Cancelada", reservationStateLabel("CANCELLED"))
         assertEquals("Fallida", reservationStateLabel("FAILED"))
         assertEquals("Vencida", reservationStateLabel("EXPIRED"))
-        assertEquals("WAITING_FOR_PHONE", reservationStateLabel("WAITING_FOR_PHONE"))
+        assertEquals("Pendiente", reservationStateLabel("WAITING_FOR_PHONE"))
     }
 
     @Test
-    fun aMissingHistoricalNameIsReplacedByTheRealIdentifier() {
+    fun aMissingHistoricalNameIsReplacedWithoutInventingIt() {
         assertEquals("Ana Paredes", reservationProfessional(process(professionalFirstName = "Ana")))
-        assertEquals("Profesional 218", reservationProfessional(process(professionalFirstName = null)))
+        assertEquals(
+            "Profesional sin nombre registrado",
+            reservationProfessional(process(professionalFirstName = null)),
+        )
     }
 
     @Test
-    fun theScheduleUsesTheDateAndLocalTimeInformedByTurnos() {
-        assertEquals("2026-11-10 · 14:00", reservationSchedule(process()))
+    fun theScheduleShowsTheInformedDateInAReadableFormat() {
+        assertEquals("10/11/2026 · 14:00", reservationSchedule(process()))
     }
 
     @Test
@@ -43,7 +46,7 @@ class MyReservationsPresentationTest {
             ),
         )
         assertEquals(
-            "Turnos confirmó la cancelación.",
+            "Tu turno fue cancelado.",
             reservationCancellationNotice(process(state = "CANCELLED")),
         )
     }

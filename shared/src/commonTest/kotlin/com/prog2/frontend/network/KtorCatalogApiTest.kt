@@ -191,7 +191,7 @@ class KtorCatalogApiTest {
                 KtorCatalogApi(AuthenticatedApiClient(client, configuration, manager)).categories()
             }
             assertEquals(CatalogError.COPY_UNAVAILABLE, failure.error)
-            assertTrue(failure.message!!.contains("copia"))
+            assertTrue(failure.message!!.contains("información"))
         } finally {
             client.close()
         }

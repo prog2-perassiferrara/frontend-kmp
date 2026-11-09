@@ -8,7 +8,7 @@
 
 Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gestión de reservas propias. Android debe permitir completar el flujo funcional requerido por cátedra.
 
-**Estado:** registro, inicio, conservación y cierre de sesión implementados con MVVM. Búsqueda de profesionales implementada sobre Catálogo con filtros, paginación y aviso de copia, y consulta de disponibilidad real sobre Turnos para el profesional elegido. Los procesos de reserva se integran en sus respectivos CU. Ver resultados, límites y verificaciones en los planes de [registro](docs/features/registro-usuario/PLAN.md), [sesión](docs/features/sesion-usuario/PLAN.md), [búsqueda](docs/features/busqueda-profesionales/PLAN.md) y [disponibilidad](docs/features/disponibilidad-profesional/PLAN.md).
+**Estado:** CU-01 a CU-10 implementados con MVVM: registro, inicio/restauración/cierre de sesión; búsqueda de profesionales con filtros y paginación sobre Catálogo; disponibilidad, inicio, teléfono y verificación de reserva sobre Turnos; y consulta, apertura y cancelación de reservas propias. El área autenticada navega con una BottomBar de dos pestañas —Buscar y Cuenta— y pantallas secundarias para disponibilidad y proceso. Las fechas de búsqueda y de disponibilidad se eligen con el calendario nativo de Android. Ver resultados, límites y verificaciones en los planes de [registro](docs/features/registro-usuario/PLAN.md), [sesión](docs/features/sesion-usuario/PLAN.md), [búsqueda](docs/features/busqueda-profesionales/PLAN.md), [disponibilidad](docs/features/disponibilidad-profesional/PLAN.md), [inicio de reserva](docs/features/iniciar-reserva/PLAN.md), [teléfono](docs/features/completar-telefono/PLAN.md), [consulta](docs/features/consultar-reservas/PLAN.md) y [cancelación](docs/features/cancelar-reserva/PLAN.md).
 
 ## Requisitos
 
@@ -17,7 +17,7 @@ Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gesti�
 - Android SDK API 37 y Build Tools 36.0.0.
 - Emulador o dispositivo desde API 24 para ejecutar. La primera descarga de dependencias requiere Internet.
 
-Se conserva el stack generado: Kotlin 2.4.21, Compose Multiplatform/Material 1.12.2, Lifecycle 2.11.0 y Gradle Wrapper 9.5.1. Las versiones están en `gradle/libs.versions.toml`.
+Se conserva el stack generado: Kotlin 2.4.21, Compose Multiplatform/Material 1.12.2, Lifecycle 2.11.0, Navigation Compose 2.10.0, Material Icons 1.7.3 y Gradle Wrapper 9.5.1. Las versiones están en `gradle/libs.versions.toml`.
 
 ## Configuración local
 
@@ -60,7 +60,7 @@ Desde la raíz del repositorio:
 ./gradlew check :androidApp:assembleDebug
 ```
 
-`check` ejecuta las pruebas host de sesión, registro, búsqueda y disponibilidad, y las verificaciones conectadas por los plugins, incluido lint. `assembleDebug` genera `androidApp/build/outputs/apk/debug/androidApp-debug.apk`. Las pruebas host usan reloj controlado y MockEngine; no requieren un backend, emulador ni credenciales reales.
+`check` ejecuta las pruebas host de sesión, registro, búsqueda, disponibilidad, reservas y proceso, y las verificaciones conectadas por los plugins, incluido lint. `assembleDebug` genera `androidApp/build/outputs/apk/debug/androidApp-debug.apk`. Las pruebas host usan reloj controlado y MockEngine; no requieren un backend, emulador ni credenciales reales.
 
 La compilación y lint fueron comprobados en Linux; quedan avisos de versiones y recursos del launcher, sin errores. Windows y `gradlew.bat` no se comprobaron.
 
@@ -73,6 +73,8 @@ Con un dispositivo o emulador conectado, ejecutar además las pruebas de Keystor
 ## Ejecución Android
 
 Seleccionar `androidApp` y un emulador/dispositivo en Android Studio y pulsar **Run**. Ingresar usuario o correo y contraseña de una cuenta activa de Turnos. «Recordarme» solicita 30 días en lugar de 24 horas; la app respeta el vencimiento recibido en ambos casos.
+
+Con la sesión iniciada, la BottomBar permite alternar entre **Buscar** (CU-04/05 y acceso al flujo de reserva) y **Cuenta**, que contiene «Mis reservas» (CU-09/10) y «Cerrar sesión». Disponibilidad y proceso se abren como pantallas secundarias; el botón Atrás del sistema vuelve dentro de la app. Cambiar de pestaña conserva filtros, resultados, selección y proceso porque los ViewModels viven a nivel de Activity. Cerrar sesión descarta esos estados y vuelve al login. En búsqueda, «Seleccionar fecha» abre el calendario nativo, permite quitarla y conserva el formato `AAAA-MM-DD` que espera Catálogo. En disponibilidad, el mismo calendario no permite elegir días pasados. Los vencimientos que el servicio informa en UTC se presentan en `DD/MM/AAAA · HH:mm` con la misma zona horaria de atención que los turnos.
 
 Para instalar y abrir desde la terminal, con un dispositivo conectado:
 
@@ -90,8 +92,8 @@ La contraseña/formulario se mantienen solo en el ViewModel; no se restauran tra
 ## Estructura y documentación
 
 - `androidApp`: entrada/Application Android, manifest, URLs y recursos por variante. Depende de `shared`.
-- `shared`: UI Compose, ViewModel, coordinador de sesión y cliente HTTP comunes; almacenamiento/ciclo de vida en `androidMain`. Solo target Android.
-- [Plan técnico de sesión](docs/features/sesion-usuario/PLAN.md) y [plan técnico de registro](docs/features/registro-usuario/PLAN.md).
+- `shared`: UI Compose, ViewModel, navegación autenticada (`navigation/MainScreen`, `AppDestination`, `ui/components/AppBottomBar`), coordinador de sesión y cliente HTTP comunes; almacenamiento/ciclo de vida en `androidMain`. Solo target Android.
+- [Plan técnico de sesión](docs/features/sesion-usuario/PLAN.md), [plan técnico de registro](docs/features/registro-usuario/PLAN.md) y planes de [búsqueda](docs/features/busqueda-profesionales/PLAN.md), [disponibilidad](docs/features/disponibilidad-profesional/PLAN.md), [reserva](docs/features/iniciar-reserva/PLAN.md), [teléfono](docs/features/completar-telefono/PLAN.md), [consulta](docs/features/consultar-reservas/PLAN.md) y [cancelación](docs/features/cancelar-reserva/PLAN.md).
 - [SPEC](docs/features/setup-kmp/SPEC.md), [PLAN y diagrama](docs/features/setup-kmp/PLAN.md) y [TASKS](docs/features/setup-kmp/TASKS.md) del setup.
 - [Casos de uso y diagrama](docs/use-cases/README.md) e [issues publicados](https://github.com/prog2-perassiferrara/frontend-kmp/issues).
 - [Instrucciones](AGENTS.md), [reglas de trabajo](docs/GENERIC_RULES.md) y [guía mobile](docs/MOBILE_GUIDELINES.md).

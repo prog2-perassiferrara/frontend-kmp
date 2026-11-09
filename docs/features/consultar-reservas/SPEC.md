@@ -20,6 +20,7 @@ Mostrar las reservas propias informadas por Turnos, diferenciando el historial d
 
 - Cancelar reservas (CU-10), buscar o filtrar reservas, consultas offline y persistencia.
 - Enriquecer nombres con Catálogo o repetir consultas que Turnos no ofrece.
+- Representar el flujo alternativo 3b de CU-09 (aviso de copia de catálogo desactualizada durante la consulta): el contrato de listado de Turnos no expone estado ni aviso de desactualización. No se declara cumplido ni se modifica el backend.
 
 ## Flujo de usuario
 

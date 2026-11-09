@@ -23,7 +23,7 @@
 - Compose Material 1, MVVM ligero, Ktor y kotlinx. Mantener las versiones del catálogo salvo necesidad demostrada.
 - Pantallas como clases con `@Composable fun Content(...)`. El estado de presentación vive en un `ViewModel`; las dependencias se reciben por constructor y se cablean en `AppContainer`/`FrontendApplication`.
 - No trasladar la arquitectura hexagonal de los backends. No agregar frameworks de DI ni módulos nuevos.
-- La navegación definitiva se incorpora al implementar búsqueda, con Navigation Compose. Hasta entonces no se crean destinos ni `BottomBar`.
+- El área autenticada navega con Navigation Compose según el enfoque de cátedra: `MainScreen` concentra `Scaffold`, `NavHost` y el único `NavController`; `AppDestination` define las pestañas y `AppBottomBar` es presentacional. Pestañas: Buscar y Cuenta (reservas propias y cierre de sesión). Login/registro quedan fuera; disponibilidad y proceso son destinos secundarios. No agregar un segundo mecanismo de navegación.
 - Código en inglés; KDoc y comentarios en español para responsabilidades, contratos y decisiones no evidentes.
 
 ## Sesión y APIs

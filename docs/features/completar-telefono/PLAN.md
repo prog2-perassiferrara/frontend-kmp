@@ -1,8 +1,8 @@
 # PLAN: Completar el teléfono solicitado
 
-**SPEC de referencia:** [SPEC.md](SPEC.md) (implementada y verificada con pruebas; envío real no ejecutado).
+**SPEC de referencia:** [SPEC.md](SPEC.md) (implementada y verificada con pruebas y un recorrido real en emulador).
 **CU e issue:** [CU-07](../../use-cases/CU-07-completar-informacion.md); issue #10.
-**Estado:** Implementado el 2026-11-09; pendiente de prueba real autorizada.
+**Estado:** Implementado y verificado el 2026-11-09 con un envío real de teléfono y la confirmación posterior de Turnos.
 **Alcance:** envío del teléfono, corrección de rechazos y verificación de resultados inciertos; sin cancelación ni historial.
 
 ## Contexto técnico verificado
@@ -26,7 +26,7 @@
 3. `ReservationUiState` agrega `phoneNumber`, `PhoneStatus` (`IDLE`, `SENDING`, `UNCERTAIN`) y `phoneMessage`. `canSubmitPhone` se deriva de `process.canSubmitPhone`, el estado local y `loading`, de modo que `requiredField` solo no habilita el formulario.
 4. Un POST exitoso actualiza el proceso con `show()` y limpia el texto enviado. Un rechazo con `processId` se contrasta con `GET` y conserva el mensaje para corregir. Un resultado incierto deja `PhoneStatus.UNCERTAIN`; “Verificar estado” ejecuta el `GET` existente y solo una lectura exitosa permite volver a enviar.
 5. `ProcessScreen` muestra el formulario solo con `process.canSubmitPhone`, distingue “enviando”, “teléfono enviado, resultado pendiente” e incertidumbre, y mantiene el aviso de vencimiento informado por Turnos.
-6. `App` pasa las tres acciones nuevas al `ProcessScreen`; no se agrega navegación ni cableado adicional.
+6. El cableado de navegación pasa las tres acciones nuevas al `ProcessScreen`; no se agrega otra navegación ni un coordinador adicional.
 
 ## Componentes afectados
 
@@ -38,7 +38,7 @@
 | `ui/reservation/ReservationViewModel.kt` | Modificar | Validación, envío único, reconciliación y verificación. | RF-01–RF-06 |
 | `ui/reservation/ProcessScreen.kt` | Modificar | Formulario, envío y mensajes del teléfono. | RF-01, RF-04, RF-05, RF-07, RF-08 |
 | `ui/reservation/ProcessPresentation.kt` | Modificar | Avisos de teléfono enviado o no habilitado. | RF-07, RF-08 |
-| `App.kt` | Modificar | Cableado de las acciones del formulario. | RF-01, RF-03 |
+| `navigation/MainScreen.kt` | Modificar | Cableado de las acciones del formulario. | RF-01, RF-03 |
 
 ## Estado, operaciones y errores
 
@@ -68,7 +68,7 @@ No se agregan dependencias ni configuración. Se reutilizan Ktor, kotlinx.serial
 
 **Comandos:** `./gradlew :shared:testAndroidHostTest`, `./gradlew :androidApp:assembleDebug :androidApp:lintDebug`.
 
-**Limitaciones previstas:** no se crean holds ni se envían teléfonos reales sin autorización. El recorrido de emulador solo puede comprobar que un proceso vencido no ofrece el formulario; el envío, los rechazos y la incertidumbre se cubren con dobles.
+**Limitaciones:** el recorrido real se ejecutó con una cuenta y datos ficticios y un único envío; no se repitió el POST ni se enviaron teléfonos reales. El caso `202 PENDING`, los rechazos y la incertidumbre se cubren con dobles.
 
 ## Orden de implementación
 

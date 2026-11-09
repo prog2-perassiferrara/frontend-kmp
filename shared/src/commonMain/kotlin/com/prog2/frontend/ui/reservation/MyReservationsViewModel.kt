@@ -87,7 +87,12 @@ class MyReservationsViewModel(
                     cancelBlockedId = target.id,
                 )
                 // Una lectura exitosa reconcilia el estado y vuelve a habilitar la acción.
-                read(page)
+                try {
+                    read(page)
+                } catch (_: SessionException) {
+                    // App cierra la sesión y descarta el bloqueo; mientras tanto no
+                    // se habilita otro intento con la fila anterior sin verificar.
+                }
             } catch (_: SessionException) {
                 // App cierra la sesión y descarta este estado.
             }
@@ -149,12 +154,12 @@ class MyReservationsViewModel(
             cancellingId = null,
             cancelBlockedId = null,
             cancelMessage = when {
-                updated.state == "CANCELLED" -> "Turnos confirmó la cancelación."
+                updated.state == "CANCELLED" -> "Tu turno fue cancelado."
                 updated.cancellationPending ->
-                    "Turnos recibió la cancelación y está procesando el resultado."
+                    "Tu cancelación está en curso."
                 updated.cancellationRetryRequired ->
-                    "Turnos no confirmó la cancelación; podés reintentar."
-                else -> "Turnos informó el estado ${updated.state}; actualizá para confirmarlo."
+                    "No pudimos confirmar la cancelación; podés reintentar."
+                else -> "La reserva cambió de estado; actualizá para confirmarlo."
             },
         )
     }

@@ -23,6 +23,7 @@ El historial excluye el proceso activo y puede contener `CONFIRMED`, `CANCELLED`
 4. `MyReservationsScreen` presenta encabezado, pendiente separado con “Ver estado”, historial, vacío, error y paginación. Los textos se derivan en funciones pequeñas y testeables.
 5. `App` agrega `reservationsVisible` junto a `processVisible`; desde el pendiente se reutiliza CU-08 con `ReservationViewModel.present(process)` —sin otra lectura ni POST—. El estado se descarta al cerrar sesión.
 6. `SearchScreen` incorpora “Mis reservas” en su encabezado; no se agrega Navigation Compose ni BottomBar.
+   - **Actualización al cierre (2026-11-09):** “Mis reservas” pasó a ser una pestaña de la BottomBar en `MainScreen`; el encabezado de búsqueda ya no contiene ese botón.
 
 ## Componentes afectados
 

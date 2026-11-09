@@ -20,7 +20,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
   - Validación: build, lint y recorrido de solo lectura.
 - [x] **T4 · Verificación integral** (CA-01–CA-10)
   - Suite host, build, lint y recorrido real con un pendiente creado al ejecutar CU-06.
-  - Se observaron `WAITING_FOR_PHONE`, el vencimiento UTC, el aviso de teléfono, la actualización y el descubrimiento tras reiniciar.
+  - Se observaron `WAITING_FOR_PHONE`, el vencimiento, el aviso de teléfono, la actualización y el descubrimiento tras reiniciar.
 
 ## Cierre
 
@@ -30,7 +30,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 | --- | --- | --- |
 | CA-01 | Verificado | `KtorReservationsApiTest.processReadsTheDurableProgressWithTheUserBearer`: ruta y bearer propios, sin POST. |
 | CA-02 | Verificado | `ReservationViewModelTest.discoveryOpensTheOwnPendingProcessOnlyOnce` y `KtorReservationsApiTest.processReadsTheDurableProgressWithTheUserBearer`: campos presentados sin completar ausentes. |
-| CA-03 | Verificado | `ProcessPresentationTest.theExpirationIsShownAsUtcWithoutUsingTheDeviceClock` y `ProcessScreen`: `expiresAt` rotulado UTC, sin comparación local. |
+| CA-03 | Verificado | `ProcessPresentationTest.theExpirationIsShownInTheSameTimeZoneAsTheAppointmentsWithoutTheDeviceClock` e `InstantFormatTest`: `expiresAt` UTC convertido a la zona de atención (`09/11/2026 · 12:30`), incluido el cambio de día (`2026-11-10T02:30:00Z` → `09/11/2026 · 23:30`); sin comparación con el reloj local. |
 | CA-04 | Verificado | En CU-08 se informa el requisito sin enviar; el formulario y el envío pertenecen a CU-07 y se validan en `docs/features/completar-telefono/`. |
 | CA-05 | Verificado | `ReservationViewModelTest.aFailedRefreshKeepsTheLastReportedProcess`: conserva el último proceso y muestra el mensaje. `App` vuelve a consultar al pulsar “Ver estado”. |
 | CA-06 | Verificado | `KtorReservationsApiTest.pendingReadsTheOwnProcessAndAnAbsentPendingIsNull` y `ReservationViewModelTest.discoveryOpensTheOwnPendingProcessOnlyOnce`; en emulador, al reiniciar la app el pendiente real se descubrió y el proceso se abrió sin un `POST` nuevo. |

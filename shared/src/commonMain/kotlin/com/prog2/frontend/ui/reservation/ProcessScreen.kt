@@ -80,9 +80,9 @@ class ProcessScreen {
     @Composable
     private fun Sending() {
         CircularProgressIndicator()
-        Text("Solicitando la reserva a Turnos…")
+        Text("Enviando tu solicitud…")
         Text(
-            "La solicitud se envía una sola vez. Turnos todavía no informó su resultado.",
+            "La solicitud se envía una sola vez. Todavía no tenemos un resultado.",
             style = MaterialTheme.typography.body2,
         )
     }
@@ -102,18 +102,18 @@ class ProcessScreen {
         processReason(process.reasonCode)?.let { Text(it, style = MaterialTheme.typography.body2) }
         process.expiresAt?.let {
             Text(
-                "Vencimiento informado por Turnos: ${displayUtc(it)}.",
+                "La solicitud vence el ${displayExpiration(it)}.",
                 style = MaterialTheme.typography.body2,
             )
         }
         when {
             state.phone == PhoneStatus.SENDING -> {
-                Text("Enviando el teléfono a Turnos…", style = MaterialTheme.typography.body2)
+                Text("Enviando el teléfono…", style = MaterialTheme.typography.body2)
                 CircularProgressIndicator()
             }
             state.phone == PhoneStatus.UNCERTAIN -> {
                 Notice(
-                    "No pudimos verificar si Turnos recibió el teléfono. " +
+                    "No pudimos confirmar si recibimos tu teléfono. " +
                         "Verificá el estado antes de volver a enviarlo.",
                 )
                 Button(
@@ -135,12 +135,12 @@ class ProcessScreen {
 
         if (process.isFinal) {
             Text(
-                "El proceso terminó con el resultado informado por Turnos.",
+                "La solicitud ya está cerrada.",
                 style = MaterialTheme.typography.body2,
             )
         } else {
             Text(
-                "La reserva sigue en curso y todavía no está confirmada.",
+                "Tu solicitud sigue pendiente y todavía no está confirmada.",
                 style = MaterialTheme.typography.body2,
             )
             Button(
@@ -168,7 +168,7 @@ class ProcessScreen {
         onSubmitPhone: () -> Unit,
     ) {
         Text(
-            "Turnos solicita tu teléfono para continuar.",
+            "Necesitamos tu teléfono para continuar.",
             style = MaterialTheme.typography.subtitle2,
         )
         OutlinedTextField(
@@ -196,14 +196,14 @@ class ProcessScreen {
             Text("Enviar teléfono")
         }
         Text(
-            "Enviarlo no confirma la reserva. Solo se remite el número a Turnos para el proceso actual.",
+            "Enviarlo no confirma la reserva: solo lo usamos para esta solicitud.",
             style = MaterialTheme.typography.body2,
         )
     }
 
     @Composable
     private fun Uncertain(state: ReservationUiState, onVerify: () -> Unit) {
-        Text("No pudimos confirmar si Turnos registró la solicitud.", style = MaterialTheme.typography.subtitle1)
+        Text("No pudimos confirmar si tu solicitud quedó registrada.", style = MaterialTheme.typography.subtitle1)
         Text("La solicitud pudo haberse registrado. Verificá el estado antes de volver a iniciarla.")
         state.message?.let { Message(it) }
         Button(
@@ -218,8 +218,8 @@ class ProcessScreen {
 
     @Composable
     private fun NotRegistered(state: ReservationUiState, onRetry: () -> Unit) {
-        Text("Turnos no registró el inicio de la reserva.", style = MaterialTheme.typography.subtitle1)
-        Text("Podés repetir la misma solicitud; se conserva la misma clave para no duplicarla.")
+        Text("Tu solicitud no quedó registrada.", style = MaterialTheme.typography.subtitle1)
+        Text("Podés volver a intentarlo; no se va a duplicar.")
         state.message?.let { Message(it) }
         Button(
             onClick = onRetry,
@@ -233,7 +233,7 @@ class ProcessScreen {
 
     @Composable
     private fun Rejected(message: String?) {
-        Text(message ?: "Turnos rechazó la solicitud.", style = MaterialTheme.typography.subtitle1)
+        Text(message ?: "No pudimos iniciar la reserva.", style = MaterialTheme.typography.subtitle1)
         Text(
             "No se creó una reserva. Volvé a la disponibilidad para consultar horarios actuales.",
             style = MaterialTheme.typography.body2,

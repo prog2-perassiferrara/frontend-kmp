@@ -14,12 +14,12 @@ Cada RF tiene CA y validación en el PLAN; las tareas no agregan alcance. Sin de
   - Validación: `KtorReservationsApiTest.cancelSendsNoBodyAndAcceptsBothSuccessCodes`, `cancelMapsKnownRejectionsAndUncertainOutcomes` y `cancelTransportFailureIsUncertainAndANonUuidIsNotSent`.
 - [x] **T2 · Estado, confirmación y bloqueo** (RF-01, RF-02, RF-04, RF-06, RF-07)
   - `MyReservationsViewModel`: diálogo, una sola operación, actualización de la fila, bloqueo ante incertidumbre y reconciliación con lectura.
-  - Validación: `MyReservationsViewModelTest` (12 pruebas, siete de cancelación).
+  - Validación: `MyReservationsViewModelTest` (13 pruebas al cierre, ocho de cancelación; incluye la regresión de I-1 `aRejectedCancellationWhoseReadLosesTheSessionKeepsTheBlockWithoutEscaping`).
 - [x] **T3 · Diálogo y presentación** (RF-02, RF-04)
   - `MyReservationsScreen` muestra la confirmación sin motivo y el progreso informado; `reservationCancellationNotice` distingue `PENDING`, `RETRY_REQUIRED` y `CANCELLED`.
   - Validación: `MyReservationsPresentationTest.onlyTheReportedCancellationProgressProducesANotice`.
 - [x] **T4 · Verificación integral** (CA-01–CA-07)
-  - Suite host, build, lint y apertura/cierre del diálogo en emulador sin confirmar.
+  - Suite host, build, lint y apertura/cierre del diálogo en emulador sin confirmar. La cancelación real se agregó después, en la prueba controlada documentada abajo.
 
 ## Criterios de aceptación
 
@@ -35,7 +35,7 @@ Cada RF tiene CA y validación en el PLAN; las tareas no agregan alcance. Sin de
 
 ### Pruebas ejecutadas (2026-11-09)
 
-- `./gradlew :shared:testAndroidHostTest`: 154 pruebas, 0 fallos.
+- `./gradlew :shared:testAndroidHostTest`: 155 pruebas, 0 fallos (incluye la regresión de I-1 sobre la reconciliación de una cancelación rechazada).
 - `./gradlew :androidApp:assembleDebug :androidApp:lintDebug`: `BUILD SUCCESSFUL`; avisos de lint preexistentes.
 
 ### Verificación en emulador (2026-11-09)
