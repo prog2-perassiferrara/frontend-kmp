@@ -1,3 +1,10 @@
+<!-- calidad:inicio -->
+![Calidad](https://img.shields.io/badge/Calidad-40%2F100-yellow) ![Aprobar](https://img.shields.io/badge/Aprobar-no-red) ![Destacar](https://img.shields.io/badge/Destacar-no-lightgrey) ![Build](https://img.shields.io/badge/Build-OK-green) ![Duplicación](https://img.shields.io/badge/Duplicaci%C3%B3n-8.1%25-orange) ![%POO](https://img.shields.io/badge/%25POO-78%25-yellow) ![Sueltas](https://img.shields.io/badge/Sueltas-51-red) ![D1](https://img.shields.io/badge/D1-1-red) ![D3](https://img.shields.io/badge/D3-60-yellow) ![D5](https://img.shields.io/badge/D5-95-green) ![D6](https://img.shields.io/badge/D6-50-orange) ![D7](https://img.shields.io/badge/D7-31-red)
+
+**Calidad (heurístico, 7 dimensiones):** índice **40/100** · build **OK** · aprobar **no (4/11)** · destacar **no**
+Detalle completo en [`docs/EVALUACION.md`](docs/EVALUACION.md).
+<!-- calidad:fin -->
+
 # Aplicación KMP para Android
 
 Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gestión de reservas propias. Android debe permitir completar el flujo funcional requerido por cátedra.
