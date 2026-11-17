@@ -3,20 +3,20 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (UM): RepoSense + análisis de calidad de **7 dimensiones**. **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas) + build: es una criba para orientar la revisión, **no una nota**. La **documentación** del repositorio no se evalúa.
-> Generado: 2026-11-12.
+> Generado: 2026-11-17.
 
 ## 1. Veredicto
 
 | Aspecto | Resultado |
 |---|---|
-| Índice de calidad | **40/100** |
+| Índice de calidad | **41/100** |
 | Tipo de repositorio | `app-kmp` |
 | Build (`mvnw verify` / `gradlew check`) | OK |
 | Código (LOC) | 9,035 |
 | Archivos de código | 80 |
 | Clases | 126 |
-| Código dentro de clases (%POO) | 78% |
-| Funciones fuera de clases | 51 |
+| Código dentro de clases (%POO) | 75% |
+| Funciones fuera de clases | 32 |
 | Duplicación (puerta) | 8.1% |
 | Duplicación lógica | 8.2% |
 | Duplicación de boilerplate | 17.8% |
@@ -51,7 +51,7 @@ Cada dimensión indica **qué mide**, **por qué importa** y **tu resultado**. C
 
 | Dimensión | Peso | Puntaje |
 |:--|--:|--:|
-| **D1** Diseño OO, SOLID y patrones (20%) | 20% | 1 |
+| **D1** Diseño OO, SOLID y patrones (20%) | 20% | 2 |
 | **D2** Arquitectura hexagonal — backend (15%) | 15% | N/A |
 | **D3** Frontend KMP: MVVM y buenas prácticas (10%) | 10% | 60 |
 | **D4** Integración y contrato (10%) | 10% | N/A |
@@ -63,7 +63,7 @@ Cada dimensión indica **qué mide**, **por qué importa** y **tu resultado**. C
 
 - **Qué mide:** Métricas orientadas a objetos (clases, métodos, campos, cohesión, acoplamiento, herencia) y proxies de SOLID, más patrones de diseño.
 - **Por qué importa:** El eje de la materia es el buen uso de la POO y su arquitectura: un diseño con clases claras y poco acopladas es más fácil de entender, probar y cambiar.
-- **Tu resultado:** **1/100**
+- **Tu resultado:** **2/100**
 - **Para investigar la causa:**
     - ¿Se pensó el modelo de clases antes de codificar o se agrupó después?
     - ¿Qué clases concentran muchas responsabilidades a la vez?
@@ -105,7 +105,7 @@ Cada dimensión indica **qué mide**, **por qué importa** y **tu resultado**. C
 
 El análisis encontró las siguientes señales (archivo, sin número de línea a propósito):
 
-**POO** (85)
+**POO** (60)
 - función 'quotedUrl' fuera de una clase — `androidApp/build.gradle.kts`
 - clase 'AppContainer' con 6 campos públicos (encapsulación) — `shared/src/androidMain/kotlin/com/prog2/frontend/config/AppContainer.kt`
 - función 'initialCalendar' fuera de una clase — `shared/src/androidMain/kotlin/com/prog2/frontend/ui/components/AndroidDatePickerModal.kt`
@@ -166,40 +166,14 @@ El análisis encontró las siguientes señales (archivo, sin número de línea a
 - función 'expirationNotice' fuera de una clase — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/ProcessPresentation.kt`
 - clase 'AvailabilityUiState' con 13 campos públicos (encapsulación) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/availability/AvailabilityUiState.kt`
 - clase 'RegistrationUiState' con 13 campos públicos (encapsulación) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/registration/RegistrationUiState.kt`
-- clase 'MemorySessionStore' con 6 campos públicos (encapsulación) — `shared/src/commonTest/kotlin/com/prog2/frontend/session/SessionTestSupport.kt`
-- función 'testToken' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/session/SessionTestSupport.kt`
-- función 'authenticate' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/session/SessionTestSupport.kt`
-- clase 'SearchViewModelTest' con 6 campos públicos (encapsulación) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/search/SearchViewModelTest.kt`
-- clase 'MyReservationsViewModelTest' con 6 campos públicos (encapsulación) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModelTest.kt`
-- clase 'FakeApi' con 5 campos públicos (encapsulación) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModelTest.kt`
-- clase 'ReservationViewModelTest' con 8 campos públicos (encapsulación) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- clase 'FakeApi' con 8 campos públicos (encapsulación) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- función 'onlyAnAuthenticNotFoundEnablesRetryingTheStart' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'anUnexpectedBodyOrTransportOnProcessIsUncertain' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'processRejectsANonUuidIdentifierWithoutCallingTurnos' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'pendingReadsTheOwnProcessAndAnAbsentPendingIsNull' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'pendingFailureAndTransportAreUncertainReads' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'ownReservationsReadPendingHistoryAndPagination' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'ownReservationsFailureAndTransportAreUncertainReads' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'ownReservationsIncompleteHistoryIsAReadFailure' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'ownReservationsWithoutPendingAndWithACompleteEmptyHistoryIsEmptyButValid' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'cancelSendsNoBodyAndAcceptsBothSuccessCodes' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'cancelMapsKnownRejectionsAndUncertainOutcomes' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'cancelTransportFailureIsUncertainAndANonUuidIsNotSent' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'phoneSendsTheContractBodyAndBearerAndAcceptsBothSuccessCodes' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'phoneMapsKnownRejectionsAndUncertainOutcomes' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'aTransportFailureOnPhoneIsUncertain' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'phoneRejectsANonUuidProcessWithoutCallingTurnos' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'a401ClosesTheSessionThroughTheExistingClient' fuera de una clase — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
 
-**DIP/concretos** (97)
+**DIP/concretos** (66)
 - clase 'MainActivity' muy acoplada (CBO=10) — `androidApp/src/main/kotlin/com/prog2/frontend/MainActivity.kt`
 - clase 'MainActivity' instancia 5 concretos (CBO=10) — `androidApp/src/main/kotlin/com/prog2/frontend/MainActivity.kt`
 - clase 'AndroidEncryptedSessionStore' muy acoplada (CBO=35) — `shared/src/androidMain/kotlin/com/prog2/frontend/session/data/AndroidEncryptedSessionStore.kt`
 - clase 'AndroidEncryptedSessionStore' instancia 12 concretos (CBO=35) — `shared/src/androidMain/kotlin/com/prog2/frontend/session/data/AndroidEncryptedSessionStore.kt`
 - clase 'AppContainer' muy acoplada (CBO=20) — `shared/src/androidMain/kotlin/com/prog2/frontend/config/AppContainer.kt`
 - clase 'AppContainer' instancia 14 concretos (CBO=20) — `shared/src/androidMain/kotlin/com/prog2/frontend/config/AppContainer.kt`
-- clase 'AndroidDatePickerModalTest' muy acoplada (CBO=15) — `shared/src/androidHostTest/kotlin/com/prog2/frontend/ui/components/AndroidDatePickerModalTest.kt`
 - clase 'App' muy acoplada (CBO=38) — `shared/src/commonMain/kotlin/com/prog2/frontend/App.kt`
 - clase 'App' instancia 19 concretos (CBO=38) — `shared/src/commonMain/kotlin/com/prog2/frontend/App.kt`
 - clase 'SessionError' muy acoplada (CBO=11) — `shared/src/commonMain/kotlin/com/prog2/frontend/session/SessionError.kt`
@@ -260,76 +234,27 @@ El análisis encontró las siguientes señales (archivo, sin número de línea a
 - clase 'ApiConfiguration' instancia 3 concretos (CBO=9) — `shared/src/commonMain/kotlin/com/prog2/frontend/network/ApiConfiguration.kt`
 - clase 'AuthenticatedApiClient' muy acoplada (CBO=18) — `shared/src/commonMain/kotlin/com/prog2/frontend/network/AuthenticatedApiClient.kt`
 - clase 'AuthenticatedApiClient' instancia 7 concretos (CBO=18) — `shared/src/commonMain/kotlin/com/prog2/frontend/network/AuthenticatedApiClient.kt`
-- clase 'SessionManagerTest' muy acoplada (CBO=16) — `shared/src/commonTest/kotlin/com/prog2/frontend/session/SessionManagerTest.kt`
-- clase 'SessionManagerTest' instancia 25 concretos (CBO=16) — `shared/src/commonTest/kotlin/com/prog2/frontend/session/SessionManagerTest.kt`
-- clase 'SearchViewModelTest' muy acoplada (CBO=20) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/search/SearchViewModelTest.kt`
-- clase 'SearchViewModelTest' instancia 32 concretos (CBO=20) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/search/SearchViewModelTest.kt`
-- clase 'SessionViewModelTest' muy acoplada (CBO=15) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/session/SessionViewModelTest.kt`
-- clase 'SessionViewModelTest' instancia 10 concretos (CBO=15) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/session/SessionViewModelTest.kt`
-- clase 'MyReservationsViewModelTest' muy acoplada (CBO=33) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModelTest.kt`
-- clase 'MyReservationsViewModelTest' instancia 36 concretos (CBO=33) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModelTest.kt`
-- clase 'ReservationViewModelTest' muy acoplada (CBO=44) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- clase 'ReservationViewModelTest' instancia 52 concretos (CBO=44) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- clase 'FakeApi' muy acoplada (CBO=8) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- clase 'ProcessPresentationTest' muy acoplada (CBO=20) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ProcessPresentationTest.kt`
-- clase 'MyReservationsPresentationTest' muy acoplada (CBO=20) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsPresentationTest.kt`
-- clase 'MyReservationsPresentationTest' instancia 3 concretos (CBO=20) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsPresentationTest.kt`
-- clase 'AvailabilityViewModelTest' muy acoplada (CBO=23) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/availability/AvailabilityViewModelTest.kt`
-- clase 'AvailabilityViewModelTest' instancia 19 concretos (CBO=23) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/availability/AvailabilityViewModelTest.kt`
-- clase 'RegistrationViewModelTest' muy acoplada (CBO=26) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/registration/RegistrationViewModelTest.kt`
-- clase 'RegistrationViewModelTest' instancia 24 concretos (CBO=26) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/registration/RegistrationViewModelTest.kt`
-- clase 'KtorAvailabilityApiTest' muy acoplada (CBO=38) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorAvailabilityApiTest.kt`
-- clase 'KtorAvailabilityApiTest' instancia 29 concretos (CBO=38) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorAvailabilityApiTest.kt`
-- clase 'AuthenticatedApiClientTest' muy acoplada (CBO=27) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/AuthenticatedApiClientTest.kt`
-- clase 'AuthenticatedApiClientTest' instancia 27 concretos (CBO=27) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/AuthenticatedApiClientTest.kt`
-- clase 'KtorAuthApiTest' muy acoplada (CBO=25) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorAuthApiTest.kt`
-- clase 'KtorAuthApiTest' instancia 21 concretos (CBO=25) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorAuthApiTest.kt`
-- clase 'KtorCatalogApiTest' muy acoplada (CBO=40) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorCatalogApiTest.kt`
-- clase 'KtorCatalogApiTest' instancia 45 concretos (CBO=40) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorCatalogApiTest.kt`
-- clase 'KtorReservationsApiTest' muy acoplada (CBO=45) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- clase 'KtorReservationsApiTest' instancia 36 concretos (CBO=45) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- clase 'KtorRegistrationApiTest' muy acoplada (CBO=25) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorRegistrationApiTest.kt`
-- clase 'KtorRegistrationApiTest' instancia 17 concretos (CBO=25) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorRegistrationApiTest.kt`
 
-**SRP/responsabilidad** (109)
+**SRP/responsabilidad** (55)
 - método 'AndroidEncryptedSessionStore.read' con complejidad 6 — `shared/src/androidMain/kotlin/com/prog2/frontend/session/data/AndroidEncryptedSessionStore.kt`
 - clase 'AppContainer' grande (LOC=27, métodos=0, campos=8) — `shared/src/androidMain/kotlin/com/prog2/frontend/config/AppContainer.kt`
-- clase 'AppContainer' sin métodos (8 campos): solo datos — `shared/src/androidMain/kotlin/com/prog2/frontend/config/AppContainer.kt`
 - método 'App.Content' de 71 líneas — `shared/src/commonMain/kotlin/com/prog2/frontend/App.kt`
 - clase 'SessionManager' grande (LOC=141, métodos=9, campos=12) — `shared/src/commonMain/kotlin/com/prog2/frontend/session/SessionManager.kt`
 - método 'SessionManager.restore' de 31 líneas — `shared/src/commonMain/kotlin/com/prog2/frontend/session/SessionManager.kt`
 - método 'SessionManager.restore' con complejidad 7 — `shared/src/commonMain/kotlin/com/prog2/frontend/session/SessionManager.kt`
 - método 'SessionManager.signIn' con complejidad 6 — `shared/src/commonMain/kotlin/com/prog2/frontend/session/SessionManager.kt`
-- clase 'SessionState' sin métodos (3 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/session/SessionState.kt`
 - método 'KtorAuthApi.authenticate' con complejidad 7 — `shared/src/commonMain/kotlin/com/prog2/frontend/session/data/KtorAuthApi.kt`
 - clase 'KtorReservationsApi' grande (LOC=210, métodos=14, campos=1) — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/KtorReservationsApi.kt`
 - clase 'StartBody' grande (LOC=38, métodos=0, campos=13) — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/KtorReservationsApi.kt`
-- clase 'StartBody' sin métodos (13 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/KtorReservationsApi.kt`
 - clase 'PhoneBody' grande (LOC=31, métodos=0, campos=12) — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/KtorReservationsApi.kt`
-- clase 'PhoneBody' sin métodos (12 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/KtorReservationsApi.kt`
 - clase 'ProcessResponse' grande (LOC=29, métodos=0, campos=12) — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/KtorReservationsApi.kt`
-- clase 'ProcessResponse' sin métodos (12 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/KtorReservationsApi.kt`
-- clase 'ReservationSelection' sin métodos (6 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/ReservationsApi.kt`
-- clase 'StartReservation' sin métodos (5 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/ReservationsApi.kt`
 - clase 'ReservationProcess' grande (LOC=36, métodos=0, campos=23) — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/ReservationsApi.kt`
-- clase 'ReservationProcess' sin métodos (23 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/ReservationsApi.kt`
-- clase 'CancellationProgress' sin métodos (6 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/ReservationsApi.kt`
-- clase 'OwnReservationsPage' sin métodos (6 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/ReservationsApi.kt`
-- clase 'ProfessionalAvailability' sin métodos (4 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/availability/data/AvailabilityApi.kt`
-- clase 'AvailabilityResponse' sin métodos (4 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/availability/data/KtorAvailabilityApi.kt`
 - método 'KtorCatalogApi.searchProfessionals' con complejidad 8 — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/KtorCatalogApi.kt`
-- clase 'ProfessionalResponse' sin métodos (5 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/KtorCatalogApi.kt`
 - clase 'CatalogCategory' grande (LOC=36, métodos=0, campos=15) — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/CatalogApi.kt`
-- clase 'CatalogCategory' sin métodos (15 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/CatalogApi.kt`
 - clase 'Professional' grande (LOC=34, métodos=0, campos=15) — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/CatalogApi.kt`
-- clase 'Professional' sin métodos (15 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/CatalogApi.kt`
 - clase 'CatalogState' grande (LOC=23, métodos=0, campos=11) — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/CatalogApi.kt`
-- clase 'CatalogState' sin métodos (11 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/CatalogApi.kt`
 - clase 'ProfessionalPage' grande (LOC=21, métodos=0, campos=11) — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/CatalogApi.kt`
-- clase 'ProfessionalPage' sin métodos (11 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/CatalogApi.kt`
-- clase 'ProfessionalQuery' sin métodos (7 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/catalog/data/CatalogApi.kt`
 - método 'KtorRegistrationApi.failureFor' con complejidad 8 — `shared/src/commonMain/kotlin/com/prog2/frontend/registration/data/KtorRegistrationApi.kt`
-- clase 'RegistrationRequest' sin métodos (6 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/registration/data/KtorRegistrationApi.kt`
 - clase 'AppDestination' sin métodos (3 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/navigation/AppDestination.kt`
 - clase 'MainScreen' grande (LOC=248, métodos=1, campos=23) — `shared/src/commonMain/kotlin/com/prog2/frontend/navigation/MainScreen.kt`
 - clase 'SearchViewModel' grande (LOC=143, métodos=17, campos=7) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/search/SearchViewModel.kt`
@@ -338,9 +263,7 @@ El análisis encontró las siguientes señales (archivo, sin número de línea a
 - método 'SearchViewModel.perform' de 46 líneas — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/search/SearchViewModel.kt`
 - clase 'SearchScreen' grande (LOC=208, métodos=4, campos=3) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/search/SearchScreen.kt`
 - clase 'SearchUiState' grande (LOC=27, métodos=0, campos=22) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/search/SearchUiState.kt`
-- clase 'SearchUiState' sin métodos (22 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/search/SearchUiState.kt`
 - clase 'SessionUiState' grande (LOC=12, métodos=0, campos=8) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/session/SessionUiState.kt`
-- clase 'SessionUiState' sin métodos (8 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/session/SessionUiState.kt`
 - clase 'SessionViewModel' con baja cohesión (7%) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/session/SessionViewModel.kt`
 - método 'SessionViewModel.signIn' con complejidad 8 — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/session/SessionViewModel.kt`
 - clase 'ProcessScreen' grande (LOC=219, métodos=6, campos=3) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/ProcessScreen.kt`
@@ -354,14 +277,12 @@ El análisis encontró las siguientes señales (archivo, sin número de línea a
 - función 'load' con complejidad 6 — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModel.kt`
 - función 'loadPending' con complejidad 6 — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModel.kt`
 - clase 'MyReservationsUiState' grande (LOC=28, métodos=0, campos=15) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/MyReservationsUiState.kt`
-- clase 'MyReservationsUiState' sin métodos (15 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/MyReservationsUiState.kt`
 - clase 'MyReservationsViewModel' grande (LOC=143, métodos=11, campos=5) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModel.kt`
 - método 'MyReservationsViewModel.confirmCancellation' de 36 líneas — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModel.kt`
 - método 'MyReservationsViewModel.confirmCancellation' con complejidad 8 — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModel.kt`
 - método 'MyReservationsViewModel.read' de 31 líneas — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModel.kt`
 - método 'ProcessView.processView' de 42 líneas — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/ProcessPresentation.kt`
 - clase 'AvailabilityUiState' grande (LOC=16, métodos=0, campos=13) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/availability/AvailabilityUiState.kt`
-- clase 'AvailabilityUiState' sin métodos (13 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/availability/AvailabilityUiState.kt`
 - clase 'AvailabilityViewModel' con baja cohesión (33%) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/availability/AvailabilityViewModel.kt`
 - clase 'RegistrationViewModel' grande (LOC=150, métodos=14, campos=6) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/registration/RegistrationViewModel.kt`
 - clase 'RegistrationViewModel' con baja cohesión (4%) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/registration/RegistrationViewModel.kt`
@@ -369,47 +290,14 @@ El análisis encontró las siguientes señales (archivo, sin número de línea a
 - método 'RegistrationViewModel.submit' con complejidad 7 — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/registration/RegistrationViewModel.kt`
 - método 'RegistrationViewModel.showFailure' con complejidad 8 — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/registration/RegistrationViewModel.kt`
 - clase 'RegistrationUiState' grande (LOC=17, métodos=0, campos=13) — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/registration/RegistrationUiState.kt`
-- clase 'RegistrationUiState' sin métodos (13 campos): solo datos — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/registration/RegistrationUiState.kt`
 - método 'AuthenticatedApiClient.post' con complejidad 6 — `shared/src/commonMain/kotlin/com/prog2/frontend/network/AuthenticatedApiClient.kt`
-- método 'TestClock.now' con complejidad 8 — `shared/src/commonTest/kotlin/com/prog2/frontend/session/SessionTestSupport.kt`
-- clase 'SessionManagerTest' grande (LOC=193, métodos=13, campos=0) — `shared/src/commonTest/kotlin/com/prog2/frontend/session/SessionManagerTest.kt`
-- clase 'SearchViewModelTest' grande (LOC=329, métodos=20, campos=10) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/search/SearchViewModelTest.kt`
-- clase 'MyReservationsViewModelTest' grande (LOC=427, métodos=20, campos=8) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModelTest.kt`
-- método 'MyReservationsViewModelTest.anUncertainCancellationBlocksUntilAReadVerifiesTheReservation' de 37 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModelTest.kt`
-- método 'MyReservationsViewModelTest.anUncertainCancellationThatReadsAPendingProgressIsNotOfferedAgain' de 31 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModelTest.kt`
-- método 'MyReservationsViewModelTest.aRejectedCancellationWhoseReadFailsBlocksUntilVerified' de 38 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsViewModelTest.kt`
-- clase 'ReservationViewModelTest' grande (LOC=775, métodos=41, campos=11) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- método 'ReservationViewModelTest.aNotFoundPhoneBlocksResendingUntilTheStateIsVerified' de 35 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- método 'ReservationViewModelTest.aRejectedPhoneWhoseReadFailsBlocksResendingUntilVerified' de 36 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- método 'ReservationViewModelTest.notFound' de 51 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- clase 'FakeApi' grande (LOC=49, métodos=3, campos=8) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/ReservationViewModelTest.kt`
-- clase 'AvailabilityViewModelTest' grande (LOC=178, métodos=14, campos=6) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/availability/AvailabilityViewModelTest.kt`
-- clase 'RegistrationViewModelTest' grande (LOC=219, métodos=16, campos=5) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/registration/RegistrationViewModelTest.kt`
-- clase 'RegistrationViewModelTest' con baja cohesión (41%) — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/registration/RegistrationViewModelTest.kt`
-- método 'KtorAvailabilityApiTest.mapsRejectionsWithoutRetryingTheHttpCall' de 34 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorAvailabilityApiTest.kt`
-- método 'AuthenticatedApiClientTest.oldResponsesCannotPublishDataOrCloseANewSession' de 31 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/AuthenticatedApiClientTest.kt`
-- clase 'KtorCatalogApiTest' grande (LOC=228, métodos=10, campos=1) — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorCatalogApiTest.kt`
-- método 'KtorCatalogApiTest.sendsTheFourFiltersWithTheUserBearerAndParsesThePage' de 35 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorCatalogApiTest.kt`
-- método 'KtorCatalogApiTest.mapsSearchErrorsWithoutRetrying' de 35 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorCatalogApiTest.kt`
-- método 'KtorReservationsApiTest.mapsKnownRejectionsAndKeepsTheProcessWithoutRetrying' de 43 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- método 'KtorReservationsApiTest.mapsKnownRejectionsAndKeepsTheProcessWithoutRetrying' con complejidad 8 — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'anUnexpectedBodyOrTransportOnProcessIsUncertain' de 30 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'pendingFailureAndTransportAreUncertainReads' de 30 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'ownReservationsFailureAndTransportAreUncertainReads' de 32 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'cancelMapsKnownRejectionsAndUncertainOutcomes' de 35 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'cancelMapsKnownRejectionsAndUncertainOutcomes' con complejidad 7 — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'phoneMapsKnownRejectionsAndUncertainOutcomes' de 48 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- función 'phoneMapsKnownRejectionsAndUncertainOutcomes' con complejidad 8 — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorReservationsApiTest.kt`
-- método 'KtorRegistrationApiTest.mapsValidationFieldsAndDuplicateWithoutRetrying' de 37 líneas — `shared/src/commonTest/kotlin/com/prog2/frontend/network/KtorRegistrationApiTest.kt`
 
-**LSP/overrides** (7)
+**LSP/overrides** (5)
 - 'App.Content' vacío o 'no implementado' — `shared/src/commonMain/kotlin/com/prog2/frontend/App.kt`
 - 'KtorReservationsApi.startFailure' vacío o 'no implementado' — `shared/src/commonMain/kotlin/com/prog2/frontend/reservation/data/KtorReservationsApi.kt`
 - 'ReservationBannerState.toString' vacío o 'no implementado' — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/ReservationUiState.kt`
 - 'ReservationUiState.toString' vacío o 'no implementado' — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/ReservationUiState.kt`
 - 'MyReservationsScreen.PendingProcess' vacío o 'no implementado' — `shared/src/commonMain/kotlin/com/prog2/frontend/ui/reservation/MyReservationsScreen.kt`
-- 'MyReservationsPresentationTest.knownStatesAreTranslatedAndUnknownStatesStayPending' vacío o 'no implementado' — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsPresentationTest.kt`
-- 'MyReservationsPresentationTest.onlyTheReportedCancellationProgressProducesANotice' vacío o 'no implementado' — `shared/src/commonTest/kotlin/com/prog2/frontend/ui/reservation/MyReservationsPresentationTest.kt`
 
 **?** (3)
 - clase 'SessionException' con herencia profunda (DIT=2) — `shared/src/commonMain/kotlin/com/prog2/frontend/session/SessionError.kt`
@@ -436,7 +324,7 @@ xychart-beta
     title "Índice de calidad a lo largo de los commits"
     x-axis ["0b4f0ba", "ceff7fd", "0cf918f", "41e6876", "e6debd7", "d4fe833", "8b8b58e", "0f6864f", "cc4b102"]
     y-axis "Índice" 0 --> 100
-    line [0, 15, 15, 32, 39, 42, 44, 40, 40]
+    line [0, 15, 15, 32, 39, 42, 44, 41, 41]
 ```
 
 | # | Fecha | Commit | Autor | LOC | Índice | %POO | Duplic. | Sueltas |
@@ -445,11 +333,11 @@ xychart-beta
 | 2 | 2026-09-10 | `ceff7fd` | Ing. Daniel Quinteros | 0 | 15 | 0% | 0.0% | 0 |
 | 3 | 2026-10-09 | `0cf918f` | Valentino Perassi Ferrara | 0 | 15 | 0% | 0.0% | 0 |
 | 4 | 2026-10-31 | `41e6876` | Valentino Perassi Ferrara | 223 | 32 | 27% | 11.1% | 0 |
-| 5 | 2026-11-08 | `e6debd7` | Valentino Perassi Ferrara | 2,634 | 39 | 73% | 4.3% | 3 |
-| 6 | 2026-11-09 | `d4fe833` | Valentino Perassi Ferrara | 4,542 | 42 | 80% | 5.3% | 3 |
-| 7 | 2026-11-09 | `8b8b58e` | Valentino Perassi Ferrara | 7,041 | 44 | 78% | 6.4% | 31 |
-| 8 | 2026-11-09 | `0f6864f` | Valentino Perassi Ferrara | 8,944 | 40 | 78% | 8.4% | 51 |
-| 9 | 2026-11-09 | `cc4b102` | Valentino Perassi Ferrara | 9,035 | 40 | 78% | 8.1% | 51 |
+| 5 | 2026-11-08 | `e6debd7` | Valentino Perassi Ferrara | 2,634 | 39 | 66% | 4.3% | 1 |
+| 6 | 2026-11-09 | `d4fe833` | Valentino Perassi Ferrara | 4,542 | 42 | 75% | 5.3% | 1 |
+| 7 | 2026-11-09 | `8b8b58e` | Valentino Perassi Ferrara | 7,041 | 44 | 75% | 6.4% | 19 |
+| 8 | 2026-11-09 | `0f6864f` | Valentino Perassi Ferrara | 8,944 | 41 | 76% | 8.4% | 32 |
+| 9 | 2026-11-09 | `cc4b102` | Valentino Perassi Ferrara | 9,035 | 41 | 75% | 8.1% | 32 |
 
 ---
 _Informe generado por la cátedra. Las dimensiones y umbrales corresponden a `calidad.py` (perfil `exigente`); el semáforo, a `CRITERIOS-CALIDAD.md`. La documentación del repositorio no se evalúa. Ante dudas, revisá el archivo señalado._
