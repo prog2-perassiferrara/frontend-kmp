@@ -85,16 +85,12 @@ class RegistrationViewModelTest {
     }
 
     @Test
-    fun invalidFieldsBlockTheRequestAndShowFieldErrors() = runTest(dispatcher) {
+    fun missingRequiredFieldsBlockTheRequestAndShowFieldErrors() = runTest(dispatcher) {
         val registrationApi = TestRegistrationApi()
         val manager = manager()
         manager.restore()
         val vm = viewModel(registrationApi, manager)
-        vm.changeLogin("bad login")
-        vm.changePassword("short")
-        vm.changeFirstName("A")
         vm.changeLastName("   ")
-        vm.changeEmail("missing-at")
         vm.submit()
         runCurrent()
 
@@ -105,8 +101,7 @@ class RegistrationViewModelTest {
         assertNotNull(state.firstNameError)
         assertNotNull(state.lastNameError)
         assertNotNull(state.emailError)
-        assertEquals("bad login", state.login)
-        assertEquals("short", state.password)
+        assertEquals("   ", state.lastName)
     }
 
     @Test
@@ -127,11 +122,11 @@ class RegistrationViewModelTest {
     }
 
     @Test
-    fun presentsBackendValidationErrorsByFieldWithoutSession() = runTest(dispatcher) {
+    fun sendsNonEmptyFieldsAndPresentsBackendValidationErrorsWithoutSession() = runTest(dispatcher) {
         val registrationApi = TestRegistrationApi {
             throw RegistrationException(
                 RegistrationError.INVALID_INPUT,
-                setOf("login", "email"),
+                setOf("login", "password", "email"),
             )
         }
         val authApi = TestAuthApi()
@@ -139,10 +134,18 @@ class RegistrationViewModelTest {
         manager.restore()
         val vm = viewModel(registrationApi, manager)
         fillValid(vm)
+        vm.changeLogin("bad login")
+        vm.changePassword("short")
+        vm.changeEmail("missing-at")
         vm.submit()
         runCurrent()
 
+        val request = registrationApi.requests.single()
+        assertEquals("bad login", request.login)
+        assertEquals("short", request.password)
+        assertEquals("missing-at", request.email)
         assertNotNull(vm.state.value.loginError)
+        assertNotNull(vm.state.value.passwordError)
         assertNotNull(vm.state.value.emailError)
         assertNull(vm.state.value.formError)
         assertEquals(0, authApi.requests)

@@ -56,26 +56,11 @@ class RegistrationViewModel(
         if (form.isSubmitting || form.accountCreated) return
         val login = form.login.lowercase()
         val email = form.email.lowercase()
-        val loginError = when {
-            login.isBlank() -> "Ingresá un usuario."
-            login.length > 50 -> "El usuario admite hasta 50 caracteres."
-            !LOGIN_PATTERN.matches(login) -> "El usuario no es válido."
-            else -> null
-        }
-        val passwordError = if (form.password.codePointCount() in 6..100) null
-        else "La contraseña debe tener entre 6 y 100 caracteres."
-        val firstNameError = nameError(form.firstName, "nombre")
-        val lastNameError = nameError(form.lastName, "apellido")
-        // El formato completo lo valida @Email en Turnos. Aquí solo se descartan
-        // entradas sin una separación local/dominio reconocible, para no rechazar
-        // correos Unicode o sin punto que el backend sí admite.
-        val at = email.lastIndexOf('@')
-        val emailError = when {
-            email.isBlank() -> "Ingresá tu correo."
-            email.length !in 5..254 -> "El correo debe tener entre 5 y 254 caracteres."
-            at <= 0 || at == email.lastIndex -> "Ingresá un correo válido."
-            else -> null
-        }
+        val loginError = "Ingresá un usuario.".takeIf { login.isBlank() }
+        val passwordError = "Ingresá una contraseña.".takeIf { form.password.isEmpty() }
+        val firstNameError = "Ingresá tu nombre.".takeIf { form.firstName.isBlank() }
+        val lastNameError = "Ingresá tu apellido.".takeIf { form.lastName.isBlank() }
+        val emailError = "Ingresá tu correo.".takeIf { email.isBlank() }
         updateState {
             it.copy(
                 loginError = loginError, passwordError = passwordError,
@@ -153,12 +138,6 @@ class RegistrationViewModel(
         updateState(transform)
     }
 
-    private fun nameError(value: String, label: String): String? = when {
-        value.isBlank() -> "Ingresá tu $label."
-        value.length !in 2..50 -> "El $label debe tener entre 2 y 50 caracteres."
-        else -> null
-    }
-
     private fun fieldError(field: String, fields: Set<String>): String? =
         if (field !in fields) null else when (field) {
             "login" -> "El usuario no es válido."
@@ -169,16 +148,7 @@ class RegistrationViewModel(
             else -> null
         }
 
-    // Cuenta puntos de código, como la validación del productor: un par sustituto
-    // Unicode representa un carácter y no dos.
-    private fun String.codePointCount(): Int = count { !it.isLowSurrogate() }
-
     private companion object {
-        // Equivalente sin grupos atómicos al patrón LOGIN_REGEX de JHipster; el
-        // backend normaliza a minúsculas antes de validar.
-        val LOGIN_PATTERN = Regex(
-            "^(?:[A-Za-z0-9!$&*+=?^_`{|}~.-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*|[_.@A-Za-z0-9-]+)$",
-        )
         val FIELD_NAMES = setOf("login", "password", "firstName", "lastName", "email")
     }
 }
