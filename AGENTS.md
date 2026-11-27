@@ -12,7 +12,7 @@
 ## Flujo de trabajo
 
 - Partir del CU y del issue correspondiente. Mantener en `docs/features/<funcionalidad>/` los tres documentos obligatorios y breves: `SPEC.md` (comportamiento, alcance y RF/CA), `PLAN.md` (decisiones técnicas, archivos y validación) y `TASKS.md` (pasos, dependencias y evidencia). Flujo: CU/issue → SPEC → PLAN → TASKS → implementación y verificación.
-- La autorización para desarrollar el CU habilita todas las etapas; no solicitar aprobaciones rutinarias intermedias. Consultar solo decisiones que cambien comportamiento, contratos, alcance o impliquen cambios destructivos. Implementar solo ante pedido explícito y no repetir autorizaciones ya dadas.
+- Preparar el PLAN tras la aprobación explícita de la SPEC y derivar las TASKS tras la aprobación explícita del PLAN. Antes de implementar, comprobar la coherencia entre los requisitos, los criterios de aceptación, las tareas y las pruebas. La implementación requiere autorización explícita, independiente de la aprobación de los documentos.
 - Mantener el alcance mínimo: no agregar pantallas vacías, navegación futura, capas, dependencias ni abstracciones especulativas. El código necesario para el CU pedido se implementa completo.
 - Registrar en `TASKS.md` la validación realmente ejecutada y sus límites. No marcar como verificado lo que no se ejecutó ni reutilizar evidencia de otra implementación.
 - Si cambia un contrato o un comportamiento acordado, dejar una nota breve en el documento afectado y consultarlo antes de continuar. Evitar matrices de trazabilidad y repetir la SPEC o las tareas en varios documentos.

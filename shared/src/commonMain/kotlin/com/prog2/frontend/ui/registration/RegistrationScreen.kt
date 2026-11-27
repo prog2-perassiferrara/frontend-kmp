@@ -13,14 +13,11 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import com.prog2.frontend.ui.components.FieldError
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 /** Presenta el formulario de alta; toda validación y operación pertenece al ViewModel. */
@@ -118,29 +115,6 @@ class RegistrationScreen {
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(if (state.accountCreated) "Ir a iniciar sesión" else "Ya tengo cuenta")
-        }
-    }
-}
-
-@Composable
-private fun FieldError(message: String) {
-    Text(
-        message,
-        color = MaterialTheme.colors.error,
-        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-    )
-}
-
-@Preview
-@Composable
-private fun RegistrationScreenPreview() {
-    MaterialTheme {
-        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            RegistrationScreen().Content(
-                RegistrationUiState(login = "patient", email = "patient@example.test"),
-                onLogin = {}, onPassword = {}, onFirstName = {}, onLastName = {},
-                onEmail = {}, onSubmit = {}, onBackToLogin = {},
-            )
         }
     }
 }

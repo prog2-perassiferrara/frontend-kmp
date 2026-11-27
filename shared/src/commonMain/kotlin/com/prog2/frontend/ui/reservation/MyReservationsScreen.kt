@@ -13,6 +13,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import com.prog2.frontend.ui.components.PageControls
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -35,6 +36,7 @@ class MyReservationsScreen {
         onOpenCancellation: (ReservationProcess) -> Unit,
         onDismissCancellation: () -> Unit,
         onConfirmCancellation: () -> Unit,
+        onVerifyCancellation: (String) -> Unit,
         onSignOut: () -> Unit,
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -65,10 +67,14 @@ class MyReservationsScreen {
             Text("No hay reservas en el historial.", style = MaterialTheme.typography.body2)
         }
         state.reservations.forEach { reservation ->
-            ReservationRow(reservation, state, onOpenCancellation)
+            ReservationRow(reservation, state, onOpenCancellation, onVerifyCancellation)
             Divider()
         }
-        Pagination(state, onPrevious, onNext)
+        PageControls(
+                state.page, state.totalPages, state.totalElements,
+                if (state.totalElements == 1L) "reserva" else "reservas",
+                state.canGoBack, state.canGoForward, onPrevious, onNext,
+            )
 
         state.cancelTarget?.let { target ->
             AlertDialog(
@@ -92,11 +98,11 @@ class MyReservationsScreen {
 
     @Composable
     private fun PendingProcess(process: ReservationProcess, onOpenProcess: (ReservationProcess) -> Unit) {
-        Text("Solicitud de turno pendiente", style = MaterialTheme.typography.subtitle1)
-        Text("Todavía no es un turno confirmado.", style = MaterialTheme.typography.body2)
-        Text(reservationProfessional(process), style = MaterialTheme.typography.body1)
-        Text(reservationSchedule(process), style = MaterialTheme.typography.body2)
-        Text("Estado: ${reservationStateLabel(process.state)}", style = MaterialTheme.typography.body2)
+        Text("Solicitud pendiente", style = MaterialTheme.typography.subtitle1)
+        Text(
+            "${reservationProfessional(process)} · ${reservationSchedule(process)}",
+            style = MaterialTheme.typography.body2,
+        )
         processReason(process.reasonCode)?.let { Text(it, style = MaterialTheme.typography.body2) }
         TextButton(onClick = { onOpenProcess(process) }) { Text("Ver estado") }
     }
@@ -106,6 +112,7 @@ class MyReservationsScreen {
         process: ReservationProcess,
         state: MyReservationsUiState,
         onOpenCancellation: (ReservationProcess) -> Unit,
+        onVerifyCancellation: (String) -> Unit,
     ) {
         Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
             Text(reservationProfessional(process), style = MaterialTheme.typography.subtitle1)
@@ -118,6 +125,10 @@ class MyReservationsScreen {
                     Text("Cancelando…", style = MaterialTheme.typography.body2)
                     CircularProgressIndicator()
                 }
+                process.id in state.unverifiedCancellations -> TextButton(
+                    onClick = { onVerifyCancellation(process.id) },
+                    enabled = !state.loading && state.cancellingId == null,
+                ) { Text("Verificar cancelación") }
                 state.canCancel(process) -> TextButton(onClick = { onOpenCancellation(process) }) {
                     Text(
                         if (process.cancellationRetryRequired) {
@@ -127,30 +138,7 @@ class MyReservationsScreen {
                         },
                     )
                 }
-                state.cancelBlockedId == process.id ->
-                    Text(
-                        "Verificá el estado antes de volver a cancelar.",
-                        style = MaterialTheme.typography.body2,
-                    )
             }
-        }
-    }
-
-    @Composable
-    private fun Pagination(
-        state: MyReservationsUiState,
-        onPrevious: () -> Unit,
-        onNext: () -> Unit,
-    ) {
-        if (state.totalPages <= 0) return
-        Text(
-            "Página ${state.page + 1} de ${state.totalPages} · ${state.totalElements} " +
-                "${if (state.totalElements == 1L) "reserva" else "reservas"}",
-            style = MaterialTheme.typography.body2,
-        )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = onPrevious, enabled = state.canGoBack) { Text("Anterior") }
-            TextButton(onClick = onNext, enabled = state.canGoForward) { Text("Siguiente") }
         }
     }
 

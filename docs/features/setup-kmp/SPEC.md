@@ -7,12 +7,12 @@
 
 <!-- PARA LA PERSONA
 Copia esta plantilla como SPEC.md en una carpeta de la funcionalidad.
-Pide al agente que la complete contigo usando MOBILE_GUIDELINES.md.
+Usa MOBILE_GUIDELINES.md para revisar los requisitos aplicables.
 SPEC.md define qué debe cumplirse; PLAN.md desarrolla cómo implementarlo;
 TASKS.md organiza los pasos de ejecución.
 -->
 
-<!-- PARA EL AGENTE
+<!-- CRITERIOS DE REVISIÓN
 - Lee las instrucciones del proyecto y MOBILE_GUIDELINES.md. Inspecciona el
   repositorio para comprobar el comportamiento actual. Si falta la guía, pide su ubicación.
 - Completa esta spec con la persona: investiga lo comprobable y consulta las
@@ -65,8 +65,7 @@ criterios, decisiones del plan y tareas. -->
 
 ## Fuera de alcance
 
-<!-- Exclusiones acordadas, no deducidas por el agente. Si no hay exclusiones
-adicionales, indícalo tras revisarlo con la persona. -->
+<!-- Registra las exclusiones acordadas. Si no hay exclusiones adicionales, indícalo. -->
 
 - Registro, login, sesión/JWT, búsquedas, disponibilidad, procesos, reservas y cancelación: permanecen en los issues funcionales. El abandono de proceso no está en el contrato de Turnos.
 - Plataformas adicionales, navegación entre pantallas de negocio, clientes HTTP, bases locales, consultas offline, colas y tareas en segundo plano.
@@ -120,7 +119,7 @@ ni conservación de todo el estado. Expresa resultados, no mecanismos técnicos.
 <!-- Condiciones ya impuestas: compatibilidad, límites de alcance, requisitos
 de accesibilidad o rendimiento medibles, o una tecnología expresamente exigida.
 Ejemplo: Usar Room puede ser una restricción; el diseño de entidades va en PLAN.md.
-No conviertas una preferencia del agente en una restricción. -->
+Distingue las preferencias de las restricciones acordadas. -->
 
 - Usar KMP, Android, Gradle con Kotlin DSL y Compose Multiplatform, partiendo de la base ya generada con el wizard. Conservar `FrontendKmp` y `com.prog2.frontend` como nombre técnico e identificador elegidos.
 - **MVVM es una restricción explícita del usuario.** La vista representa el estado y comunica acciones; el ViewModel gestiona el estado de presentación y sus transiciones mediante flujo unidireccional. La pantalla inicial debe demostrar esa separación, con estado observable e inmutable para sus consumidores, sin duplicar su origen.

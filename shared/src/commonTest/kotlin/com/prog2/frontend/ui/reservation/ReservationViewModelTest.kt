@@ -202,6 +202,47 @@ class ReservationViewModelTest {
     }
 
     @Test
+    fun aLateFinalResponseStillAllowsANewStart() = runTest(dispatcher) {
+        val oldId = PHONE_REQUEST_ID
+        val response = CompletableDeferred<ReservationProcess>()
+        val api = FakeApi().apply { onProcess = { response.await() } }
+        val vm = viewModel(api)
+        vm.present(process(id = oldId, state = "WAITING_FOR_RESULT"))
+        vm.refresh()
+        runCurrent()
+        vm.dismiss()
+        response.complete(process(id = oldId, state = "CONFIRMED"))
+        runCurrent()
+
+        assertTrue(vm.state.value.canStart)
+        assertTrue(vm.start(selection))
+        assertFalse(vm.start(selection))
+        runCurrent()
+        assertEquals(REQUEST_ID, api.starts.single().requestId)
+    }
+
+    @Test
+    fun anUnreadablePreviousProcessNeverBecomesTheNewAttemptId() = runTest(dispatcher) {
+        val api = FakeApi().apply {
+            onStart = { throw rejected(ACTIVE_MESSAGE, processId = PHONE_REQUEST_ID) }
+            onProcess = { throw notFound() }
+        }
+        val vm = viewModel(api)
+
+        vm.start(selection)
+        runCurrent()
+        vm.refresh()
+        vm.retryStart()
+        runCurrent()
+
+        assertEquals(StartStatus.REJECTED, vm.state.value.start)
+        assertTrue(vm.state.value.message.orEmpty().contains("Cuenta"))
+        assertEquals(REQUEST_ID, vm.state.value.requestId)
+        assertEquals(listOf(PHONE_REQUEST_ID), api.processes)
+        assertEquals(REQUEST_ID, api.starts.single().requestId)
+    }
+
+    @Test
     fun anActiveProcessWhoseReadFailsRemainsVerifiable() = runTest(dispatcher) {
         val api = FakeApi()
         api.onStart = { throw rejected(ACTIVE_MESSAGE, processId = REQUEST_ID) }
@@ -224,7 +265,7 @@ class ReservationViewModelTest {
         assertEquals(1, api.starts.size)
 
         api.onProcess = { process(state = "HELD") }
-        vm.verify()
+        vm.refresh()
         runCurrent()
         assertEquals(process(state = "HELD"), vm.state.value.process)
         assertEquals(2, api.processes.size)
@@ -244,7 +285,6 @@ class ReservationViewModelTest {
         assertEquals(StartStatus.UNCERTAIN, state.start)
         assertEquals(START_MESSAGE, state.message)
         assertEquals(REQUEST_ID, state.requestId)
-        assertEquals(BannerAction.SHOW_PROCESS, state.banner?.action)
         assertEquals(1, api.starts.size)
     }
 
@@ -257,7 +297,7 @@ class ReservationViewModelTest {
 
         vm.start(selection)
         runCurrent()
-        vm.verify()
+        vm.refresh()
         runCurrent()
         assertEquals(StartStatus.NOT_REGISTERED, vm.state.value.start)
         assertEquals(listOf(REQUEST_ID), api.processes)
@@ -281,7 +321,7 @@ class ReservationViewModelTest {
 
         vm.start(selection)
         runCurrent()
-        vm.verify()
+        vm.refresh()
         runCurrent()
 
         assertEquals(process(state = "CONFIRMATION_PENDING"), vm.state.value.process)
@@ -298,14 +338,13 @@ class ReservationViewModelTest {
 
         vm.start(selection)
         runCurrent()
-        vm.verify()
+        vm.refresh()
         runCurrent()
 
         val state = vm.state.value
         assertEquals(StartStatus.UNCERTAIN, state.start)
         assertEquals(READ_MESSAGE, state.message)
         assertFalse(state.loading)
-        assertEquals(BannerAction.SHOW_PROCESS, state.banner?.action)
 
         // Un 5xx, un 403 o un 400 no acreditan inexistencia: no se repite el POST.
         vm.retryStart()
@@ -315,69 +354,15 @@ class ReservationViewModelTest {
     }
 
     @Test
-    fun discoveryOpensTheOwnPendingProcessOnlyOnce() = runTest(dispatcher) {
-        val api = FakeApi()
-        api.onPending = { process() }
-        val vm = viewModel(api)
-
-        vm.discover()
-        vm.discover()
-        runCurrent()
-
-        val state = vm.state.value
-        assertEquals(process(), state.process)
-        assertEquals(REQUEST_ID, state.requestId)
-        assertEquals(1, api.pendings)
-        assertEquals(0, api.starts.size)
-    }
-
-    @Test
-    fun withoutAPendingProcessTheSearchRemainsAndNoBannerIsShown() = runTest(dispatcher) {
+    fun aPendingProcessRemainsInStateAfterDismiss() = runTest(dispatcher) {
         val api = FakeApi()
         val vm = viewModel(api)
-
-        vm.discover()
-        runCurrent()
-
-        assertEquals(ReservationUiState(), vm.state.value)
-        assertNull(vm.state.value.banner)
-    }
-
-    @Test
-    fun aDiscoveryFailureDoesNotBlockTheSearchAndCanBeRetried() = runTest(dispatcher) {
-        val api = FakeApi()
-        api.onPending = { throw uncertain(READ_MESSAGE) }
-        val vm = viewModel(api)
-
-        vm.discover()
-        runCurrent()
-
-        // El fallo no se interpreta como ausencia de proceso.
-        assertNull(vm.state.value.process)
-        assertEquals(READ_MESSAGE, vm.state.value.message)
-        val banner = assertNotNull(vm.state.value.banner)
-        assertEquals(BannerAction.RETRY_DISCOVERY, banner.action)
-
-        api.onPending = { process() }
-        vm.retryDiscovery()
-        runCurrent()
-
-        assertEquals(process(), vm.state.value.process)
-        assertEquals(2, api.pendings)
-    }
-
-    @Test
-    fun aPendingProcessHiddenByTheUserRemainsAvailableThroughTheBanner() = runTest(dispatcher) {
-        val api = FakeApi()
-        api.onPending = { process() }
-        val vm = viewModel(api)
-        vm.discover()
+        vm.present(process())
         runCurrent()
 
         vm.dismiss()
 
         assertEquals(process(), vm.state.value.process)
-        assertEquals(BannerAction.SHOW_PROCESS, vm.state.value.banner?.action)
         assertEquals(0, api.processes.size)
 
         vm.refresh()
@@ -388,9 +373,8 @@ class ReservationViewModelTest {
     @Test
     fun dismissDiscardsFinalRejectedAndUnregisteredProcesses() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = { process(state = "CONFIRMED") }
         val vm = viewModel(api)
-        vm.discover()
+        vm.present(process(state = "CONFIRMED"))
         runCurrent()
         vm.dismiss()
         assertEquals(ReservationUiState(), vm.state.value)
@@ -423,7 +407,6 @@ class ReservationViewModelTest {
 
         assertEquals(reported, vm.state.value.process)
         assertTrue(api.processes.isEmpty())
-        assertEquals(0, api.pendings)
     }
 
     @Test
@@ -446,9 +429,8 @@ class ReservationViewModelTest {
     @Test
     fun aFailedRefreshKeepsTheLastReportedProcess() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = { process() }
         val vm = viewModel(api)
-        vm.discover()
+        vm.present(process())
         runCurrent()
 
         api.onProcess = { throw uncertain(READ_MESSAGE) }
@@ -464,11 +446,8 @@ class ReservationViewModelTest {
     @Test
     fun thePhoneRequirementAloneDoesNotEnableTheSubmission() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = false)
-        }
         val vm = viewModel(api)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = false))
         runCurrent()
 
         val current = assertNotNull(vm.state.value.process)
@@ -484,11 +463,8 @@ class ReservationViewModelTest {
     @Test
     fun thePhoneFormOpensOnlyWhenTurnosEnablesTheSubmission() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         val vm = viewModel(api)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
 
         assertTrue(vm.state.value.canSubmitPhone)
@@ -499,14 +475,11 @@ class ReservationViewModelTest {
     @Test
     fun submittingThePhoneSendsItOnceNormalizedAndShowsTheReportedProcess() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         api.onPhone = { _, _ ->
             process(state = "PHONE_QUEUED", requiredField = "PHONE_NUMBER", canSubmitPhone = false)
         }
         val vm = viewModel(api, PHONE_REQUEST_ID)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
 
         vm.changePhone("+54 9 11 5555-1234")
@@ -529,13 +502,10 @@ class ReservationViewModelTest {
     @Test
     fun aSecondPhoneSubmitWhileTheRequestIsInFlightDoesNotSendAnotherOne() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         val pending = CompletableDeferred<ReservationProcess>()
         api.onPhone = { _, _ -> pending.await() }
         val vm = viewModel(api, PHONE_REQUEST_ID)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
         vm.changePhone(PHONE)
 
@@ -554,11 +524,8 @@ class ReservationViewModelTest {
     @Test
     fun anInvalidPhoneIsNotSentAndCanBeCorrected() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         val vm = viewModel(api, PHONE_REQUEST_ID)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
 
         vm.changePhone("12ab")
@@ -578,9 +545,6 @@ class ReservationViewModelTest {
     @Test
     fun aRejectedPhoneIsReconciledAndAllowsCorrection() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         api.onPhone = { _, _ ->
             throw rejected("El plazo para enviar el teléfono venció.", processId = REQUEST_ID)
         }
@@ -588,14 +552,17 @@ class ReservationViewModelTest {
             process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
         }
         val vm = viewModel(api, PHONE_REQUEST_ID, PHONE_REQUEST_ID_2)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
         vm.changePhone(PHONE)
         vm.submitPhone()
         runCurrent()
 
-        assertEquals(listOf(REQUEST_ID), api.processes)
+        assertTrue(api.processes.isEmpty())
         assertEquals("El plazo para enviar el teléfono venció.", vm.state.value.phoneMessage)
+        vm.refresh()
+        runCurrent()
+        assertEquals(listOf(REQUEST_ID), api.processes)
         assertEquals(PhoneStatus.IDLE, vm.state.value.phone)
         assertTrue(vm.state.value.canSubmitPhone)
 
@@ -611,12 +578,9 @@ class ReservationViewModelTest {
     @Test
     fun anUncertainPhoneIsNotRepeatedUntilTheStateIsVerified() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         api.onPhone = { _, _ -> throw uncertain(PHONE_UNCERTAIN_MESSAGE) }
         val vm = viewModel(api, PHONE_REQUEST_ID)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
         vm.changePhone(PHONE)
         vm.submitPhone()
@@ -630,7 +594,7 @@ class ReservationViewModelTest {
         assertFalse(vm.state.value.canSubmitPhone)
 
         api.onProcess = { process(state = "PHONE_QUEUED", canSubmitPhone = false) }
-        vm.verifyPhone()
+        vm.refresh()
         runCurrent()
         assertEquals(listOf(REQUEST_ID), api.processes)
         assertEquals("PHONE_QUEUED", vm.state.value.process?.state)
@@ -641,12 +605,9 @@ class ReservationViewModelTest {
     @Test
     fun verifyingAnUnrecordedPhoneAllowsARetryWithANewRequestId() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         api.onPhone = { _, _ -> throw uncertain(PHONE_UNCERTAIN_MESSAGE) }
         val vm = viewModel(api, PHONE_REQUEST_ID, PHONE_REQUEST_ID_2)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
         vm.changePhone(PHONE)
         vm.submitPhone()
@@ -656,7 +617,7 @@ class ReservationViewModelTest {
         api.onProcess = {
             process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
         }
-        vm.verifyPhone()
+        vm.refresh()
         runCurrent()
         assertTrue(vm.state.value.canSubmitPhone)
 
@@ -672,12 +633,9 @@ class ReservationViewModelTest {
     @Test
     fun aNotFoundPhoneBlocksResendingUntilTheStateIsVerified() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         api.onPhone = { _, _ -> throw notFound() }
         val vm = viewModel(api, PHONE_REQUEST_ID, PHONE_REQUEST_ID_2)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
         vm.changePhone(PHONE)
         vm.submitPhone()
@@ -694,7 +652,7 @@ class ReservationViewModelTest {
         api.onProcess = {
             process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
         }
-        vm.verifyPhone()
+        vm.refresh()
         runCurrent()
         assertEquals(listOf(REQUEST_ID), api.processes)
         assertTrue(vm.state.value.canSubmitPhone)
@@ -712,18 +670,18 @@ class ReservationViewModelTest {
     @Test
     fun aRejectedPhoneWhoseReadFailsBlocksResendingUntilVerified() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         api.onPhone = { _, _ ->
             throw rejected("El plazo para enviar el teléfono venció.", processId = REQUEST_ID)
         }
         api.onProcess = { throw uncertain(READ_MESSAGE) }
         val vm = viewModel(api, PHONE_REQUEST_ID, PHONE_REQUEST_ID_2)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
         vm.changePhone(PHONE)
         vm.submitPhone()
+        runCurrent()
+
+        vm.refresh()
         runCurrent()
 
         // El rechazo no se confirma con el GET; el último estado ya puede estar vencido.
@@ -739,7 +697,7 @@ class ReservationViewModelTest {
             process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
         }
         api.onPhone = { _, _ -> process(state = "PHONE_QUEUED", canSubmitPhone = false) }
-        vm.verifyPhone()
+        vm.refresh()
         runCurrent()
         assertTrue(vm.state.value.canSubmitPhone)
         vm.changePhone(PHONE)
@@ -752,13 +710,10 @@ class ReservationViewModelTest {
     @Test
     fun aLatePhoneResponseAfterResetDoesNotPublishState() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = {
-            process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true)
-        }
         val response = CompletableDeferred<ReservationProcess>()
         api.onPhone = { _, _ -> response.await() }
         val vm = viewModel(api, PHONE_REQUEST_ID)
-        vm.discover()
+        vm.present(process(state = "WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER", canSubmitPhone = true))
         runCurrent()
         vm.changePhone(PHONE)
         vm.submitPhone()
@@ -768,24 +723,6 @@ class ReservationViewModelTest {
         response.complete(process(state = "PHONE_QUEUED"))
         runCurrent()
         assertEquals(ReservationUiState(), vm.state.value)
-    }
-
-    @Test
-    fun aKnownProcessSupersedesAFailedDiscoveryInTheBanner() = runTest(dispatcher) {
-        val api = FakeApi()
-        api.onPending = { throw uncertain(READ_MESSAGE) }
-        val vm = viewModel(api)
-        vm.discover()
-        runCurrent()
-        assertEquals(BannerAction.RETRY_DISCOVERY, vm.state.value.banner?.action)
-
-        api.onStart = { process() }
-        vm.start(selection)
-        runCurrent()
-        vm.dismiss()
-
-        // El proceso conocido es más específico que el fallo inicial de descubrimiento.
-        assertEquals(BannerAction.SHOW_PROCESS, vm.state.value.banner?.action)
     }
 
     @Test
@@ -807,9 +744,8 @@ class ReservationViewModelTest {
     @Test
     fun aLateRefreshResponseAfterResetDoesNotPublishState() = runTest(dispatcher) {
         val api = FakeApi()
-        api.onPending = { process() }
         val vm = viewModel(api)
-        vm.discover()
+        vm.present(process())
         runCurrent()
 
         val response = CompletableDeferred<ReservationProcess>()
@@ -863,11 +799,9 @@ class ReservationViewModelTest {
         val starts = mutableListOf<StartReservation>()
         val processes = mutableListOf<String>()
         val phoneSubmissions = mutableListOf<Pair<String, SubmitPhone>>()
-        var pendings = 0
 
         var onStart: suspend (StartReservation) -> ReservationProcess = { sampleProcess(it.requestId) }
         var onProcess: suspend (String) -> ReservationProcess = { sampleProcess(it) }
-        var onPending: suspend () -> ReservationProcess? = { null }
         var onPhone: suspend (String, SubmitPhone) -> ReservationProcess = { id, _ -> sampleProcess(id) }
 
         override suspend fun start(request: StartReservation): ReservationProcess {
@@ -878,11 +812,6 @@ class ReservationViewModelTest {
         override suspend fun process(processId: String): ReservationProcess {
             processes += processId
             return onProcess(processId)
-        }
-
-        override suspend fun pending(): ReservationProcess? {
-            pendings++
-            return onPending()
         }
 
         override suspend fun reservations(

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,11 +14,13 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,23 +28,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.prog2.frontend.catalog.data.CatalogCategory
 import com.prog2.frontend.catalog.data.Professional
-import com.prog2.frontend.ui.components.DatePickerModal
-import com.prog2.frontend.ui.components.displayDate
-import com.prog2.frontend.ui.components.isoDate
+import com.prog2.frontend.ui.components.DateSelector
+import com.prog2.frontend.ui.components.FieldError
+import com.prog2.frontend.ui.components.PageControls
 
 /**
  * Presenta los filtros, resultados y paginación de CU-04. Toda validación,
  * conservación de estado y consulta pertenece al ViewModel.
  */
 class SearchScreen {
+    private val dateSelector = DateSelector()
+
     @Composable
     fun Content(
         state: SearchUiState,
@@ -58,7 +59,6 @@ class SearchScreen {
     ) {
         LaunchedEffect(Unit) { onLoad() }
         val enabled = !state.isSearching
-        var datePickerVisible by remember { mutableStateOf(false) }
 
         Text("Buscar profesionales", style = MaterialTheme.typography.h5)
 
@@ -74,36 +74,23 @@ class SearchScreen {
         )
         state.nameError?.let { FieldError(it) }
 
-        CategoryFilter(state, enabled, onCategory)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(Modifier.weight(1f)) { CategoryFilter(state, enabled, onCategory) }
+            Box(Modifier.weight(1f)) { EnabledFilter(state.enabled, enabled, onEnabled) }
+        }
         if (state.categoriesUnavailable) {
             FieldError("No se pudieron cargar las categorías; la búsqueda sigue disponible.")
         }
 
-        EnabledFilter(state.enabled, enabled, onEnabled)
-
-        Text("Disponible el", style = MaterialTheme.typography.body2)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(
-                onClick = { datePickerVisible = true },
-                enabled = enabled,
-            ) {
-                Text(
-                    if (state.availableOn.isBlank()) {
-                        "Seleccionar fecha"
-                    } else {
-                        displayDate(state.availableOn)
-                    },
-                )
-            }
-            if (state.availableOn.isNotBlank()) {
-                TextButton(onClick = { onAvailableOn("") }, enabled = enabled) {
-                    Text("Quitar fecha")
-                }
-            }
-        }
-        state.availableOnError?.let { FieldError(it) }
+        dateSelector.Content(
+            date = state.availableOn,
+            onDate = onAvailableOn,
+            label = "Fecha opcional",
+            enabled = enabled,
+            onClear = { onAvailableOn("") },
+        )
         Text(
-            "Filtra por agenda habilitada para ese día de la semana; no garantiza horarios libres.",
+            "Filtra por día de atención. Los horarios libres se ven en la ficha.",
             style = MaterialTheme.typography.body2,
         )
 
@@ -133,18 +120,10 @@ class SearchScreen {
                 ProfessionalRow(professional, enabled, onSelect)
                 Divider()
             }
-            Pagination(state, enabled, onPrevious, onNext)
-        }
-
-        if (datePickerVisible) {
-            DatePickerModal(
-                initialDate = state.availableOn,
-                allowPastDates = true,
-                onDateSelected = { year, month, day ->
-                    datePickerVisible = false
-                    onAvailableOn(isoDate(year, month, day))
-                },
-                onDismiss = { datePickerVisible = false },
+            PageControls(
+                state.page, state.totalPages, state.totalElements,
+                if (state.totalElements == 1L) "resultado" else "resultados",
+                enabled && state.canGoBack, enabled && state.canGoForward, onPrevious, onNext,
             )
         }
     }
@@ -190,18 +169,27 @@ class SearchScreen {
         onSelect: (T) -> Unit,
     ) {
         var expanded by remember { mutableStateOf(false) }
-        Box {
-            OutlinedButton(onClick = { expanded = true }, enabled = enabled) {
-                Text("$label: $selected")
-            }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                options.forEach { (value, text) ->
-                    DropdownMenuItem(
-                        onClick = {
-                            expanded = false
-                            onSelect(value)
-                        },
-                    ) { Text(text) }
+        Column {
+            Text(label, style = MaterialTheme.typography.body2)
+            Box {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    enabled = enabled,
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
+                ) {
+                    Text(selected, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    options.forEach { (value, text) ->
+                        DropdownMenuItem(
+                            onClick = {
+                                expanded = false
+                                onSelect(value)
+                            },
+                        ) { Text(text) }
+                    }
                 }
             }
         }
@@ -237,52 +225,6 @@ class SearchScreen {
                 "Ver disponibilidad ›",
                 style = MaterialTheme.typography.body2,
                 color = MaterialTheme.colors.primary,
-            )
-        }
-    }
-
-    @Composable
-    private fun Pagination(state: SearchUiState, enabled: Boolean, onPrevious: () -> Unit, onNext: () -> Unit) {
-        if (state.totalPages <= 0) return
-        Text(
-            "Página ${state.page + 1} de ${state.totalPages} · ${state.totalElements} " +
-                "${if (state.totalElements == 1L) "resultado" else "resultados"}",
-            style = MaterialTheme.typography.body2,
-        )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = onPrevious, enabled = enabled && state.canGoBack) { Text("Anterior") }
-            TextButton(onClick = onNext, enabled = enabled && state.canGoForward) { Text("Siguiente") }
-        }
-    }
-
-    @Composable
-    private fun FieldError(message: String) {
-        Text(
-            message,
-            color = MaterialTheme.colors.error,
-            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun SearchScreenPreview() {
-    MaterialTheme {
-        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            SearchScreen().Content(
-                state = SearchUiState(
-                    categories = listOf(CatalogCategory(1, "Clínica", true)),
-                    hasResult = true,
-                    totalPages = 1,
-                    totalElements = 1,
-                    results = listOf(
-                        Professional(15, "Ana", "Gómez", true, CatalogCategory(1, "Clínica", true)),
-                    ),
-                ),
-                onName = {}, onCategory = {}, onEnabled = {}, onAvailableOn = {},
-                onSearch = {}, onRetry = {}, onPrevious = {}, onNext = {}, onSelect = {},
-                onLoad = {},
             )
         }
     }

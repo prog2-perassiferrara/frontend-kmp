@@ -79,13 +79,11 @@ class App(
         val state by sessionViewModel.state
         var showRegistration by rememberSaveable { mutableStateOf(false) }
 
-        // Al autenticarse se consulta una vez el pendiente propio sin bloquear la
-        // búsqueda. Al cerrar sesión se descartan filtros, disponibilidad y proceso.
+        // Al cerrar sesión se descartan filtros, disponibilidad y proceso.
         LaunchedEffect(state.session.status) {
             when (state.session.status) {
                 SessionStatus.SIGNED_IN -> {
                     showRegistration = false
-                    reservationViewModel.discover()
                 }
                 SessionStatus.SIGNED_OUT -> {
                     availabilityViewModel.reset()

@@ -16,16 +16,14 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import com.prog2.frontend.ui.components.FieldError
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.prog2.frontend.session.SessionState
 import com.prog2.frontend.session.SessionStatus
@@ -84,23 +82,6 @@ class LoginScreen {
         if (state.isSubmitting) CircularProgressIndicator()
         TextButton(onClick = onRegister, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
             Text("Crear cuenta")
-        }
-    }
-
-    @Composable
-    private fun FieldError(message: String) {
-        Text(message, color = MaterialTheme.colors.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-    }
-}
-
-@Preview
-@Composable
-private fun LoginScreenPreview() {
-    MaterialTheme {
-        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            LoginScreen().Content(
-                SessionUiState(session = SessionState(SessionStatus.SIGNED_OUT)), {}, {}, {}, {}, {},
-            )
         }
     }
 }

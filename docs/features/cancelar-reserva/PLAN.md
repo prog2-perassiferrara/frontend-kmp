@@ -18,8 +18,8 @@
 
 1. `ReservationsApi.cancel(processId)` usa POST sin cuerpo y acepta `200/202`. `KtorReservationsApi` mapea `404`, `409`, `403`, `5xx`/transporte y respuestas ilegibles a `NOT_FOUND`, `REJECTED` o `UNCERTAIN`.
 2. `MyReservationsViewModel` conserva una única operación de cancelación (`cancellingId`), evita duplicados y actualiza la fila con la respuesta. Un `RETRY_REQUIRED` habilita reintentar; `CANCELLED` deshabilita la acción.
-3. Ante `UNCERTAIN`, el ViewModel marca `cancelBlockedId`, conserva la reserva y ejecuta un GET del listado. Solo una lectura exitosa limpia el bloqueo; si la lectura falla, el botón sigue bloqueado y “Actualizar” permite reintentar la consulta.
-4. Un rechazo conocido conserva la reserva, muestra el mensaje y consulta el listado para reflejar el estado actual (GET sin efectos); si esa lectura falla, la reserva queda bloqueada hasta verificarla.
+3. Ante `UNCERTAIN`, el ViewModel bloquea la cancelación de esa fila y consulta `GET /api/reservation-processes/{processId}`. Si la lectura falla, «Verificar cancelación» vuelve a consultar esa reserva.
+4. Un rechazo conocido conserva la reserva, muestra el mensaje y consulta el proceso afectado para reflejar el estado actual. Si esa lectura falla, se verifica desde su fila.
 5. `MyReservationsScreen` muestra el diálogo de confirmación sin motivo y la acción en curso; el POST solo se dispara desde “Confirmar”.
 6. No se crean reglas de elegibilidad propias: se deriva `state=CONFIRMED` y `cancellation` del contrato.
 

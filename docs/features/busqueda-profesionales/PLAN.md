@@ -23,7 +23,7 @@
 ## Solución propuesta
 
 1. `CatalogApi` declara las dos consultas y modelos del contrato (`ProfessionalQuery`, `ProfessionalPage`, `Professional`, `CatalogCategory`, `CatalogState`). `KtorCatalogApi` las implementa sobre `AuthenticatedApiClient`, construye los parámetros omitiendo nulos/vacíos y traduce estados a `CatalogException`.
-2. `SearchViewModel` conserva filtros, página y resultados; ejecuta la carga inicial una vez, valida nombre/fecha antes de enviar y expone `SearchUiState`.
+2. `SearchViewModel` conserva filtros, página y resultados; ejecuta la carga inicial una vez, valida la longitud del nombre antes de enviar y expone `SearchUiState`.
 3. `SearchScreen` presenta filtros, estados, resultados y paginación. `App` la muestra en `SIGNED_IN` y llama `reset()` al pasar a `SIGNED_OUT`.
 4. `AppContainer` cablea `KtorCatalogApi(authenticatedApi)`; `MainActivity` compone `App` con `SearchScreen`.
 
@@ -64,7 +64,7 @@
 
 - **Estado:** `SearchUiState` con filtros, categorías, página, totales, resultados, carga, error y aviso. `hasResult` distingue “sin búsqueda todavía” de vacío válido.
 - **Carga inicial:** `ensureLoaded()` una vez por ViewModel; se vuelve a habilitar tras `reset()`.
-- **Validación local:** nombre recortado >100 y fecha que no cumple `AAAA-MM-DD` bloquean la consulta; el selector entrega siempre ese formato. La validez real de la fecha y los límites restantes quedan en Catálogo.
+- **Validación local:** un nombre recortado de más de 100 caracteres bloquea la consulta. El selector genera el formato ISO y Catálogo valida el filtro.
 - **Conservación:** el ViewModel vive en el owner Android de la Activity, por lo que sobrevive a la rotación. Al cerrar sesión se cancela la consulta y se descarta el estado.
 - **Errores:** 400 → “Revisá los filtros…”; 503 con código `CATALOG_COPY_UNAVAILABLE` → copia inexistente; resto de 5xx/403/transporte/JSON ilegible → indisponibilidad con reintento. El 401 lo resuelve `AuthenticatedApiClient`.
 - **Categorías:** se piden al cargar y al reintentar si fallaron. Su fallo se informa y no impide buscar.
@@ -103,5 +103,5 @@ No se agregan dependencias. Se reutilizan Ktor, kotlinx.serialization, Compose M
 
 ## Riesgos y decisiones pendientes
 
-- **Riesgos:** la fecha se elige con `DatePickerModal` (el mismo `expect/actual` de CU-05 sobre `DatePickerDialog`), habilitando fechas pasadas porque el CU no las restringe; el valor interno sigue siendo `AAAA-MM-DD` y el backend valida la fecha real. El permiso de red local debe concederse tras cada instalación.
+- **Filtros:** Categoría y Estado se presentan lado a lado. Buscar y Disponibilidad comparten `DateSelector`, que presenta cuatro días desde hoy. Buscar conserva la fecha vacía hasta que se elija un día y utiliza el filtro ISO existente.
 - **Decisiones pendientes:** ninguna de comportamiento. La selección/navegación pertenece a CU-05.

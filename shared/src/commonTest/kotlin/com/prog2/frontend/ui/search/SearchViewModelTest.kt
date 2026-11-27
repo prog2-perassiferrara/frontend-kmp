@@ -107,7 +107,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun invalidNameLengthOrDateShapeBlocksTheRequest() = runTest(dispatcher) {
+    fun invalidNameLengthBlocksTheRequest() = runTest(dispatcher) {
         val api = FakeCatalogApi()
         val vm = viewModel(api)
         vm.ensureLoaded()
@@ -120,12 +120,6 @@ class SearchViewModelTest {
         assertEquals(1, api.queries.size)
         assertNotNull(vm.state.value.nameError)
 
-        vm.changeName("Ana")
-        vm.changeAvailableOn("09/11/2026")
-        vm.search()
-        runCurrent()
-        assertEquals(1, api.queries.size)
-        assertNotNull(vm.state.value.availableOnError)
     }
 
     @Test
@@ -261,52 +255,15 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun selectingAProfessionalOpensAvailabilityAndBackKeepsTheSearchState() = runTest(dispatcher) {
-        val api = FakeCatalogApi()
-        api.searchAnswer = { query -> page(listOf(ana), page = query.page, totalPages = 3, totalElements = 60) }
-        val vm = viewModel(api)
-        vm.ensureLoaded()
-        runCurrent()
-        vm.changeName("Ana")
-        vm.changeCategory(1)
-        vm.search()
-        runCurrent()
-        vm.nextPage()
-        runCurrent()
-        assertEquals(1, vm.state.value.page)
-        val queriesBeforeSelection = api.queries.size
-
-        vm.select(ana)
-
-        assertEquals(ana, vm.state.value.selected)
-        assertEquals(listOf(ana), vm.state.value.results)
-        assertEquals("Ana", vm.state.value.name)
-        assertEquals(1L, vm.state.value.categoryId)
-        assertEquals(1, vm.state.value.page)
-        assertEquals(queriesBeforeSelection, api.queries.size)
-
-        vm.backToSearch()
-
-        assertNull(vm.state.value.selected)
-        assertEquals(listOf(ana), vm.state.value.results)
-        assertEquals("Ana", vm.state.value.name)
-        assertEquals(1L, vm.state.value.categoryId)
-        assertEquals(1, vm.state.value.page)
-        assertEquals(queriesBeforeSelection, api.queries.size)
-    }
-
-    @Test
-    fun resetAlsoDiscardsTheSelectedProfessional() = runTest(dispatcher) {
+    fun resetDiscardsTheSearchState() = runTest(dispatcher) {
         val api = FakeCatalogApi()
         api.searchAnswer = { page(listOf(ana)) }
         val vm = viewModel(api)
         vm.ensureLoaded()
         runCurrent()
-        vm.select(ana)
 
         vm.reset()
 
-        assertNull(vm.state.value.selected)
         assertEquals(SearchUiState(), vm.state.value)
     }
 
@@ -348,15 +305,21 @@ class SearchViewModelTest {
         vm.changeName("Ana")
         vm.changeCategory(1)
         vm.changeEnabled(true)
+        val queriesBeforeChoosingDate = api.queries.size
         vm.changeAvailableOn("2026-11-09")
+        runCurrent()
+        assertEquals(queriesBeforeChoosingDate, api.queries.size)
+
         vm.search()
         runCurrent()
         assertEquals("2026-11-09", api.queries.last().availableOn)
 
+        val queriesBeforeSearch = api.queries.size
         vm.changeAvailableOn("")
+        runCurrent()
+        assertEquals(queriesBeforeSearch, api.queries.size)
         assertEquals("", vm.state.value.availableOn)
         assertFalse(vm.state.value.canGoForward)
-        val queriesBeforeSearch = api.queries.size
         vm.nextPage()
         runCurrent()
         assertEquals(queriesBeforeSearch, api.queries.size)

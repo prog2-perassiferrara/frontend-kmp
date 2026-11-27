@@ -44,8 +44,8 @@
 
 - `PhoneStatus`: `IDLE` (formulario disponible si Turnos lo habilita), `SENDING` (POST en curso, botón bloqueado) y `UNCERTAIN` (no se repite sin verificar).
 - `submitPhone()` solo actúa con un proceso conocido, `canSubmitPhone=true`, `PhoneStatus.IDLE` y sin otra operación; valida el teléfono antes de generar el `requestId`.
-- `verifyPhone()` usa `GET /api/reservation-processes/{processId}`; una lectura exitosa reemplaza el proceso y limpia la incertidumbre local.
-- Un rechazo se reconcilia con `GET`; si esa lectura falla, se conserva el proceso y el mensaje del rechazo.
+- `refresh()` usa `GET /api/reservation-processes/{processId}` desde «Actualizar estado». Una lectura exitosa reemplaza el proceso.
+- Tras un rechazo o resultado incierto se ofrece «Actualizar estado» antes de volver a enviar.
 - `reset()` cancela el job y descarta texto, mensajes y estado del proceso.
 
 ## Dependencias y configuración

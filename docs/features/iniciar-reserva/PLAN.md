@@ -60,7 +60,7 @@
 
 - `StartStatus`: `IDLE`, `SENDING`, `UNCERTAIN`, `NOT_REGISTERED` y `REJECTED`. Con un proceso conocido, `process` tiene prioridad sobre el estado del inicio.
 - `start(selection)` crea un estado nuevo con `requestId` y envía; `retryStart()` solo desde `NOT_REGISTERED`.
-- `verify()` consulta una incertidumbre; `refresh()` actualiza un proceso conocido; ambos usan `GET` y comparten la guarda `loading`.
+- `refresh()` consulta el proceso conocido o verifica el UUID original si el inicio quedó incierto. La navegación a Reserva depende de que `start()` acepte el inicio.
 - `404` de verificación → `NOT_REGISTERED`; cualquier otro fallo de verificación mantiene `UNCERTAIN`.
 - Un fallo de `refresh` conserva el último proceso y muestra el mensaje.
 - Una respuesta tardía se descarta porque `reset()`/una operación nueva cancela el job anterior.

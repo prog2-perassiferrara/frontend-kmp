@@ -2,16 +2,13 @@
 
 ## Iniciar un caso de uso
 
-Quiero implementar [CU-XX y nombre] en este repositorio, asociado al issue [enlace o borrador].
+Quiero preparar la especificación de [CU-XX y nombre] en este repositorio, asociado al issue [enlace o borrador].
 
 1. Leé `AGENTS.md`, `docs/GENERIC_RULES.md`, el CU y las secciones pertinentes del enunciado y del contrato de integración. Inspeccioná el código real antes de proponer cambios.
 2. Escribí `docs/features/<funcionalidad>/SPEC.md` de forma breve: comportamiento, alcance, requisitos RF y criterios CA verificables. No incluyas diseño técnico.
-3. Escribí `PLAN.md` en la misma carpeta: decisiones técnicas, archivos afectados y validación. Referenciá la SPEC por RF/CA sin copiarla.
-4. Derivá `TASKS.md`: pasos ordenados, dependencias, referencias a RF/CA y método de validación. Sin matrices de trazabilidad.
-5. Implementá el caso de uso completo, con cambios mínimos y las pruebas pertinentes. No agregues pantallas, navegación, capas ni dependencias que el CU todavía no necesite.
-6. Ejecutá las comprobaciones disponibles y registrá en `TASKS.md` la evidencia real, lo pendiente y su motivo. No afirmes resultados no observados.
+3. Presentá la SPEC para revisión. Su aprobación explícita permite preparar el PLAN técnico. La aprobación explícita del PLAN permite derivar las TASKS con dependencias y validación por RF/CA.
 
-La autorización para desarrollar el CU cubre estas etapas: no pidas aprobaciones rutinarias intermedias. Consultá solo decisiones que cambien comportamiento, contratos, alcance o impliquen cambios destructivos. No hagas commits, push ni PR salvo que lo pida explícitamente.
+La implementación requiere una solicitud explícita. Antes de implementar, verificá la coherencia de SPEC, PLAN y TASKS. Registrá en TASKS las comprobaciones ejecutadas y los pendientes. Commits, push y PR requieren una indicación explícita.
 
 ## Revisar una implementación existente
 

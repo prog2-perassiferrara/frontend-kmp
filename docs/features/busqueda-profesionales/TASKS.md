@@ -49,7 +49,7 @@
 
 **CA-09 · Navegación y conservación:** en el emulador, la rotación a horizontal conservó el filtro “an” y sus resultados; `force-stop` y reapertura restauraron la sesión y recargaron la búsqueda con filtros por defecto.
 
-**CA-10 · Agenda semanal:** el texto “Filtra por agenda habilitada para ese día de la semana; no garantiza horarios libres.” permanece visible bajo la fecha.
+**CA-10 · Agenda semanal:** el texto «Filtra por día de atención. Los horarios libres se ven en la ficha.» aparece debajo de la fecha.
 
 **Regresión:** `./gradlew :shared:testAndroidHostTest` — BUILD SUCCESSFUL, 62 pruebas, 0 fallos: 44 previas y 18 de CU-04 (6 de `KtorCatalogApiTest`, 12 de `SearchViewModelTest`). `:androidApp:assembleDebug` y `:androidApp:lintDebug` — BUILD SUCCESSFUL. `:androidApp:installDebug` — instalado en Pixel_10_Pro (API 37).
 
@@ -60,3 +60,11 @@
 **Límites no verificados:** no se forzó una copia inexistente (`CATALOG_COPY_UNAVAILABLE`) ni un fallo permanente de lectura; se cubrieron por pruebas de contrato. El aviso de desactualización se observó con `SYNCHRONIZING`, no con `STALE`, porque el Catálogo real volvió a `CURRENT`. La selección de profesionales y la navegación a CU-05 no se implementaron por estar fuera de alcance. En un arranque, una de las dos consultas iniciales falló una vez por transporte; no fue determinista y el reintento funcionó con los servicios respondiendo 200.
 
 **Desviaciones del PLAN:** no se incorporó Navigation Compose porque el CU tiene un único destino autenticado; se mantiene el `when` por estado de sesión de `App`. La fecha se elige con el calendario nativo de `DatePickerModal` (reutilizado de CU-05) y se muestra como `DD/MM/AAAA`, conservando `AAAA-MM-DD` interno; se permite quitarla porque el filtro es opcional y el CU no restringe fechas pasadas. El botón “Reintentar” se oculta ante un 400, porque repetir el mismo filtro inválido no puede resolverlo. Ninguna cambia el alcance ni los contratos externos.
+
+### Ajuste del 2026-11-27
+
+- [x] Buscar comparte `DateSelector` con Disponibilidad y presenta Categoría y Estado en una fila. `SearchViewModelTest` comprueba que elegir o quitar la fecha no dispara una consulta y conserva los demás filtros. `./gradlew --offline :shared:testAndroidHostTest :androidApp:assembleDebug :androidApp:lintDebug` terminó correctamente, con 166 pruebas sin fallos y lint sin errores. Queda pendiente revisar la presentación en Android.
+
+### Verificación del ajuste de KMP (2026-11-27)
+
+`SearchViewModelTest` y `KtorCatalogApiTest` verifican el filtro ISO del selector y sus respuestas con los modelos compartidos. La suite host pasó con 168 pruebas. El APK debug compiló y lint quedó sin errores. El recorrido visual en Android queda pendiente.

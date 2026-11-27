@@ -58,44 +58,43 @@ class MyReservationsViewModel(
         mutableState.value = mutableState.value.copy(cancelTarget = null)
     }
 
-    /**
-     * Envía una sola cancelación y aplica el progreso informado. Ante un rechazo
-     * o un resultado incierto, consulta el listado antes de habilitar otro intento.
-     */
+    /** Cancela y consulta solo esa reserva cuando la respuesta no permite actualizarla. */
     fun confirmCancellation() {
         val current = state.value
         val target = current.cancelTarget ?: return
-        if (current.cancellingId != null) return
-        mutableState.value = current.copy(
-            cancelTarget = null,
-            cancellingId = target.id,
-            cancelMessage = null,
-        )
-        job?.cancel()
+        if (!current.canCancel(target)) return
+        mutableState.value = current.copy(cancelTarget = null, cancellingId = target.id, cancelMessage = null)
         job = viewModelScope.launch {
             try {
                 showCancellation(reservations.cancel(target.id))
-            } catch (cancelled: CancellationException) {
-                throw cancelled
             } catch (failure: ReservationException) {
-                val page = mutableState.value.page
-                mutableState.value = mutableState.value.copy(
-                    cancellingId = null,
+                val after = state.value
+                mutableState.value = after.copy(
+                    unverifiedCancellations = after.unverifiedCancellations + target.id,
                     cancelMessage = failure.message,
-                    // Un rechazo también puede dejar el estado anterior a la vista:
-                    // se exige una lectura exitosa antes de habilitar otro intento.
-                    cancelBlockedId = target.id,
                 )
-                // Una lectura exitosa reconcilia el estado y vuelve a habilitar la acción.
-                try {
-                    read(page)
-                } catch (_: SessionException) {
-                    // App cierra la sesión y descarta el bloqueo; mientras tanto no
-                    // se habilita otro intento con la fila anterior sin verificar.
-                }
+                readCancellation(target.id)
             } catch (_: SessionException) {
-                // App cierra la sesión y descarta este estado.
+                // App descarta el estado privado al cerrar la sesión.
             }
+        }
+    }
+
+    /** Verifica con GET una cancelación que quedó sin respuesta comprobable. */
+    fun verifyCancellation(id: String) {
+        val current = state.value
+        if (current.loading || current.cancellingId != null || id !in current.unverifiedCancellations) return
+        mutableState.value = current.copy(cancellingId = id)
+        job = viewModelScope.launch { readCancellation(id) }
+    }
+
+    private suspend fun readCancellation(id: String) {
+        try {
+            showCancellation(reservations.process(id), state.value.cancelMessage)
+        } catch (_: ReservationException) {
+            mutableState.value = state.value.copy(cancellingId = null)
+        } catch (_: SessionException) {
+            mutableState.value = state.value.copy(cancellingId = null)
         }
     }
 
@@ -124,10 +123,6 @@ class MyReservationsViewModel(
         try {
             val result = reservations.reservations(page, PAGE_SIZE)
             val current = mutableState.value
-            // Un aviso de cancelación solo sobrevive a la lectura que reconcilia un
-            // rechazo o un resultado incierto; una lectura posterior lo vuelve obsoleto
-            // porque la fila ya muestra el estado informado por Turnos.
-            val reconcilesCancellation = current.cancelBlockedId != null
             mutableState.value = current.copy(
                 loading = false,
                 loaded = true,
@@ -137,8 +132,7 @@ class MyReservationsViewModel(
                 page = result.page,
                 totalPages = result.totalPages,
                 totalElements = result.totalElements,
-                cancelMessage = if (reconcilesCancellation) current.cancelMessage else null,
-                cancelBlockedId = null,
+                cancelMessage = current.cancelMessage.takeIf { current.unverifiedCancellations.isNotEmpty() },
             )
         } catch (cancelled: CancellationException) {
             throw cancelled
@@ -151,21 +145,14 @@ class MyReservationsViewModel(
         }
     }
 
-    private fun showCancellation(updated: ReservationProcess) {
+    private fun showCancellation(updated: ReservationProcess, message: String? = null) {
         val current = mutableState.value
         mutableState.value = current.copy(
             pending = if (current.pending?.id == updated.id) updated else current.pending,
             reservations = current.reservations.map { if (it.id == updated.id) updated else it },
             cancellingId = null,
-            cancelBlockedId = null,
-            cancelMessage = when {
-                updated.state == "CANCELLED" -> "Tu turno fue cancelado."
-                updated.cancellationPending ->
-                    "Tu cancelación está en curso."
-                updated.cancellationRetryRequired ->
-                    "No pudimos confirmar la cancelación; podés reintentar."
-                else -> "La reserva cambió de estado; actualizá para confirmarlo."
-            },
+            unverifiedCancellations = current.unverifiedCancellations - updated.id,
+            cancelMessage = message.takeIf { updated.state == "CONFIRMED" && updated.cancellation == null },
         )
     }
 

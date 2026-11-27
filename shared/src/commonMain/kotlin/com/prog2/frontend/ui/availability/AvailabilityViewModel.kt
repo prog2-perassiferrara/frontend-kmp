@@ -37,24 +37,11 @@ class AvailabilityViewModel(private val availabilityApi: AvailabilityApi) : View
         )
     }
 
-    /**
-     * Edita la fecha y descarta los horarios anteriores: pertenecen a otra fecha y
-     * Turnos todavía no se pronunció sobre esta. Cancela la consulta en curso.
-     */
-    fun changeDate(value: String) {
-        requestJob?.cancel()
-        updateState {
-            it.copy(
-                date = value,
-                dateError = null,
-                times = emptyList(),
-                selectedTime = null,
-                hasResult = false,
-                isLoading = false,
-                error = null,
-                retryable = false,
-            )
-        }
+    /** Consulta el día tocado y descarta la consulta y la selección anteriores. */
+    fun selectDate(date: String) {
+        val current = state.value
+        if (current.isLoading && current.date == date) return
+        if (DATE_PATTERN.matches(date)) request(current.professionalId ?: return, date)
     }
 
     /**
@@ -67,16 +54,11 @@ class AvailabilityViewModel(private val availabilityApi: AvailabilityApi) : View
         updateState { it.copy(selectedTime = time) }
     }
 
-    /** Valida la forma de la fecha y consulta disponibilidad. */
+    /** Consulta al abrir disponibilidad o al volver de una solicitud de turno. */
     fun consult() {
         val current = state.value
         if (!current.canConsult) return
-        val date = current.date.trim()
-        if (!DATE_PATTERN.matches(date)) {
-            updateState { it.copy(dateError = "Elegí una fecha válida.") }
-            return
-        }
-        request(current.professionalId ?: return, date)
+        selectDate(current.date)
     }
 
     /** Repite la consulta vigente tras un fallo reintentable. */
@@ -93,11 +75,11 @@ class AvailabilityViewModel(private val availabilityApi: AvailabilityApi) : View
     }
 
     private fun request(professionalId: Long, date: String) {
+        requestJob?.cancel()
         updateState {
             it.copy(
                 date = date,
                 isLoading = true,
-                dateError = null,
                 times = emptyList(),
                 selectedTime = null,
                 hasResult = false,

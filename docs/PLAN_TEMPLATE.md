@@ -8,11 +8,11 @@
 
 <!-- PARA LA PERSONA
 Copia esta plantilla como PLAN.md junto a la SPEC.md.
-Este documento define la solución técnica. Una vez revisado, el agente puede
-derivar TASKS.md con tareas, dependencias y comprobaciones.
+Este documento define la solución técnica. Tras su aprobación se deriva
+TASKS.md con tareas, dependencias y comprobaciones.
 -->
 
-<!-- PARA EL AGENTE
+<!-- CRITERIOS DE REVISIÓN
 - Lee la SPEC.md, las instrucciones del proyecto y MOBILE_GUIDELINES.md.
   Si falta un documento necesario, indícalo antes de avanzar.
 - Inspecciona el repositorio. Referencia rutas verificadas y distingue las nuevas propuestas.

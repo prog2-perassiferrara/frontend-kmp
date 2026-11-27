@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.prog2.frontend.catalog.CatalogError
 import com.prog2.frontend.catalog.CatalogException
 import com.prog2.frontend.catalog.data.CatalogApi
-import com.prog2.frontend.catalog.data.Professional
 import com.prog2.frontend.catalog.data.ProfessionalQuery
 import com.prog2.frontend.session.SessionException
 import kotlinx.coroutines.CancellationException
@@ -40,7 +39,7 @@ class SearchViewModel(private val catalogApi: CatalogApi) : ViewModel() {
 
     fun changeEnabled(enabled: Boolean?) = edit { it.copy(enabled = enabled) }
 
-    fun changeAvailableOn(value: String) = edit { it.copy(availableOn = value, availableOnError = null) }
+    fun changeAvailableOn(value: String) = edit { it.copy(availableOn = value) }
 
     /** Valida los filtros locales y consulta desde la primera página. */
     fun search() {
@@ -51,14 +50,8 @@ class SearchViewModel(private val catalogApi: CatalogApi) : ViewModel() {
         } else {
             null
         }
-        val date = current.availableOn.trim()
-        val dateError = if (date.isNotEmpty() && !DATE_PATTERN.matches(date)) {
-            "Elegí una fecha válida."
-        } else {
-            null
-        }
-        updateState { it.copy(nameError = nameError, availableOnError = dateError) }
-        if (nameError != null || dateError != null) return
+        updateState { it.copy(nameError = nameError) }
+        if (nameError != null) return
         if (current.categoriesUnavailable) loadCategories()
         perform(0)
     }
@@ -74,15 +67,6 @@ class SearchViewModel(private val catalogApi: CatalogApi) : ViewModel() {
         val current = state.value
         if (!current.isSearching && current.canGoForward) perform(current.page + 1)
     }
-
-    /** Abre la disponibilidad del profesional elegido sin descartar la búsqueda. */
-    fun select(professional: Professional) {
-        if (state.value.isSearching) return
-        updateState { it.copy(selected = professional) }
-    }
-
-    /** Vuelve a los resultados conservando filtros, página y totales. */
-    fun backToSearch() = updateState { it.copy(selected = null) }
 
     fun previousPage() {
         val current = state.value
@@ -176,8 +160,5 @@ class SearchViewModel(private val catalogApi: CatalogApi) : ViewModel() {
 
     private companion object {
         const val MAX_NAME_LENGTH = 100
-
-        // Solo verifica la forma ISO que espera el contrato; la fecha real la valida Catálogo.
-        val DATE_PATTERN = Regex("^\\d{4}-\\d{2}-\\d{2}$")
     }
 }

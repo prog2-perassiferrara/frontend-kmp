@@ -56,3 +56,5 @@
 > **Situación al cierre del frontend (2026-11-09):** aquella cifra corresponde a la verificación histórica de este CU. La suite host suma 155 pruebas y el área autenticada incorpora la navegación con BottomBar y pantallas secundarias; ver [README](../../../README.md) y [MainScreen](../../../shared/src/commonMain/kotlin/com/prog2/frontend/navigation/MainScreen.kt).
 
 **Desviaciones del PLAN:** ninguna de alcance o comportamiento. En esa etapa el 401 no se podía provocar desde la UI porque todavía no había una pantalla protegida; se verificó con backend real y una sonda temporal eliminada.
+
+**Verificación del cliente HTTP (2026-11-27):** `./gradlew --offline :shared:testAndroidHostTest :androidApp:assembleDebug :androidApp:lintDebug` terminó correctamente. Pasaron 168 pruebas host, incluidas 50 de red. Se verificaron los cuerpos de login y registro, el bearer, el 401 tardío y las respuestas inciertas de reserva. Esta comprobación no requirió ejecutar contra los backends.
