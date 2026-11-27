@@ -1,16 +1,16 @@
 package com.prog2.frontend.reservation.data
 
 import com.prog2.frontend.network.ApiResponse
+import com.prog2.frontend.network.apiJson
+import com.prog2.frontend.network.withApiFallback
 import com.prog2.frontend.network.AuthenticatedApiClient
 import com.prog2.frontend.network.Backend
 import com.prog2.frontend.reservation.ReservationException
 import com.prog2.frontend.reservation.ReservationFailure
 import com.prog2.frontend.session.SessionError
 import com.prog2.frontend.session.SessionException
-import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 /**
  * Consume los contratos de reservas propias de Turnos con el cliente autenticado.
@@ -18,29 +18,8 @@ import kotlinx.serialization.json.Json
  * se reproduce la máquina de estados del backend.
  */
 class KtorReservationsApi(private val api: AuthenticatedApiClient) : ReservationsApi {
-    private val json = Json { ignoreUnknownKeys = true }
-
-    override suspend fun start(request: StartReservation): ReservationProcess {
-        val response = call(START_UNCERTAIN) {
-            api.post(
-                Backend.TURNOS,
-                "/api/reservation-processes",
-                json.encodeToString(
-                    StartBody(
-                        request.requestId,
-                        request.professionalId,
-                        request.date,
-                        request.startTime,
-                    ),
-                ),
-            )
-        }
-        if (response.status != 200 && response.status != 202) throw startFailure(response)
-        // Un 200/202 ilegible no demuestra que el proceso no exista.
-        return decode(START_UNCERTAIN) {
-            json.decodeFromString<ProcessResponse>(response.body).toProcess()
-        }
-    }
+    override suspend fun start(request: StartReservation): ReservationProcess =
+        postProcess("/api/reservation-processes", START_UNCERTAIN, apiJson.encodeToString(request), ::startFailure)
 
     override suspend fun process(processId: String): ReservationProcess {
         if (!PROCESS_ID.matches(processId)) throw notFound()
@@ -48,19 +27,7 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
             api.get(Backend.TURNOS, "/api/reservation-processes/$processId")
         }
         if (response.status != 200) throw processFailure(response)
-        return decode(READ_UNCERTAIN) {
-            json.decodeFromString<ProcessResponse>(response.body).toProcess()
-        }
-    }
-
-    override suspend fun pending(): ReservationProcess? {
-        val response = call(READ_UNCERTAIN) {
-            api.get(Backend.TURNOS, "/api/reservations", mapOf("page" to "0", "size" to "1"))
-        }
-        if (response.status != 200) throw uncertain(READ_UNCERTAIN)
-        return decode(READ_UNCERTAIN) {
-            json.decodeFromString<OwnReservationsResponse>(response.body).pending?.toProcess()
-        }
+        return decodeProcess(response, READ_UNCERTAIN)
     }
 
     override suspend fun reservations(page: Int, size: Int): OwnReservationsPage {
@@ -72,8 +39,8 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
             )
         }
         if (response.status != 200) throw uncertain(LIST_UNCERTAIN)
-        return decode(LIST_UNCERTAIN) {
-            json.decodeFromString<OwnReservationsResponse>(response.body).toPage()
+        return withApiFallback({ throw uncertain(LIST_UNCERTAIN) }) {
+            apiJson.decodeFromString<OwnReservationsResponse>(response.body).toPage()
         }
     }
 
@@ -83,29 +50,25 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
      */
     override suspend fun cancel(processId: String): ReservationProcess {
         if (!PROCESS_ID.matches(processId)) throw notFound()
-        val response = call(CANCEL_UNCERTAIN) {
-            api.post(Backend.TURNOS, "/api/reservation-processes/$processId/cancel")
-        }
-        if (response.status != 200 && response.status != 202) throw cancelFailure(response)
-        return decode(CANCEL_UNCERTAIN) {
-            json.decodeFromString<ProcessResponse>(response.body).toProcess()
-        }
+        return postProcess("/api/reservation-processes/$processId/cancel", CANCEL_UNCERTAIN, onError = ::cancelFailure)
     }
 
     override suspend fun submitPhone(processId: String, request: SubmitPhone): ReservationProcess {
         if (!PROCESS_ID.matches(processId)) throw notFound()
-        val response = call(PHONE_UNCERTAIN) {
-            api.post(
-                Backend.TURNOS,
-                "/api/reservation-processes/$processId/phone",
-                json.encodeToString(PhoneBody(request.requestId, request.phoneNumber)),
-            )
-        }
-        if (response.status != 200 && response.status != 202) throw phoneFailure(response)
-        // Un 200/202 ilegible no demuestra que el envío no se registró.
-        return decode(PHONE_UNCERTAIN) {
-            json.decodeFromString<ProcessResponse>(response.body).toProcess()
-        }
+        return postProcess(
+            "/api/reservation-processes/$processId/phone", PHONE_UNCERTAIN, apiJson.encodeToString(request), ::phoneFailure,
+        )
+    }
+
+    private suspend fun postProcess(
+        path: String,
+        message: String,
+        body: String? = null,
+        onError: (ApiResponse) -> ReservationException,
+    ): ReservationProcess {
+        val response = call(message) { api.post(Backend.TURNOS, path, body) }
+        if (response.status != 200 && response.status != 202) throw onError(response)
+        return decodeProcess(response, message)
     }
 
     /**
@@ -113,7 +76,7 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
      * conserva para consultar ese proceso; no se interpreta como éxito.
      */
     private fun startFailure(response: ApiResponse): ReservationException {
-        val problem = problem(response.body)
+        val problem = response.problem
         val processId = problem?.processId
         return when (problem?.code) {
             "INVALID_RESERVATION_SELECTION" -> rejected("La selección dejó de ser válida.", processId)
@@ -125,7 +88,6 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
             "CONFIRMATION_REJECTED" -> rejected("No se pudo confirmar la reserva.", processId)
             "ACCESS_DENIED" -> rejected("No tenés permiso para iniciar esta reserva.", processId)
             else -> when {
-                response.status in 500..599 -> uncertain(START_UNCERTAIN, processId)
                 response.status == 403 -> rejected("No tenés permiso para iniciar esta reserva.", processId)
                 response.status in 400..499 -> rejected("No pudimos iniciar la reserva.", processId)
                 else -> uncertain(START_UNCERTAIN, processId)
@@ -136,7 +98,7 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
     /** Solo el 404 o su código acreditan que el proceso no existe; el resto es incierto. */
     private fun processFailure(response: ApiResponse): ReservationException =
         if (response.status == 404 ||
-            problem(response.body)?.code == "RESERVATION_PROCESS_NOT_FOUND"
+            response.problem?.code == "RESERVATION_PROCESS_NOT_FOUND"
         ) {
             notFound()
         } else {
@@ -148,7 +110,7 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
      * proceso se contrasta después con `GET`; un `503` o `5xx` no acredita fallo.
      */
     private fun phoneFailure(response: ApiResponse): ReservationException {
-        val problem = problem(response.body)
+        val problem = response.problem
         val processId = problem?.processId
         return when (problem?.code) {
             "INVALID_PHONE_NUMBER" ->
@@ -164,7 +126,6 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
             "RESERVATION_PROCESS_NOT_FOUND" -> notFound()
             else -> when {
                 response.status == 404 -> notFound()
-                response.status in 500..599 -> uncertain(PHONE_UNCERTAIN, processId)
                 response.status == 403 ->
                     rejected("No tenés permiso para enviar el teléfono.", processId)
                 response.status in 400..499 ->
@@ -179,42 +140,26 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
      * Un `503`, `5xx` o respuesta sin código no acredita que la cancelación no se registró.
      */
     private fun cancelFailure(response: ApiResponse): ReservationException {
-        val code = problem(response.body)?.code
+        val code = response.problem?.code
         return when {
             response.status == 404 || code == "RESERVATION_PROCESS_NOT_FOUND" -> notFound()
             response.status == 409 || code == "CANCELLATION_NOT_ALLOWED" ->
                 rejected("Esta reserva no se puede cancelar.")
             response.status == 403 ->
                 rejected("No tenés permiso para cancelar esta reserva.")
-            response.status in 500..599 -> uncertain(CANCEL_UNCERTAIN)
             response.status in 400..499 -> rejected("No pudimos cancelar la reserva.")
             else -> uncertain(CANCEL_UNCERTAIN)
         }
     }
 
-    private fun problem(body: String): ProblemResponse? = try {
-        json.decodeFromString<ProblemResponse>(body)
-    } catch (cancelled: CancellationException) {
-        throw cancelled
-    } catch (_: Exception) {
-        null
-    }
+    private fun decodeProcess(response: ApiResponse, message: String): ReservationProcess =
+        withApiFallback({ throw uncertain(message) }) { apiJson.decodeFromString<ReservationProcess>(response.body) }
 
     // El transporte no demuestra que la operación no llegó: se informa como incierta.
     private suspend fun <T> call(message: String, block: suspend () -> T): T = try {
         block()
-    } catch (cancelled: CancellationException) {
-        throw cancelled
     } catch (failure: SessionException) {
         if (failure.error != SessionError.UNAVAILABLE) throw failure
-        throw uncertain(message)
-    }
-
-    private inline fun <T> decode(message: String, block: () -> T): T = try {
-        block()
-    } catch (cancelled: CancellationException) {
-        throw cancelled
-    } catch (_: Exception) {
         throw uncertain(message)
     }
 
@@ -247,53 +192,8 @@ class KtorReservationsApi(private val api: AuthenticatedApiClient) : Reservation
 }
 
 @Serializable
-private class StartBody(
-    val requestId: String,
-    val professionalId: Long,
-    val date: String,
-    val startTime: String,
-)
-
-@Serializable
-private class PhoneBody(val requestId: String, val phoneNumber: String)
-
-@Serializable
-private class ProcessResponse(
-    val processId: String,
-    val professionalId: Long,
-    val date: String,
-    val startTime: String,
-    val state: String,
-    val expiresAt: String? = null,
-    val reasonCode: String? = null,
-    val requiredField: String? = null,
-    val canSubmitPhone: Boolean = false,
-    val professionalFirstName: String? = null,
-    val professionalLastName: String? = null,
-    val cancellation: CancellationResponse? = null,
-) {
-    fun toProcess() = ReservationProcess(
-        id = processId,
-        professionalId = professionalId,
-        date = date,
-        startTime = startTime,
-        state = state,
-        expiresAt = expiresAt,
-        reasonCode = reasonCode,
-        requiredField = requiredField,
-        canSubmitPhone = canSubmitPhone,
-        professionalFirstName = professionalFirstName,
-        professionalLastName = professionalLastName,
-        cancellation = cancellation?.let { CancellationProgress(it.status, it.canRetry) },
-    )
-}
-
-@Serializable
-private class CancellationResponse(val status: String, val canRetry: Boolean = false)
-
-@Serializable
 private class OwnReservationsResponse(
-    val pending: ProcessResponse? = null,
+    val pending: ReservationProcess? = null,
     val history: HistoryResponse? = null,
 ) {
     /** `pending` puede faltar; el historial completo es obligatorio en una respuesta `200`. */
@@ -301,8 +201,8 @@ private class OwnReservationsResponse(
         val history = history
             ?: throw IllegalStateException("La respuesta no incluyó el historial.")
         return OwnReservationsPage(
-            pending = pending?.toProcess(),
-            content = history.content.map { it.toProcess() },
+            pending = pending,
+            content = history.content,
             page = history.page,
             size = history.size,
             totalElements = history.totalElements,
@@ -314,12 +214,9 @@ private class OwnReservationsResponse(
 /** Campos exigidos por el contrato; una página incompleta no equivale a un historial vacío. */
 @Serializable
 private class HistoryResponse(
-    val content: List<ProcessResponse>,
+    val content: List<ReservationProcess>,
     val page: Int,
     val size: Int,
     val totalElements: Long,
     val totalPages: Int,
 )
-
-@Serializable
-private class ProblemResponse(val code: String? = null, val processId: String? = null)

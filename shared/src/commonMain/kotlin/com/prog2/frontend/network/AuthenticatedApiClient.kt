@@ -5,11 +5,11 @@ import com.prog2.frontend.session.SessionException
 import com.prog2.frontend.session.SessionManager
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
-import io.ktor.client.request.post
+import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import kotlinx.coroutines.CancellationException
 
@@ -28,27 +28,8 @@ class AuthenticatedApiClient(
      *
      * @throws SessionException ante sesión vencida, reemplazada o fallo de comunicación.
      */
-    suspend fun get(backend: Backend, path: String, query: Map<String, String> = emptyMap()): ApiResponse {
-        require(path.startsWith("/api/")) { "Se requiere una ruta relativa de API." }
-        val snapshot = sessions.snapshot()
-        val response = try {
-            client.get(configuration.baseUrl(backend).toString().trimEnd('/') + path) {
-                bearerAuth(snapshot.token)
-                url { query.forEach { (key, value) -> parameters.append(key, value) } }
-            }.let { ApiResponse(it.status.value, it.bodyAsText()) }
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (_: Exception) {
-            sessions.requireCurrent(snapshot)
-            throw SessionException(SessionError.UNAVAILABLE)
-        }
-        if (response.status == 401) {
-            sessions.reject(snapshot)
-            throw SessionException(SessionError.SESSION_REQUIRED)
-        }
-        sessions.requireCurrent(snapshot)
-        return response
-    }
+    suspend fun get(backend: Backend, path: String, query: Map<String, String> = emptyMap()): ApiResponse =
+        request(backend, path, HttpMethod.Get, query = query)
 
     /**
      * Envía una operación de API propia con un cuerpo JSON ya serializado o sin
@@ -58,17 +39,30 @@ class AuthenticatedApiClient(
      *
      * @throws SessionException ante sesión vencida, reemplazada o fallo de comunicación.
      */
-    suspend fun post(backend: Backend, path: String, body: String? = null): ApiResponse {
+    suspend fun post(backend: Backend, path: String, body: String? = null): ApiResponse =
+        request(backend, path, HttpMethod.Post, body = body)
+
+    private suspend fun request(
+        backend: Backend,
+        path: String,
+        httpMethod: HttpMethod,
+        query: Map<String, String> = emptyMap(),
+        body: String? = null,
+    ): ApiResponse {
         require(path.startsWith("/api/")) { "Se requiere una ruta relativa de API." }
         val snapshot = sessions.snapshot()
+        val url = configuration.baseUrl(backend).toString().trimEnd('/') + path
         val response = try {
-            client.post(configuration.baseUrl(backend).toString().trimEnd('/') + path) {
+            val reply = client.request(url) {
+                method = httpMethod
                 bearerAuth(snapshot.token)
+                url { query.forEach { (key, value) -> parameters.append(key, value) } }
                 if (body != null) {
                     contentType(ContentType.Application.Json)
                     setBody(body)
                 }
-            }.let { ApiResponse(it.status.value, it.bodyAsText()) }
+            }
+            ApiResponse(reply.status.value, reply.bodyAsText())
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
@@ -86,5 +80,9 @@ class AuthenticatedApiClient(
 
 /** Respuesta privada, sin impresión accidental de datos pertenecientes al usuario. */
 class ApiResponse(val status: Int, val body: String) {
+    internal val problem: ApiProblem? by lazy {
+        withApiFallback({ null }) { apiJson.decodeFromString<ApiProblem>(body) }
+    }
+
     override fun toString(): String = "ApiResponse(status=$status, body=REDACTED)"
 }

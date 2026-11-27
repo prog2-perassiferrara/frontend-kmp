@@ -1,6 +1,8 @@
 package com.prog2.frontend.reservation.data
 
 import com.prog2.frontend.reservation.ReservationException
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Selección vigente de CU-05 que se envía al iniciar la reserva. El nombre se usa
@@ -14,6 +16,7 @@ data class ReservationSelection(
 )
 
 /** Cuerpo idempotente del inicio; `requestId` es el UUID local que Turnos usa como `processId`. */
+@Serializable
 data class StartReservation(
     val requestId: String,
     val professionalId: Long,
@@ -25,6 +28,7 @@ data class StartReservation(
  * Cuerpo del teléfono ya normalizado. Cada envío o corrección usa un `requestId`
  * nuevo; repetir la misma clave y contenido solo recupera el envío anterior.
  */
+@Serializable
 data class SubmitPhone(
     val requestId: String,
     val phoneNumber: String,
@@ -37,18 +41,19 @@ data class SubmitPhone(
  * Progreso que informa Turnos. `state` es la fase durable recibida y no se
  * interpreta como confirmación por sí sola.
  */
+@Serializable
 data class ReservationProcess(
-    val id: String,
+    @SerialName("processId") val id: String,
     val professionalId: Long,
     val date: String,
     val startTime: String,
     val state: String,
-    val expiresAt: String?,
-    val reasonCode: String?,
-    val requiredField: String?,
-    val canSubmitPhone: Boolean,
-    val professionalFirstName: String?,
-    val professionalLastName: String?,
+    val expiresAt: String? = null,
+    val reasonCode: String? = null,
+    val requiredField: String? = null,
+    val canSubmitPhone: Boolean = false,
+    val professionalFirstName: String? = null,
+    val professionalLastName: String? = null,
     val cancellation: CancellationProgress? = null,
 ) {
     /** Nombre histórico informado por Turnos, si lo conserva. */
@@ -71,17 +76,18 @@ data class ReservationProcess(
 
     val cancellationRetryRequired: Boolean get() = cancellation?.status == CANCELLATION_RETRY_REQUIRED
 
-    private companion object {
-        const val PHONE_NUMBER = "PHONE_NUMBER"
-        const val CONFIRMED = "CONFIRMED"
-        const val CANCELLATION_PENDING = "PENDING"
-        const val CANCELLATION_RETRY_REQUIRED = "RETRY_REQUIRED"
-        val FINAL_STATES = setOf("FAILED", "EXPIRED", "CONFIRMED", "CANCELLED")
+    companion object {
+        private const val PHONE_NUMBER = "PHONE_NUMBER"
+        private const val CONFIRMED = "CONFIRMED"
+        private const val CANCELLATION_PENDING = "PENDING"
+        private const val CANCELLATION_RETRY_REQUIRED = "RETRY_REQUIRED"
+        private val FINAL_STATES = setOf("FAILED", "EXPIRED", "CONFIRMED", "CANCELLED")
     }
 }
 
 /** Intención de cancelación informada por Turnos; `CANCELLED` es el único cierre. */
-data class CancellationProgress(val status: String, val canRetry: Boolean)
+@Serializable
+data class CancellationProgress(val status: String, val canRetry: Boolean = false)
 
 /** Pendiente e historial propios en la misma instantánea, con la paginación de Turnos. */
 data class OwnReservationsPage(
@@ -109,13 +115,6 @@ interface ReservationsApi {
      * @throws ReservationException con `NOT_FOUND` o `UNCERTAIN`.
      */
     suspend fun process(processId: String): ReservationProcess
-
-    /**
-     * Devuelve el proceso pendiente propio, si Turnos informa uno.
-     *
-     * @throws ReservationException si la consulta no puede resolverse.
-     */
-    suspend fun pending(): ReservationProcess?
 
     /**
      * Consulta el pendiente y el historial propios en una página.

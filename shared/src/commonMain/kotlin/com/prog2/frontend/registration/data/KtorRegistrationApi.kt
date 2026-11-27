@@ -1,17 +1,13 @@
 package com.prog2.frontend.registration.data
 
 import com.prog2.frontend.network.ApiConfiguration
-import com.prog2.frontend.network.Backend
+import com.prog2.frontend.network.postPublicJson
+import com.prog2.frontend.network.readProblem
+import com.prog2.frontend.network.withApiFallback
 import com.prog2.frontend.registration.RegistrationError
 import com.prog2.frontend.registration.RegistrationException
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
 
 /**
@@ -23,39 +19,22 @@ class KtorRegistrationApi(
     private val configuration: ApiConfiguration,
 ) : RegistrationApi {
     override suspend fun register(account: NewAccount) {
-        val response = try {
-            client.post(configuration.baseUrl(Backend.TURNOS).toString().trimEnd('/') + "/api/register") {
-                contentType(ContentType.Application.Json)
-                setBody(
-                    RegistrationRequest(
-                        login = account.login,
-                        password = account.password,
-                        firstName = account.firstName,
-                        lastName = account.lastName,
-                        email = account.email,
-                        langKey = account.langKey,
-                    ),
-                )
-            }
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (_: Exception) {
-            // Un fallo de transporte o un timeout no demuestra que el alta falló.
-            throw RegistrationException(RegistrationError.UNCERTAIN)
+        val response = withApiFallback({ throw RegistrationException(RegistrationError.UNCERTAIN) }) {
+            client.postPublicJson(
+                configuration,
+                "/api/register",
+                RegistrationRequest(
+                    account.login, account.password, account.firstName,
+                    account.lastName, account.email, account.langKey,
+                ),
+            )
         }
-        if (response.status.value == 201) return
-        throw failureFor(response)
+        if (response.status.value != 201) throw failureFor(response)
     }
 
     private suspend fun failureFor(response: HttpResponse): RegistrationException {
         if (response.status.value == 400) {
-            val problem = try {
-                response.body<RegistrationProblem>()
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                null
-            }
+            val problem = response.readProblem()
             if (problem?.code == "USER_IDENTIFIER_ALREADY_USED") {
                 return RegistrationException(RegistrationError.IDENTIFIER_ALREADY_USED)
             }
@@ -80,14 +59,3 @@ private class RegistrationRequest(
 ) {
     override fun toString(): String = "RegistrationRequest(REDACTED)"
 }
-
-@Serializable
-private class RegistrationProblem(
-    val code: String? = null,
-    val fieldErrors: List<RegistrationFieldError> = emptyList(),
-) {
-    fun invalidFields(): Set<String> = fieldErrors.mapNotNull { it.field }.toSet()
-}
-
-@Serializable
-private class RegistrationFieldError(val field: String? = null)

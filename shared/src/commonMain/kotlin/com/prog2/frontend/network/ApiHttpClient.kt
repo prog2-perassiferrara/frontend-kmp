@@ -5,7 +5,6 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 
 /** Crea la misma configuración HTTP para el engine Android y las pruebas de contrato. */
 class ApiHttpClient {
@@ -13,7 +12,7 @@ class ApiHttpClient {
         expectSuccess = false
         followRedirects = false
         install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true })
+            json(apiJson)
         }
         install(HttpTimeout) {
             connectTimeoutMillis = 5_000
