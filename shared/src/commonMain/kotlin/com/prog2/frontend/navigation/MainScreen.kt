@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -11,14 +12,13 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -32,11 +32,10 @@ import com.prog2.frontend.reservation.data.ReservationSelection
 import com.prog2.frontend.ui.availability.AvailabilityScreen
 import com.prog2.frontend.ui.availability.AvailabilityViewModel
 import com.prog2.frontend.ui.components.AppBottomBar
-import com.prog2.frontend.ui.reservation.BannerAction
+import com.prog2.frontend.ui.components.availabilityDays
 import com.prog2.frontend.ui.reservation.MyReservationsScreen
 import com.prog2.frontend.ui.reservation.MyReservationsViewModel
 import com.prog2.frontend.ui.reservation.ProcessScreen
-import com.prog2.frontend.ui.reservation.ReservationBanner
 import com.prog2.frontend.ui.reservation.ReservationViewModel
 import com.prog2.frontend.ui.reservation.StartStatus
 import com.prog2.frontend.ui.search.SearchScreen
@@ -68,22 +67,9 @@ class MainScreen {
         val availabilityScreen = remember { AvailabilityScreen() }
         val processScreen = remember { ProcessScreen() }
         val myReservationsScreen = remember { MyReservationsScreen() }
-        val reservationBanner = remember { ReservationBanner() }
-        var openedProcessId by rememberSaveable { mutableStateOf<String?>(null) }
-        val processId = reservationViewModel.state.value.process?.id
-
-        // Abre una sola vez cada proceso informado por Turnos, sea por inicio o
-        // por el pendiente descubierto. La guarda evita reabrirlo al rotar o al
-        // volver de la pantalla de proceso.
-        LaunchedEffect(processId) {
-            if (processId != null && processId != openedProcessId) {
-                openedProcessId = processId
-                navController.navigate(PROCESS_ROUTE) { launchSingleTop = true }
-            }
-        }
-
         Scaffold(
             modifier = Modifier.safeDrawingPadding().imePadding(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (destinations.any { it.route == currentRoute }) {
                     bottomBar.Content(
@@ -107,26 +93,11 @@ class MainScreen {
                         val search = searchViewModel.state.value
                         val reservation = reservationViewModel.state.value
                         ScreenLayout {
-                            reservation.banner?.let { banner ->
-                                reservationBanner.Content(
-                                    banner.message,
-                                    banner.actionLabel,
-                                ) {
-                                    when (banner.action) {
-                                        BannerAction.RETRY_DISCOVERY ->
-                                            reservationViewModel.retryDiscovery()
-                                        BannerAction.SHOW_PROCESS -> {
-                                            if (reservation.process != null) {
-                                                reservationViewModel.refresh()
-                                            } else {
-                                                reservationViewModel.verify()
-                                            }
-                                            navController.navigate(PROCESS_ROUTE) {
-                                                launchSingleTop = true
-                                            }
-                                        }
-                                    }
-                                }
+                            if (reservation.start == StartStatus.UNCERTAIN) {
+                                TextButton(onClick = {
+                                    reservationViewModel.refresh()
+                                    navController.navigate(PROCESS_ROUTE) { launchSingleTop = true }
+                                }) { Text("Verificar solicitud pendiente") }
                             }
                             searchScreen.Content(
                                 search,
@@ -139,11 +110,11 @@ class MainScreen {
                                 searchViewModel::previousPage,
                                 searchViewModel::nextPage,
                                 onSelect = { professional ->
-                                    searchViewModel.select(professional)
                                     availabilityViewModel.open(
                                         professional,
-                                        searchViewModel.state.value.availableOn,
+                                        availabilityDays(searchViewModel.state.value.availableOn).first().date,
                                     )
+                                    availabilityViewModel.consult()
                                     navController.navigate(AVAILABILITY_ROUTE) {
                                         launchSingleTop = true
                                     }
@@ -167,7 +138,6 @@ class MainScreen {
                                 onNext = myReservationsViewModel::next,
                                 onOpenProcess = { process ->
                                     reservationViewModel.present(process)
-                                    openedProcessId = process.id
                                     navController.navigate(PROCESS_ROUTE) {
                                         launchSingleTop = true
                                     }
@@ -175,6 +145,7 @@ class MainScreen {
                                 onOpenCancellation = myReservationsViewModel::openCancellation,
                                 onDismissCancellation = myReservationsViewModel::dismissCancellation,
                                 onConfirmCancellation = myReservationsViewModel::confirmCancellation,
+                                onVerifyCancellation = myReservationsViewModel::verifyCancellation,
                                 onSignOut = onSignOut,
                             )
                         }
@@ -185,8 +156,7 @@ class MainScreen {
                         ScreenLayout {
                             availabilityScreen.Content(
                                 availability,
-                                availabilityViewModel::changeDate,
-                                availabilityViewModel::consult,
+                                availabilityViewModel::selectDate,
                                 availabilityViewModel::selectTime,
                                 availabilityViewModel::retry,
                                 onReserve = {
@@ -194,7 +164,7 @@ class MainScreen {
                                     val professionalId = current.professionalId
                                     val time = current.selectedTime
                                     if (professionalId != null && time != null) {
-                                        reservationViewModel.start(
+                                        val started = reservationViewModel.start(
                                             ReservationSelection(
                                                 professionalId = professionalId,
                                                 date = current.date.trim(),
@@ -202,22 +172,19 @@ class MainScreen {
                                                 professionalName = current.professionalName,
                                             ),
                                         )
-                                        navController.navigate(PROCESS_ROUTE) {
+                                        if (started) navController.navigate(PROCESS_ROUTE) {
                                             launchSingleTop = true
                                         }
                                     }
                                 },
                                 reservationBlocked = when {
-                                    reservation.process?.isFinal == false ||
-                                        reservation.start == StartStatus.SENDING ||
-                                        reservation.start == StartStatus.UNCERTAIN ->
+                                    !reservation.canStart ->
                                         "Tenés una solicitud de turno pendiente. " +
-                                            "Consultá su estado antes de iniciar otra."
+                                            "Consultá su estado en Cuenta antes de iniciar otra."
                                     else -> null
                                 },
                                 onBack = {
                                     availabilityViewModel.reset()
-                                    searchViewModel.backToSearch()
                                     navController.popBackStack()
                                 },
                             )
@@ -225,46 +192,33 @@ class MainScreen {
                     }
                     composable(PROCESS_ROUTE) {
                         val reservation = reservationViewModel.state.value
-                        val backToSearch = {
+                        val origin = navController.previousBackStackEntry?.destination?.route
+                        val refreshAvailability = origin == AVAILABILITY_ROUTE && reservation.process == null &&
+                            (reservation.start == StartStatus.REJECTED || reservation.start == StartStatus.NOT_REGISTERED)
+                        val goBack: () -> Unit = {
                             reservationViewModel.dismiss()
-                            if (navController.previousBackStackEntry?.destination?.route ==
-                                AppDestination.Reservations.route
-                            ) {
-                                navController.popBackStack()
-                            } else {
-                                availabilityViewModel.reset()
-                                searchViewModel.backToSearch()
-                                navController.popBackStack(AppDestination.Search.route, inclusive = false)
-                            }
-                            Unit
-                        }
-                        val backToAvailability = {
-                            reservationViewModel.dismiss()
-                            availabilityViewModel.consult()
-                            navController.popBackStack(AVAILABILITY_ROUTE, inclusive = false)
-                            Unit
-                        }
-                        BackHandler {
-                            if (reservation.process == null &&
-                                (reservation.start == StartStatus.REJECTED ||
-                                    reservation.start == StartStatus.NOT_REGISTERED)
-                            ) {
-                                backToAvailability()
-                            } else {
-                                backToSearch()
+                            when {
+                                refreshAvailability -> {
+                                    navController.popBackStack()
+                                    availabilityViewModel.consult()
+                                }
+                                origin == AppDestination.Reservations.route -> navController.popBackStack()
+                                else -> {
+                                    availabilityViewModel.reset()
+                                    navController.popBackStack(AppDestination.Search.route, inclusive = false)
+                                }
                             }
                         }
+                        BackHandler(onBack = goBack)
                         ScreenLayout {
                             processScreen.Content(
                                 reservation,
                                 reservationViewModel::refresh,
-                                reservationViewModel::verify,
                                 reservationViewModel::retryStart,
                                 reservationViewModel::changePhone,
                                 reservationViewModel::submitPhone,
-                                reservationViewModel::verifyPhone,
-                                onBackToSearch = backToSearch,
-                                onBackToAvailability = backToAvailability,
+                                onBack = goBack,
+                                backLabel = if (refreshAvailability) "Volver a disponibilidad" else "Volver",
                             )
                         }
                     }

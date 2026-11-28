@@ -12,6 +12,7 @@
 - Si `store.clear()` falla, se intenta `store.save("")` para invalidar el contenido residual. El estado queda sin sesión y `cleanupRequired` bloquea un login nuevo con `STORAGE_UNAVAILABLE` hasta que la limpieza se reintente.
 - `JwtExpiry` lee solo `exp`; firma y permisos pertenecen a los backends. El cliente evita enviar un token que ya sabe vencido.
 - `KtorAuthApi` aísla `POST /api/authenticate` y mapea 400/401 por estado y `code`; `AuthenticatedApiClient` inyecta el bearer y solo trata el 401 de una API propia como cierre de sesión.
+- Las API públicas y protegidas comparten el modelo de error HTTP. Cada operación conserva la interpretación de su estado, código y respuesta exitosa. Login y registro envían JSON sin bearer.
 - `AndroidEncryptedSessionStore` usa AES-GCM con clave en Android Keystore, `AtomicFile` y `noBackupFilesDir`; no guarda la contraseña ni usa `SharedPreferences`.
 - La UI mantiene `LoginScreen`/`AuthenticatedScreen` con `Content()`, `SessionViewModel` y estado de Compose. No se agrega navegación ni `BottomBar`.
   - **Actualización al cierre (2026-11-09):** el área autenticada incorporó Navigation Compose con `MainScreen`, `AppDestination` y `AppBottomBar`; login y registro permanecen fuera.

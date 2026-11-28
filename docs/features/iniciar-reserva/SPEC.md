@@ -15,10 +15,10 @@ Desde el profesional, la fecha y el horario marcados en CU-05, enviar una única
 - **RF-03 · Resultado:** `202` y `200` se presentan como proceso informado por Turnos, con su fase, vencimiento y datos recibidos. La aceptación inicial no se presenta como reserva confirmada.
 - **RF-04 · Idempotencia:** el `requestId` se conserva como identificador de la acción y como `processId` local. Una repetición propia se acepta sin crear otro proceso.
 - **RF-05 · Rechazos conocidos:** un `400` de selección o perfil, un `409` de conflicto o un rechazo de disponibilidad se informan con su causa y sin reintento ciego.
-- **RF-06 · Proceso existente:** si Turnos rechaza por un proceso pendiente, por disponibilidad o por un cierre incierto e incluye `processId`, se consulta y presenta ese proceso en lugar de iniciar otro.
+- **RF-06 · Proceso existente:** si Turnos rechaza por un proceso pendiente, por disponibilidad o por un cierre incierto e incluye `processId`, se consulta y presenta ese proceso en lugar de iniciar otro. El identificador de otro pendiente se usa solo para consultarlo. Si no se puede abrir, se indica revisarlo en Cuenta.
 - **RF-07 · Resultado incierto:** `503`, `5xx`, timeout o fallo de transporte no se presentan como éxito ni como fallo. Se informa que el resultado no está verificado y se permite consultar Turnos antes de repetir la acción.
 - **RF-08 · Respuesta perdida:** si la verificación por `requestId` devuelve `404`, Turnos no registró el inicio; recién entonces se habilita repetir la misma solicitud con el mismo `requestId`.
-- **RF-09 · Navegación:** salir del proceso no lo cancela ni lo abandona. Al volver a la búsqueda queda un aviso no bloqueante para consultar su estado.
+- **RF-09 · Navegación:** salir del proceso no lo cancela ni lo abandona. Si el inicio queda incierto, Buscar permite verificar esa solicitud por su UUID. Los pendientes informados por Turnos se retoman desde Cuenta.
 - **RF-10 · Teléfono:** si Turnos informa `requiredField=PHONE_NUMBER` o `canSubmitPhone=true`, solo se avisa que falta el teléfono. El envío pertenece a CU-07 y no se implementa aquí.
 
 ## Fuera de alcance
@@ -56,8 +56,8 @@ Desde el profesional, la fecha y el horario marcados en CU-05, enviar una única
 - **CA-05 · RF-05:** `400` y `409` conocidos se informan con su motivo y no repiten la petición automáticamente.
 - **CA-06 · RF-06:** un error con `processId` consulta y muestra ese proceso; no inicia otro.
 - **CA-07 · RF-07:** `503`, `5xx` o fallo de transporte producen un estado de incertidumbre, sin presentar éxito ni fallo.
-- **CA-08 · RF-08:** tras un `404` de verificación solo se habilita “Reintentar” con el mismo `requestId`; la suite confirma que no se duplica el proceso.
-- **CA-09 · RF-09:** salir y volver a la búsqueda conserva el proceso y ofrece “Ver estado”, sin cancelarlo.
+- **CA-08 · RF-08:** tras un `404` de verificación solo se habilita «Reintentar inicio» con el UUID original; la suite confirma que no se duplica el proceso.
+- **CA-09 · RF-09:** salir conserva el proceso sin cancelarlo. Buscar permite verificar un inicio incierto y Cuenta permite retomar un pendiente informado.
 - **CA-10 · RF-10:** cuando Turnos pide teléfono, la pantalla lo informa y no envía ni solicita el número.
 
 ## Verificación

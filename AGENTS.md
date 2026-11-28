@@ -12,7 +12,7 @@
 ## Flujo de trabajo
 
 - Partir del CU y del issue correspondiente. Mantener en `docs/features/<funcionalidad>/` los tres documentos obligatorios y breves: `SPEC.md` (comportamiento, alcance y RF/CA), `PLAN.md` (decisiones técnicas, archivos y validación) y `TASKS.md` (pasos, dependencias y evidencia). Flujo: CU/issue → SPEC → PLAN → TASKS → implementación y verificación.
-- La autorización para desarrollar el CU habilita todas las etapas; no solicitar aprobaciones rutinarias intermedias. Consultar solo decisiones que cambien comportamiento, contratos, alcance o impliquen cambios destructivos. Implementar solo ante pedido explícito y no repetir autorizaciones ya dadas.
+- Preparar el PLAN tras la aprobación explícita de la SPEC y derivar las TASKS tras la aprobación explícita del PLAN. Antes de implementar, comprobar la coherencia entre los requisitos, los criterios de aceptación, las tareas y las pruebas. La implementación requiere autorización explícita, independiente de la aprobación de los documentos.
 - Mantener el alcance mínimo: no agregar pantallas vacías, navegación futura, capas, dependencias ni abstracciones especulativas. El código necesario para el CU pedido se implementa completo.
 - Registrar en `TASKS.md` la validación realmente ejecutada y sus límites. No marcar como verificado lo que no se ejecutó ni reutilizar evidencia de otra implementación.
 - Si cambia un contrato o un comportamiento acordado, dejar una nota breve en el documento afectado y consultarlo antes de continuar. Evitar matrices de trazabilidad y repetir la SPEC o las tareas en varios documentos.
@@ -20,7 +20,7 @@
 ## Stack y arquitectura
 
 - Proyecto Kotlin Multiplatform con una aplicación Android ejecutable en `androidApp/` y el código compartido en `shared/`.
-- Compose Material 1, MVVM ligero, Ktor y kotlinx. Mantener las versiones del catálogo salvo necesidad demostrada.
+- Compose Material 3, MVVM ligero, Ktor y kotlinx. Mantener las versiones del catálogo salvo necesidad demostrada.
 - Pantallas como clases con `@Composable fun Content(...)`. El estado de presentación vive en un `ViewModel`; las dependencias se reciben por constructor y se cablean en `AppContainer`/`FrontendApplication`.
 - No trasladar la arquitectura hexagonal de los backends. No agregar frameworks de DI ni módulos nuevos.
 - El área autenticada navega con Navigation Compose según el enfoque de cátedra: `MainScreen` concentra `Scaffold`, `NavHost` y el único `NavController`; `AppDestination` define las pestañas y `AppBottomBar` es presentacional. Pestañas: Buscar y Cuenta (reservas propias y cierre de sesión). Login/registro quedan fuera; disponibilidad y proceso son destinos secundarios. No agregar un segundo mecanismo de navegación.

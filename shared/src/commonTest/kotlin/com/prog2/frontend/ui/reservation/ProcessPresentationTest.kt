@@ -5,7 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -25,30 +24,22 @@ class ProcessPresentationTest {
 
     @Test
     fun onlyTheConfirmedStateAnnouncesAConfirmedReservation() {
-        assertEquals("Reserva confirmada", processView(process("CONFIRMED")).title)
-        assertNotEquals("Reserva confirmada", processView(process("WAITING_FOR_PHONE")).title)
-        assertEquals("Turno cancelado", processView(process("CANCELLED")).title)
+        assertEquals("Reserva confirmada", processStatusLabel(process("CONFIRMED")))
+        assertNotEquals("Reserva confirmada", processStatusLabel(process("WAITING_FOR_PHONE")))
+        assertEquals("Turno cancelado", processStatusLabel(process("CANCELLED")))
     }
 
     @Test
     fun theOpenPhasesDistinguishPendingRequestPendingPhoneAndSentPhone() {
-        assertEquals(
-            "Esperando que se solicite el teléfono",
-            processView(process("WAITING_FOR_REQUEST")).title,
-        )
-        assertEquals("Falta completar información", processView(process("WAITING_FOR_PHONE")).title)
-        assertEquals("Teléfono enviado", processView(process("PHONE_QUEUED")).title)
-        assertEquals("Reserva confirmada", processView(process("CONFIRMED")).title)
-
-        val sent = processView(process("PHONE_QUEUED"))
-        assertFalse(sent.title.contains("Falta"))
-        assertFalse(sent.detail.contains("confirmada"))
+        assertEquals("Solicitud pendiente", processStatusLabel(process("WAITING_FOR_REQUEST")))
+        assertEquals("Completá tu teléfono", processStatusLabel(process("WAITING_FOR_PHONE", canSubmitPhone = true)))
+        assertEquals("Teléfono enviado", processStatusLabel(process("PHONE_QUEUED")))
     }
 
     @Test
     fun theExpirationIsOnlyShownWhileTheRequestIsOpen() {
         assertEquals(
-            "La solicitud vence el 09/11/2026 · 12:30.",
+            "Vence el 09/11/2026 · 12:30.",
             expirationNotice(process("WAITING_FOR_PHONE", expiresAt = "2026-11-09T15:30:00Z")),
         )
         assertNull(expirationNotice(process("WAITING_FOR_PHONE")))
@@ -61,27 +52,27 @@ class ProcessPresentationTest {
 
     @Test
     fun failedExpiredAndCancelledRequestsAreDistinguished() {
-        assertEquals("Solicitud fallida", processView(process("FAILED")).title)
-        assertEquals("Solicitud vencida", processView(process("EXPIRED")).title)
-        assertEquals("Turno cancelado", processView(process("CANCELLED")).title)
+        assertEquals("Solicitud fallida", processStatusLabel(process("FAILED")))
+        assertEquals("Solicitud vencida", processStatusLabel(process("EXPIRED")))
+        assertEquals("Turno cancelado", processStatusLabel(process("CANCELLED")))
     }
 
     @Test
-    fun thePhoneFormIsOnlyAnnouncedWhenTheServiceEnablesIt() {
-        assertNull(phoneNotice(process("WAITING_FOR_PHONE", canSubmitPhone = true)))
-        assertNull(phoneNotice(process("WAITING_FOR_PHONE")))
-        assertNotNull(phoneNotice(process("WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER")))
+    fun thePhonePromptAppearsOnlyWhenTurnosEnablesSending() {
+        assertEquals("Completá tu teléfono", processStatusLabel(process("WAITING_FOR_PHONE", canSubmitPhone = true)))
+        assertEquals(
+            "Envío de teléfono no disponible",
+            processStatusLabel(process("WAITING_FOR_PHONE", requiredField = "PHONE_NUMBER")),
+        )
+        assertEquals("Teléfono rechazado.", processReason("PHONE_REJECTED"))
     }
 
     @Test
     fun aSentPhoneIsPendingAndNeverConfirmed() {
-        val notice = phoneNotice(process("PHONE_QUEUED", requiredField = "PHONE_NUMBER"))
-        assertTrue(notice!!.contains("ya fue enviado"))
-        assertFalse(notice.contains("confirmada"))
-        assertEquals(
-            "El teléfono ya fue enviado. Todavía no recibimos la confirmación de la reserva.",
-            phoneNotice(process("WAITING_FOR_RESULT", requiredField = "PHONE_NUMBER")),
-        )
+        val label = processStatusLabel(process("WAITING_FOR_RESULT"))
+        assertTrue(label.startsWith("Teléfono enviado"))
+        assertFalse(label.contains("confirmada"))
+        assertEquals("Esperando el resultado", processStatusLabel(process("RECONCILIATION_REQUIRED")))
     }
 
     private fun process(

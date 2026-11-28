@@ -20,7 +20,6 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -112,13 +111,10 @@ class AvailabilityViewModelTest {
         val api = FakeApi()
         val vm = viewModel(api)
         vm.open(ana, "2026-11-09")
-        vm.changeDate("09/11/2026")
-
-        vm.consult()
+        vm.selectDate("09/11/2026")
         runCurrent()
 
         assertTrue(api.calls.isEmpty())
-        assertNotNull(vm.state.value.dateError)
         assertFalse(vm.state.value.isLoading)
     }
 
@@ -160,20 +156,21 @@ class AvailabilityViewModelTest {
         runCurrent()
         assertEquals(1, api.calls.size)
 
-        vm.changeDate("2026-11-10")
+        api.gate = null
+        api.answer = { id, date -> availabilityOf(id, date, listOf("13:00:00")) }
+        vm.selectDate("2026-11-10")
+        assertEquals("2026-11-10", vm.state.value.date)
+        assertTrue(vm.state.value.isLoading)
+        assertTrue(vm.state.value.times.isEmpty())
+
         gate.complete(Unit)
         runCurrent()
 
-        assertFalse(vm.state.value.hasResult)
-        assertTrue(vm.state.value.times.isEmpty())
+        assertTrue(vm.state.value.hasResult)
         assertFalse(vm.state.value.isLoading)
         assertNull(vm.state.value.error)
-
-        api.gate = null
-        vm.consult()
-        runCurrent()
-        assertEquals(201L to "2026-11-10", api.calls.last())
-        assertEquals(listOf("12:00:00"), vm.state.value.times)
+        assertEquals(listOf(201L to "2026-11-09", 201L to "2026-11-10"), api.calls)
+        assertEquals(listOf("13:00:00"), vm.state.value.times)
     }
 
     @Test
@@ -212,7 +209,7 @@ class AvailabilityViewModelTest {
         vm.open(ana, "")
         assertEquals("12:30:00", vm.state.value.selectedTime)
 
-        vm.changeDate("2026-11-10")
+        vm.selectDate("2026-11-10")
         assertNull(vm.state.value.selectedTime)
     }
 

@@ -9,7 +9,6 @@ data class AvailabilityUiState(
     val professionalName: String = "",
     val categoryName: String = "",
     val date: String = "",
-    val dateError: String? = null,
     val times: List<String> = emptyList(),
     val selectedTime: String? = null,
     val isLoading: Boolean = false,

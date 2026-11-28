@@ -1,16 +1,19 @@
 package com.prog2.frontend.availability.data
 
 import com.prog2.frontend.availability.AvailabilityException
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Disponibilidad calculada por Turnos para un profesional y una fecha.
  * `startTimes` usa horas locales de atención; una lista vacía es un resultado válido.
  */
+@Serializable
 data class ProfessionalAvailability(
     val professionalId: Long,
     val date: String,
     val timeZone: String,
-    val startTimes: List<String>,
+    @SerialName("availableStartTimes") val startTimes: List<String>,
 )
 
 /** Consulta de disponibilidad de CU-05; no crea holds, procesos ni reservas. */

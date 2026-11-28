@@ -18,7 +18,7 @@ data class MyReservationsUiState(
     val cancelTarget: ReservationProcess? = null,
     val cancellingId: String? = null,
     val cancelMessage: String? = null,
-    val cancelBlockedId: String? = null,
+    val unverifiedCancellations: Set<String> = emptySet(),
 ) {
     val canGoBack: Boolean get() = page > 0 && !loading && cancellingId == null
 
@@ -34,6 +34,6 @@ data class MyReservationsUiState(
     fun canCancel(process: ReservationProcess): Boolean =
         !loading &&
             cancellingId == null &&
-            cancelBlockedId != process.id &&
+            process.id !in unverifiedCancellations &&
             process.canRequestCancellation
 }

@@ -13,7 +13,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
   - `ReservationsApi.SubmitPhone`, `submitPhone`, `KtorReservationsApi` y mapeo de `INVALID_PHONE_NUMBER`, `PHONE_NOT_REQUESTED`, `PHONE_SUBMISSION_ACTIVE`, `PHONE_WINDOW_CLOSED`, `REQUEST_ID_CONFLICT`, `RESERVATION_PROCESS_NOT_FOUND` y `503`.
   - Validación: `KtorReservationsApiTest` (15 pruebas, todas en verde).
 - [x] **T2 · Estado, validación y envío único** (RF-01, RF-02, RF-04, RF-06, RF-09)
-  - `PhoneStatus`, `phoneNumber`, `phoneMessage` y `canSubmitPhone` derivado en `ReservationUiState`; `changePhone`, `submitPhone`, `verifyPhone` y normalización en `ReservationViewModel`.
+  - `PhoneStatus`, `phoneNumber`, `phoneMessage` y `canSubmitPhone` derivado en `ReservationUiState`; `changePhone`, `submitPhone`, actualización de estado y normalización en `ReservationViewModel`.
   - Validación: `ReservationViewModelTest` (31 pruebas, todas en verde).
 - [x] **T3 · Formulario y cableado** (RF-01, RF-04, RF-05, RF-07, RF-08)
   - `ProcessScreen` con formulario condicionado, avisos de envío y verificación; `phoneNotice` en `ProcessPresentation`; acciones en `App`.
@@ -57,3 +57,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 - No se retomó el proceso mientras seguía pendiente: Turnos lo confirmó 16 s después del envío. La salida, el regreso y la recuperación se comprobaron después del cierre y con el `GET` exitoso.
 - Un fallo transitorio de lectura tras la confirmación requirió «Reintentar»; no se reprodujo ni se atribuyó a un defecto del envío.
 - Sin cambios de código en `backend-turnos` ni en los CU-06/CU-08 ya cerrados.
+
+### Verificación del ajuste de KMP (2026-11-27)
+
+`ReservationViewModelTest` verifica que ante rechazo o incertidumbre se use «Actualizar estado» antes de repetir el envío. La suite host pasó con 168 pruebas. El APK debug compiló y lint quedó sin errores. El recorrido visual en Android queda pendiente.

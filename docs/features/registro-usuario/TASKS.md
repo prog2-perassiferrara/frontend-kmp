@@ -34,8 +34,8 @@
 **CA y evidencia:**
 
 - **CA-01:** alta real en el emulador con login automático y `user-session.bin` cifrado; `validDataRegistersNormalizedAccountAndSignsInAutomatically` y `postsExactRegistrationWithoutBearerAndConfirmsCreated`.
-- **CA-02:** formulario vacío e inválido bloqueado en el emulador; `invalidFieldsBlockTheRequestAndShowFieldErrors`. La estructura mínima del correo se valida localmente y el formato completo se delega a `@Email`; `acceptsEmailsAdmittedByTheBackendWithoutFalseRejections` cubre direcciones Unicode, sin punto y con parte local entrecomillada.
-- **CA-03:** `presentsBackendValidationErrorsByFieldWithoutSession` y mapeo de `fieldErrors` en `mapsValidationFieldsAndDuplicateWithoutRetrying`.
+- **CA-02:** `missingRequiredFieldsBlockTheRequestAndShowFieldErrors` verifica el bloqueo local por campos faltantes. `sendsNonEmptyFieldsAndPresentsBackendValidationErrorsWithoutSession` cubre el envío de campos completos y los errores de Turnos. `acceptsEmailsAdmittedByTheBackendWithoutFalseRejections` cubre direcciones Unicode, sin punto y con parte local entrecomillada.
+- **CA-03:** mapeo de `fieldErrors` en `mapsValidationFieldsAndDuplicateWithoutRetrying`.
 - **CA-04:** duplicado real en el emulador con datos conservados y sin sesión; `duplicateIdentifierKeepsTheFormAndDoesNotAuthenticate`.
 - **CA-05:** aviso incierto observado con un fallo de transporte real y contraseña descartada; `requestTimeoutIsUncertainAndSentOnce` y `uncertainResultClearsThePasswordWithoutAuthenticatingOrRetrying`.
 - **CA-06:** `failedAutomaticLoginReportsCreatedAccountAndNeverRepeatsRegistration`; no se forzó en el emulador.
@@ -49,3 +49,5 @@
 **Desviaciones del PLAN:** ninguna de alcance o comportamiento. El alta con login fallido quedó cubierta solo por prueba automatizada porque requiere inyectar una falla entre el registro y la autenticación.
 
 **Ajuste autorizado (2026-11-08):** se retiró la regex local de correo y se delegó el formato completo a `@Email`; se simplificaron los nombres de campo de `fieldErrors` y el guard de envío único. CA-02 se actualizó para distinguir la validación estructural local del formato validado por Turnos. No cambia el alcance ni los contratos externos.
+
+**Verificación del 2026-11-27:** `./gradlew --offline :shared:testAndroidHostTest :androidApp:assembleDebug :androidApp:lintDebug` terminó correctamente. Pasaron 168 pruebas host y lint quedó sin errores. En Android se comprobó manualmente que el formulario marque campos vacíos, que muestre los rechazos de Turnos junto a los campos inválidos y que un alta correcta inicie sesión automáticamente.

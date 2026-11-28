@@ -55,6 +55,7 @@ class KtorAuthApiTest {
             Triple(401, """{"code":"INVALID_CREDENTIALS"}""", SessionError.INVALID_CREDENTIALS),
             Triple(401, "no-json", SessionError.INVALID_CREDENTIALS),
             Triple(401, """{"code":"UNEXPECTED"}""", SessionError.UNAVAILABLE),
+            Triple(401, """{"code":"UNEXPECTED","fieldErrors":{}}""", SessionError.UNAVAILABLE),
             Triple(503, """{"code":"AUTHENTICATION_UNAVAILABLE"}""", SessionError.UNAVAILABLE),
             Triple(500, "", SessionError.UNAVAILABLE),
             Triple(200, "{}", SessionError.INVALID_RESPONSE),

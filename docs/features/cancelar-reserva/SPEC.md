@@ -15,7 +15,7 @@ Solicitar la cancelación de una reserva propia confirmada, mostrando el resulta
 - **RF-03 · Operación:** `POST /api/reservation-processes/{processId}/cancel` sin cuerpo y con el bearer existente. Mientras está en curso se impide otra solicitud.
 - **RF-04 · Resultado:** `200` y `202` actualizan la fila con el estado y la cancelación informados. Solo `state=CANCELLED` se presenta como cancelada; `202` se muestra como cancelación en curso.
 - **RF-05 · Errores:** `404`, `409 CANCELLATION_NOT_ALLOWED`, `403` y demás rechazos conocidos se informan sin declarar cancelación. `503`, `5xx` o fallo de transporte se presentan como resultado no verificado.
-- **RF-06 · Respuesta perdida:** ante un resultado incierto se conserva la reserva, se consulta el listado y se bloquea otra cancelación de esa reserva hasta que una lectura exitosa permita conocer su estado.
+- **RF-06 · Respuesta perdida:** ante un resultado incierto se conserva la reserva, se consulta el proceso afectado y se bloquea otra cancelación de esa reserva hasta que una lectura exitosa permita conocer su estado.
 - **RF-07 · Actualización:** después de la operación se actualiza la fila y se puede refrescar el listado; no se reimplementan las reglas de cancelación de Turnos.
 
 ## Fuera de alcance
@@ -47,7 +47,7 @@ Solicitar la cancelación de una reserva propia confirmada, mostrando el resulta
 - **CA-03 · RF-03:** dos confirmaciones simultáneas producen una sola llamada, sin cuerpo.
 - **CA-04 · RF-04:** `200 CANCELLED` actualiza la fila; `202 PENDING` no la declara cancelada.
 - **CA-05 · RF-05:** `404`, `409`, `403`, `503` y transporte se informan correctamente.
-- **CA-06 · RF-06:** un resultado incierto consulta el listado y bloquea otro intento hasta una lectura exitosa.
+- **CA-06 · RF-06:** un resultado incierto consulta el proceso afectado y bloquea otro intento hasta una lectura exitosa.
 - **CA-07 · RF-07:** la fila y el listado reflejan el estado posterior sin reimplementar reglas.
 
 ## Verificación

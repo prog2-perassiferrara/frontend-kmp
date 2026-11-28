@@ -3,7 +3,7 @@
 **SPEC de referencia:** [SPEC.md](SPEC.md) (implementada y verificada con pruebas; prueba de integración real el 2026-11-09).
 **CU e issue:** [CU-08](../../use-cases/CU-08-consultar-proceso.md); issue #11.
 **Estado:** Implementado y verificado el 2026-11-08; simplificado el 2026-11-08; prueba real el 2026-11-09.
-**Alcance:** consulta del progreso, actualización manual, descubrimiento del pendiente y aviso no bloqueante; sin teléfono ni cancelación.
+**Alcance:** consulta del progreso, actualización manual y acceso al pendiente desde Cuenta; sin teléfono ni cancelación.
 
 ## Contexto técnico verificado
 
@@ -21,16 +21,17 @@
 ## Solución
 
 1. `ReservationsApi.process(processId)` consume el `GET` por proceso. Solo `404` o `RESERVATION_PROCESS_NOT_FOUND` se traducen a `NOT_FOUND`; el resto es `UNCERTAIN`.
-2. `ReservationsApi.pending()` consume `GET /api/reservations?page=0&size=1` y devuelve solo `pending`. No se persiste ni se completa con el historial.
-3. `ReservationViewModel.discover()` corre una vez por instancia y solo si el estado sigue intacto; abre el pendiente y `App` lo muestra. Rotar no repite la consulta; `reset()` reinicia la guarda.
+2. Cuenta usa `ReservationsApi.reservations(...)` y muestra el pendiente separado del historial.
+3. Al tocar el pendiente en Cuenta, `MainScreen` abre el proceso con `ReservationViewModel.present(...)`.
 4. La pantalla presenta la fase agrupada en textos, el vencimiento convertido a la zona de atención y un aviso de teléfono. No calcula vencimientos ni estados.
+5. `MainScreen` usa el destino anterior de Navigation Compose y el resultado del inicio para determinar el regreso desde Reserva. La pantalla y el sistema invocan la misma acción.
 5. `refresh()` repite el `GET` del proceso conocido. Si falla, conserva el último proceso y muestra el mensaje con “Reintentar”.
-6. `App` conserva la visibilidad con `rememberSaveable`. Al salir de un proceso pendiente, la búsqueda muestra un banner “Ver estado”; al pulsarlo consulta Turnos (`refresh` para un proceso conocido, `verify` para uno incierto). Un proceso final o un rechazo se descartan con `dismiss()`.
-7. Un fallo de descubrimiento queda en `message` con `start == IDLE`; el banner ofrece “Reintentar” y la búsqueda sigue disponible.
+6. Buscar ofrece verificar por UUID un inicio incierto. `dismiss()` conserva procesos abiertos e intentos que requieren seguimiento.
+7. Un fallo al listar en Cuenta muestra el error y permite actualizar.
 
 **Sin polling:** la actualización es manual y al abrir el proceso. No hay temporizador ni observación de segundo plano.
 
-**Sin persistencia nueva:** el proceso y su `requestId` viven en el ViewModel. Reabrir la app crea un ViewModel nuevo y consulta Turnos con la sesión cifrada existente.
+**Sin persistencia nueva:** el proceso y su `requestId` viven en el ViewModel. Al reabrir la app, Cuenta puede volver a consultar Turnos con la sesión cifrada existente.
 
 **Respuestas tardías:** cada operación cancela el job anterior; `reset()` cancela el job y descarta el estado. No se agrega un token adicional. Las pruebas cubren inicio y actualización tardíos.
 
@@ -56,9 +57,9 @@
 
 ## Estado, operaciones y errores
 
-- `discover()` consulta una vez; un fallo se muestra como banner y no como ausencia.
+- La consulta de pendientes se realiza al abrir Cuenta.
 - `refresh()` conserva el proceso anterior ante un fallo; no lo reemplaza por un estado vacío.
-- `verify()` de CU-06 usa el mismo `GET` y distingue `404` de un fallo de transporte.
+- `refresh()` usa el mismo `GET` para el proceso conocido y el inicio incierto. Solo el `404` del UUID original del inicio permite repetirlo.
 - `dismiss()` descarta un proceso final o un rechazo; conserva un proceso pendiente o incierto. `reset()` descarta todo al cerrar sesión.
 - `expiresAt` se presenta como `DD/MM/AAAA · HH:mm` mediante `formatInstantInZone` con `ATTENTION_TIME_ZONE` (`America/Argentina/Buenos_Aires`), la misma zona de las horas locales de atención, sin compararlo con el reloj del dispositivo ni modificar el valor recibido.
 - El teléfono solo se anuncia; `canSubmitPhone` no habilita un envío en esta funcionalidad.
@@ -77,9 +78,9 @@ No se agregan dependencias ni configuración. Se reutilizan Ktor, kotlinx.serial
 | CA-03 | `ProcessPresentationTest`, `InstantFormatTest` | `expiresAt` convertido de UTC a la zona de atención, con cambio de día cuando corresponde; sin comparación con el reloj local. |
 | CA-04 | `ReservationViewModelTest`; emulador | Aviso de teléfono sin campo de envío. |
 | CA-05 | `ReservationViewModelTest` | Actualización exitosa y fallo que conserva el proceso. |
-| CA-06 | `KtorReservationsApiTest`, `ReservationViewModelTest`; emulador | `pending` abre el proceso; ausencia deja búsqueda. |
-| CA-07 | `ReservationViewModelTest`; emulador | Fallo de descubrimiento no bloquea y “Reintentar” repite. |
-| CA-08 | `ReservationViewModelTest`; emulador | Salir deja banner “Ver estado”, sin cancelar. |
+| CA-06 | `MyReservationsViewModelTest`; emulador | Cuenta recibe el pendiente y permite abrirlo. |
+| CA-07 | `MyReservationsViewModelTest`; emulador | Un error de listado permite actualizar. |
+| CA-08 | `ReservationViewModelTest`; emulador | Se conserva el pendiente al salir y Buscar ofrece verificar un inicio incierto. |
 | CA-09 | `ReservationViewModelTest` | Respuesta tardía tras `reset` no publica. |
 | CA-10 | Revisión de dependencias y código | Sin almacenamiento nuevo, polling ni reconciliación propia. |
 
@@ -90,11 +91,11 @@ No se agregan dependencias ni configuración. Se reutilizan Ktor, kotlinx.serial
 ## Orden de implementación
 
 1. Contrato de consulta y pendiente con pruebas.
-2. Estado, descubrimiento y actualización con pruebas.
-3. Pantalla, banner y cableado.
+2. Estado, apertura desde Cuenta y actualización con pruebas.
+3. Pantalla y cableado.
 4. Pruebas, build, lint y recorrido de solo lectura.
 
 ## Riesgos y decisiones pendientes
 
-- **Riesgos:** el descubrimiento depende de que Turnos responda; un fallo se informa y no se interpreta como ausencia. La sesión puede vencer entre la consulta y la actualización; el cliente protegido mantiene el comportamiento existente.
+- **Riesgos:** un fallo de listado se informa sin inferir ausencia del pendiente. El cliente protegido conserva el tratamiento de sesión vencida.
 - **Decisiones pendientes:** ninguna de comportamiento. El teléfono y la cancelación pertenecen a CU-07 y CU-10.

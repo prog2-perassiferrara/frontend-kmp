@@ -21,21 +21,11 @@ enum class StartStatus {
     REJECTED,
 }
 
-/** Acción que ofrece el aviso de la búsqueda. */
-enum class BannerAction { RETRY_DISCOVERY, SHOW_PROCESS }
-
 /**
  * Estado local del envío de teléfono. `UNCERTAIN` exige verificar el proceso
  * antes de volver a enviar; `SENDING` impide una segunda pulsación.
  */
 enum class PhoneStatus { IDLE, SENDING, UNCERTAIN }
-
-/** Aviso no bloqueante sobre un proceso o una solicitud que no se está mostrando. */
-data class ReservationBannerState(
-    val message: String,
-    val actionLabel: String,
-    val action: BannerAction,
-)
 
 /**
  * Estado de CU-06/CU-07/CU-08. El progreso mostrado siempre proviene de Turnos;
@@ -52,6 +42,9 @@ data class ReservationUiState(
     val phone: PhoneStatus = PhoneStatus.IDLE,
     val phoneMessage: String? = null,
 ) {
+    val canStart: Boolean
+        get() = !loading && (start == StartStatus.IDLE || start == StartStatus.REJECTED) && process?.isFinal != false
+
     /** El proceso recibido tiene prioridad sobre la selección enviada. */
     val professionalName: String
         get() = process?.professionalName?.takeIf { it.isNotBlank() }
@@ -78,25 +71,4 @@ data class ReservationUiState(
     override fun toString(): String =
         "ReservationUiState(process=$process, start=$start, requestId=$requestId, " +
             "loading=$loading, phone=$phone)"
-
-    /** Aviso que la búsqueda muestra cuando el proceso no está en pantalla. */
-    val banner: ReservationBannerState?
-        get() = when {
-            process != null && !process.isFinal -> ReservationBannerState(
-                message = "Tenés una solicitud de turno pendiente.",
-                actionLabel = "Ver estado",
-                action = BannerAction.SHOW_PROCESS,
-            )
-            start == StartStatus.UNCERTAIN -> ReservationBannerState(
-                message = "No pudimos confirmar el estado de tu solicitud.",
-                actionLabel = "Ver estado",
-                action = BannerAction.SHOW_PROCESS,
-            )
-            start == StartStatus.IDLE && message != null -> ReservationBannerState(
-                message = message,
-                actionLabel = "Reintentar",
-                action = BannerAction.RETRY_DISCOVERY,
-            )
-            else -> null
-        }
 }

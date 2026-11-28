@@ -11,7 +11,7 @@ Completar el recorrido de búsqueda: desde un profesional encontrado, consultar 
 ## Alcance
 
 - **RF-01 · Selección:** tocar un resultado de CU-04 abre la disponibilidad de ese profesional. La pantalla muestra su nombre y categoría y permite volver a la búsqueda.
-- **RF-02 · Fecha:** campo `AAAA-MM-DD` con validación local de forma. Se precarga con la fecha del filtro de búsqueda cuando ya respeta esa forma; vacío en caso contrario. El rango real lo valida Turnos.
+- **RF-02 · Fecha:** fila de cuatro días con «Anteriores» y «Más fechas». Al abrir, se consulta la fecha válida del filtro de búsqueda si es de hoy en adelante, o bien hoy en la zona de atención. Tocar un día consulta esa fecha. Navegar por las fechas solo cambia los días visibles.
 - **RF-03 · Consulta:** `GET /api/appointment-availability` con `professionalId` y `date`, usando el JWT de usuario y el cliente protegido existentes. No crea holds, procesos ni reservas, y no escribe datos.
 - **RF-04 · Resultados:** presentar los horarios devueltos en su orden, sin recalcular ni completar huecos. Se aceptan `HH:mm` y `HH:mm:ss` y se muestran como `HH:mm`.
 - **RF-05 · Estados:** mostrar carga, horarios, ausencia válida de horarios y error. La ausencia no es error; el error no se presenta como lista vacía.
@@ -31,8 +31,8 @@ Completar el recorrido de búsqueda: desde un profesional encontrado, consultar 
 ## Flujo de usuario
 
 1. En los resultados, la persona toca un profesional.
-2. La app muestra el profesional y el campo de fecha, precargado si la búsqueda ya tenía una fecha.
-3. Al consultar se muestra el progreso y se pide disponibilidad a Turnos.
+2. La app muestra el profesional y la fila de días. Consulta la fecha inicial.
+3. Al tocar otro día se muestra el progreso y se pide disponibilidad de ese día a Turnos.
 4. Con horarios se listan; sin horarios se informa que no hay disponibles para esa fecha.
 5. La persona puede marcar un horario; la app aclara que aún no está reservado.
 6. Ante un error se explica y, si es reintentable, se ofrece “Reintentar”.
@@ -41,9 +41,9 @@ Completar el recorrido de búsqueda: desde un profesional encontrado, consultar 
 ## Reglas y casos alternativos
 
 - La app no calcula huecos ni interpreta el filtro de agenda de Catálogo como disponibilidad real.
-- Una fecha que no cumple `AAAA-MM-DD` no se envía; el resto de los rechazos los decide Turnos.
+- El selector envía fechas de calendario en formato ISO. Turnos valida la fecha y la disponibilidad.
 - Un profesional deshabilitado o inexistente se informa y no se reintenta en bucle: corregir requiere volver a la búsqueda.
-- Cambiar la fecha mientras se espera una respuesta no muestra esa respuesta para la fecha nueva; la consulta debe repetirse.
+- Cambiar la fecha mientras se espera una respuesta cancela la consulta anterior y pide la nueva.
 - Consultar o marcar un horario no lo bloquea: otro usuario puede ocuparlo antes de iniciar la reserva (CU-06).
 
 ## Criterios de aceptación

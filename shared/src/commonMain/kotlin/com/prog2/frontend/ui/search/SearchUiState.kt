@@ -18,7 +18,6 @@ data class SearchUiState(
     val totalPages: Int = 0,
     val totalElements: Long = 0,
     val results: List<Professional> = emptyList(),
-    val selected: Professional? = null,
     val isSearching: Boolean = false,
     val hasResult: Boolean = false,
     val paginationStale: Boolean = false,
@@ -26,7 +25,6 @@ data class SearchUiState(
     val error: String? = null,
     val retryable: Boolean = false,
     val nameError: String? = null,
-    val availableOnError: String? = null,
 ) {
     // Los totales pertenecen a la última consulta: si se editó un filtro, paginar
     // los mezclaría con filtros que Catálogo todavía no evaluó.

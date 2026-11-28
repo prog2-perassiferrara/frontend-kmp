@@ -68,3 +68,11 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 
 - `ReservationError` (12 valores) pasó a `ReservationFailure` (3 clasificaciones) con mensaje en la excepción. Se eliminaron `StartedReservation.replayed`, `ReservationCancellation`, `warningCode`, `phoneRequestId`, las etapas `Started/Idle/...` y los campos `visible`, `notice`, `error`, `retryable`, `isRefreshing`, `processId`, `discoveryFailure` y `discoveryRetryable`.
 - La visibilidad, el banner y la acción “Ver estado” viven en el cableado de navegación (`MainScreen`); `ReservationViewModel.dismiss()` solo decide qué estado se conserva. No cambian RF, CA ni contratos.
+
+### Ajuste del 2026-11-27
+
+El inicio incierto puede retomarse desde Buscar. El proceso confirmado como pendiente se retoma desde Cuenta. Verificación local mediante `./gradlew --offline :shared:testAndroidHostTest :androidApp:assembleDebug`. La interacción con las pantallas queda para comprobación en Android.
+
+### Verificación del ajuste de KMP (2026-11-27)
+
+`ReservationViewModelTest` verifica un inicio nuevo después de recibir tarde el cierre anterior y que el UUID de otro pendiente nunca se reutilice para iniciar. La suite host pasó con 168 pruebas. El APK debug compiló y lint quedó sin errores. El recorrido visual en Android queda pendiente.

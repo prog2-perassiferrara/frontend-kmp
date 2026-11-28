@@ -1,11 +1,14 @@
 package com.prog2.frontend.catalog.data
 
 import com.prog2.frontend.catalog.CatalogException
+import kotlinx.serialization.Serializable
 
 /** Categoría publicada por Catálogo; se usa como opción del filtro y en los resultados. */
+@Serializable
 data class CatalogCategory(val id: Long, val name: String, val enabled: Boolean)
 
 /** Profesional resumido de una búsqueda. */
+@Serializable
 data class Professional(
     val id: Long,
     val firstName: String,
@@ -18,9 +21,11 @@ data class Professional(
  * Resumen de la copia consultada. Solo `CURRENT` acredita vigencia comprobada;
  * cualquier otro valor se presenta como posible desactualización.
  */
+@Serializable
 data class CatalogState(val state: String, val copyAvailable: Boolean)
 
 /** Página de resultados y estado de la misma lectura. */
+@Serializable
 data class ProfessionalPage(
     val content: List<Professional>,
     val page: Int,

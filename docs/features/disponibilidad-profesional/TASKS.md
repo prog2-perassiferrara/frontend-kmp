@@ -63,3 +63,7 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 ### Desviaciones del PLAN
 
 Ninguna. La vuelta desde disponibilidad usa el `NavController` (`popBackStack`): «Volver» y Atrás regresan a Buscar sin cerrar la Activity. Límites observados: el `401` y el `503 CATALOG_NOT_CURRENT` se cubren con pruebas, no se forzaron en el recorrido por no exponer el backend un mecanismo determinista.
+
+### Ajuste del 2026-11-27
+
+- [x] **T8 · Fila de fechas** (RF-02, RF-07, RF-09). `AvailabilityDaysTest` cubre precarga, zona de atención y cambio de mes. `AvailabilityViewModelTest` cubre el reemplazo de una consulta en curso. `./gradlew --offline :shared:testAndroidHostTest :androidApp:assembleDebug :androidApp:lintDebug` terminó correctamente, con 166 pruebas sin fallos y lint sin errores. La revisión visual en Android queda pendiente.

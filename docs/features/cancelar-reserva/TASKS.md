@@ -68,3 +68,7 @@ Cada RF tiene CA y validación en el PLAN; las tareas no agregan alcance. Sin de
 - El bloqueo tras un resultado incierto y su desbloqueo solo con lectura exitosa no se reprodujeron contra la red real.
 - El banner de proceso pendiente de CU-08 conservó el texto anterior al volver a la búsqueda, aunque Turnos ya había marcado ese proceso como fallido; es un comportamiento preexistente fuera de CU-09/10.
 - Sin cambios en `backend-turnos` ni en CU-01/CU-08.
+
+### Verificación del ajuste de KMP (2026-11-27)
+
+`MyReservationsViewModelTest` comprueba que se lea solo la reserva afectada ante un fallo y que la fila siga bloqueada hasta una lectura exitosa. La suite host pasó con 168 pruebas. El APK debug compiló y lint quedó sin errores. El recorrido visual en Android queda pendiente.

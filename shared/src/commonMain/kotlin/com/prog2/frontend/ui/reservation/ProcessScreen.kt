@@ -5,13 +5,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -19,7 +19,6 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import com.prog2.frontend.reservation.data.ReservationProcess
 
 /**
  * Presenta el proceso informado por Turnos: envío en curso, fase, vencimiento,
@@ -31,130 +30,60 @@ class ProcessScreen {
     fun Content(
         state: ReservationUiState,
         onRefresh: () -> Unit,
-        onVerify: () -> Unit,
         onRetry: () -> Unit,
         onPhoneChange: (String) -> Unit,
         onSubmitPhone: () -> Unit,
-        onVerifyPhone: () -> Unit,
-        onBackToSearch: () -> Unit,
-        onBackToAvailability: () -> Unit,
+        onBack: () -> Unit,
+        backLabel: String,
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Reserva", style = MaterialTheme.typography.h5)
-            when {
-                state.start == StartStatus.SENDING -> Unit
-                state.process == null &&
-                    (state.start == StartStatus.REJECTED || state.start == StartStatus.NOT_REGISTERED) ->
-                    TextButton(onClick = onBackToAvailability) { Text("Volver a disponibilidad") }
-                else -> TextButton(onClick = onBackToSearch) { Text("Volver") }
+            Text("Reserva", style = MaterialTheme.typography.headlineSmall)
+            if (state.start != StartStatus.SENDING) {
+                TextButton(onClick = onBack) { Text(backLabel) }
             }
         }
         if (state.professionalName.isNotBlank()) {
-            Text(state.professionalName, style = MaterialTheme.typography.subtitle1)
+            Text(state.professionalName, style = MaterialTheme.typography.titleMedium)
         }
         val selectionText = listOf(state.date, displayTime(state.startTime))
             .filter { it.isNotBlank() }
             .joinToString(" · ")
         if (selectionText.isNotBlank()) {
-            Text(selectionText, style = MaterialTheme.typography.body2)
+            Text(selectionText, style = MaterialTheme.typography.bodyMedium)
         }
-        Divider()
+        HorizontalDivider()
 
         val process = state.process
-        when {
-            process != null -> Process(
-                process,
-                state,
-                onRefresh,
-                onPhoneChange,
-                onSubmitPhone,
-                onVerifyPhone,
-            )
-            state.start == StartStatus.SENDING -> Sending()
-            state.start == StartStatus.UNCERTAIN -> Uncertain(state, onVerify)
-            state.start == StartStatus.NOT_REGISTERED -> NotRegistered(state, onRetry)
-            state.start == StartStatus.REJECTED -> Rejected(state.message)
-        }
-    }
-
-    @Composable
-    private fun Sending() {
-        CircularProgressIndicator()
-        Text("Enviando tu solicitud…")
-        Text(
-            "La solicitud se envía una sola vez. Todavía no tenemos un resultado.",
-            style = MaterialTheme.typography.body2,
-        )
-    }
-
-    @Composable
-    private fun Process(
-        process: ReservationProcess,
-        state: ReservationUiState,
-        onRefresh: () -> Unit,
-        onPhoneChange: (String) -> Unit,
-        onSubmitPhone: () -> Unit,
-        onVerifyPhone: () -> Unit,
-    ) {
-        val view = processView(process)
-        Text(view.title, style = MaterialTheme.typography.subtitle1)
-        Text(view.detail)
-        processReason(process.reasonCode)?.let { Text(it, style = MaterialTheme.typography.body2) }
-        expirationNotice(process)?.let {
-            Text(it, style = MaterialTheme.typography.body2)
-        }
-        when {
-            state.phone == PhoneStatus.SENDING -> {
-                Text("Enviando el teléfono…", style = MaterialTheme.typography.body2)
-                CircularProgressIndicator()
+        if (process != null) {
+            val status = when (state.phone) {
+                PhoneStatus.SENDING -> "Enviando teléfono…"
+                PhoneStatus.UNCERTAIN -> "Actualizá el estado antes de volver a enviar el teléfono."
+                PhoneStatus.IDLE -> processStatusLabel(process)
             }
-            state.phone == PhoneStatus.UNCERTAIN -> {
-                Notice(
-                    "No pudimos confirmar si recibimos tu teléfono. " +
-                        "Verificá el estado antes de volver a enviarlo.",
-                )
-                Button(
-                    onClick = onVerifyPhone,
-                    enabled = !state.loading,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(if (state.loading) "Verificando…" else "Verificar estado")
-                }
-                if (state.loading) CircularProgressIndicator()
+            Text(status, style = MaterialTheme.typography.titleMedium)
+            processReason(process.reasonCode)?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+            expirationNotice(process)?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+            if (state.phone == PhoneStatus.IDLE && process.canSubmitPhone) {
+                PhoneForm(state, onPhoneChange, onSubmitPhone)
             }
-            process.canSubmitPhone -> PhoneForm(state, onPhoneChange, onSubmitPhone)
-            else -> phoneNotice(process)?.let { Notice(it) }
-        }
-        if (state.phone != PhoneStatus.UNCERTAIN) {
-            state.phoneMessage?.let { Message(it) }
-        }
-        state.message?.let { Message(it) }
-
-        if (process.isFinal) {
-            Text(
-                "La solicitud ya está cerrada.",
-                style = MaterialTheme.typography.body2,
-            )
         } else {
-            Text(
-                "Tu solicitud sigue pendiente y todavía no está confirmada.",
-                style = MaterialTheme.typography.body2,
-            )
-            Button(
-                onClick = onRefresh,
-                enabled = !state.loading,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    when {
-                        state.phone == PhoneStatus.SENDING -> "Enviando teléfono…"
-                        state.loading -> "Actualizando…"
-                        state.message != null -> "Reintentar"
-                        else -> "Actualizar"
-                    },
-                )
+            when (state.start) {
+                StartStatus.SENDING -> Text("Enviando tu solicitud…")
+                StartStatus.UNCERTAIN -> Text("Actualizá el estado para verificar si tu solicitud quedó registrada.")
+                StartStatus.NOT_REGISTERED -> Text("Tu solicitud no quedó registrada.")
+                StartStatus.REJECTED, StartStatus.IDLE -> Unit
             }
-            if (state.loading && state.phone != PhoneStatus.SENDING) CircularProgressIndicator()
+        }
+        if (state.phone != PhoneStatus.IDLE) state.phoneMessage?.let { Message(it) }
+        state.message?.let { Message(it) }
+        if (state.loading || state.start == StartStatus.SENDING) CircularProgressIndicator()
+
+        if (state.start == StartStatus.NOT_REGISTERED) {
+            Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text("Reintentar inicio") }
+        } else if (state.start == StartStatus.UNCERTAIN || process?.isFinal == false) {
+            Button(onClick = onRefresh, enabled = !state.loading, modifier = Modifier.fillMaxWidth()) {
+                Text(if (state.loading && state.phone != PhoneStatus.SENDING) "Actualizando…" else "Actualizar estado")
+            }
         }
     }
 
@@ -164,10 +93,6 @@ class ProcessScreen {
         onPhoneChange: (String) -> Unit,
         onSubmitPhone: () -> Unit,
     ) {
-        Text(
-            "Necesitamos tu teléfono para continuar.",
-            style = MaterialTheme.typography.subtitle2,
-        )
         OutlinedTextField(
             value = state.phoneNumber,
             onValueChange = onPhoneChange,
@@ -192,65 +117,14 @@ class ProcessScreen {
         ) {
             Text("Enviar teléfono")
         }
-        Text(
-            "Enviarlo no confirma la reserva: solo lo usamos para esta solicitud.",
-            style = MaterialTheme.typography.body2,
-        )
-    }
-
-    @Composable
-    private fun Uncertain(state: ReservationUiState, onVerify: () -> Unit) {
-        Text("No pudimos confirmar si tu solicitud quedó registrada.", style = MaterialTheme.typography.subtitle1)
-        Text("La solicitud pudo haberse registrado. Verificá el estado antes de volver a iniciarla.")
-        state.message?.let { Message(it) }
-        Button(
-            onClick = onVerify,
-            enabled = !state.loading,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(if (state.loading) "Verificando…" else "Verificar estado")
-        }
-        if (state.loading) CircularProgressIndicator()
-    }
-
-    @Composable
-    private fun NotRegistered(state: ReservationUiState, onRetry: () -> Unit) {
-        Text("Tu solicitud no quedó registrada.", style = MaterialTheme.typography.subtitle1)
-        Text("Podés volver a intentarlo; no se va a duplicar.")
-        state.message?.let { Message(it) }
-        Button(
-            onClick = onRetry,
-            enabled = !state.loading,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(if (state.loading) "Reintentando…" else "Reintentar")
-        }
-        if (state.loading) CircularProgressIndicator()
-    }
-
-    @Composable
-    private fun Rejected(message: String?) {
-        Text(message ?: "No pudimos iniciar la reserva.", style = MaterialTheme.typography.subtitle1)
-        Text(
-            "No se creó una reserva. Volvé a la disponibilidad para consultar horarios actuales.",
-            style = MaterialTheme.typography.body2,
-        )
-    }
-
-    @Composable
-    private fun Notice(message: String) {
-        Text(
-            message,
-            style = MaterialTheme.typography.body2,
-            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-        )
+        state.phoneMessage?.let { Message(it) }
     }
 
     @Composable
     private fun Message(message: String) {
         Text(
             message,
-            color = MaterialTheme.colors.error,
+            color = MaterialTheme.colorScheme.error,
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
         )
     }

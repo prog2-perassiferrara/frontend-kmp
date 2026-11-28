@@ -23,8 +23,8 @@
 
 1. `AvailabilityApi`/`KtorAvailabilityApi` consumen la consulta sobre `AuthenticatedApiClient` y traducen estados a `AvailabilityException`, con `AvailabilityError` presentable.
 2. `SearchUiState` agrega `selected: Professional?`; `SearchViewModel` expone `select(professional)` y `backToSearch()`. La selección vive con el estado ya existente, por lo que sobrevive a la rotación y se descarta al cerrar sesión.
-3. `AvailabilityViewModel` conserva profesional, fecha, horarios, horario marcado, carga y error; valida la forma de la fecha, consulta, reintenta y descarta la respuesta que no corresponde a la selección vigente. `selectTime` solo guarda una marca visual.
-4. `AvailabilityScreen` presenta identificación del profesional, fecha, estados y horarios. Tocar un horario lo marca con un selector; no reserva ni crea holds, porque eso pertenece a CU-06.
+3. `AvailabilityViewModel` conserva profesional, fecha, horarios, horario marcado, carga y error. `selectDate` consulta el día elegido y cancela la consulta anterior. `selectTime` solo guarda una marca visual.
+4. `AvailabilityScreen` usa el `DateSelector` compartido con Buscar y presenta estados y horarios. La primera fecha visible se conserva con `rememberSaveable`. Android genera días de calendario en la zona de atención sin dependencias adicionales. Tocar una fecha consulta ese día. Tocar un horario lo marca para CU-06.
 5. `App` muestra una pantalla u otra según `searchViewModel.state.selected`; `AppContainer` y `MainActivity` cablean la nueva API y pantalla. Al cerrar sesión se descartan búsqueda y disponibilidad.
 
 **Navegación:** dos destinos autenticados resueltos con el estado existente y una acción “Volver”; no se agrega Navigation Compose ni BottomBar. Una biblioteca de navegación y una barra de secciones no resuelven un problema del CU. El retroceso del sistema en la pantalla de disponibilidad sigue el comportamiento actual de la app (cierra la actividad): la vuelta explícita es el botón, y así queda registrado como límite.
@@ -57,8 +57,8 @@
 
 ## Estado, operaciones y errores
 
-- `AvailabilityUiState`: profesional seleccionado, fecha, error de fecha, horarios, horario marcado, carga, resultado obtenido y error.
-- `open(professional, initialDate)` fija la selección y descarta resultados anteriores; `consult()` valida y consulta; `selectTime(time)` marca un horario ofrecido y `retry()` repite la fecha vigente.
+- `AvailabilityUiState`: profesional seleccionado, fecha, horarios, horario marcado, carga, resultado obtenido y error.
+- `open(professional, initialDate)` fija la selección. `consult()` consulta la fecha vigente al abrir la pantalla o al volver de una solicitud. `selectTime(time)` marca un horario ofrecido y `retry()` repite la fecha vigente.
 - `changeDate` y cada nueva consulta descartan el horario marcado, porque pertenecía a otra lista.
 - `400`/`404` se informan sin reintento; `503`, `5xx`, transporte o cuerpo ilegible permiten “Reintentar”. El `401` lo resuelve el cliente protegido.
 - `reset()` cancela la consulta y descarta el estado al cerrar sesión.
@@ -95,5 +95,5 @@ No se agregan dependencias ni configuración. Se reutilizan Ktor, kotlinx.serial
 
 ## Riesgos y decisiones pendientes
 
-- **Riesgos:** el backend valida el rango de fechas y la zona de atención; la app solo verifica la forma. Los horarios no se persisten ni se consideran vigentes entre consultas.
+- **Riesgos:** Turnos valida el día solicitado. El selector usa la zona de atención definida en KMP. Los horarios no se persisten ni se consideran vigentes entre consultas.
 - **Decisiones pendientes:** ninguna de comportamiento. La reserva y la creación de holds pertenecen a CU-06; aquí solo se marca el horario.

@@ -73,3 +73,15 @@ Cada RF tiene CA y validación en el PLAN; cada tarea referencia sus RF/CA y no 
 
 - El estado único reduce las etapas a `StartStatus` y el proceso conocido; `message` reemplaza `notice`, `error` y `discoveryFailure`. El banner se deriva del estado y `App` decide su visibilidad.
 - `dismiss()` descarta solo procesos finales o rechazos; un proceso pendiente o incierto se conserva. No cambian RF, CA ni contratos.
+
+### Ajuste del 2026-11-27
+
+Cuenta abre el pendiente informado por Turnos. Buscar conserva el acceso a la verificación de un inicio incierto por UUID. Verificación local mediante `./gradlew --offline :shared:testAndroidHostTest :androidApp:assembleDebug`. La interacción con las pantallas queda para comprobación en Android.
+
+### Verificación del ajuste de KMP (2026-11-27)
+
+Inicio incierto, proceso conocido y teléfono comparten «Actualizar estado». La regresión del ViewModel cubre los tres caminos. La suite host pasó con 168 pruebas. El APK debug compiló y lint quedó sin errores. El recorrido visual en Android queda pendiente.
+
+La presentación usa un texto por fase y conserva vencimiento y errores. `ProcessPresentationTest` verifica los textos de confirmación, envío y rechazo de teléfono. Con los textos actualizados volvieron a pasar las 168 pruebas host, la compilación del APK debug y lint.
+
+**Regreso desde Reserva:** el botón «Volver» y Atrás comparten una acción de Navigation Compose. Pasaron 168 pruebas host, compiló el APK debug y lint quedó sin errores. Queda pendiente comprobar en Android el regreso a Cuenta, a Buscar y a Disponibilidad con recarga de horarios.

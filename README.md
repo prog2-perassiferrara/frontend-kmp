@@ -9,7 +9,7 @@ Detalle completo en [`docs/EVALUACION.md`](docs/EVALUACION.md).
 
 Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gestión de reservas propias. Android debe permitir completar el flujo funcional requerido por cátedra.
 
-**Estado:** CU-01 a CU-10 implementados con MVVM: registro, inicio/restauración/cierre de sesión; búsqueda de profesionales con filtros y paginación sobre Catálogo; disponibilidad, inicio, teléfono y verificación de reserva sobre Turnos; y consulta, apertura y cancelación de reservas propias. El área autenticada navega con una BottomBar de dos pestañas —Buscar y Cuenta— y pantallas secundarias para disponibilidad y proceso. Las fechas de búsqueda y de disponibilidad se eligen con el calendario nativo de Android. Ver resultados, límites y verificaciones en los planes de [registro](docs/features/registro-usuario/PLAN.md), [sesión](docs/features/sesion-usuario/PLAN.md), [búsqueda](docs/features/busqueda-profesionales/PLAN.md), [disponibilidad](docs/features/disponibilidad-profesional/PLAN.md), [inicio de reserva](docs/features/iniciar-reserva/PLAN.md), [teléfono](docs/features/completar-telefono/PLAN.md), [consulta](docs/features/consultar-reservas/PLAN.md) y [cancelación](docs/features/cancelar-reserva/PLAN.md).
+**Estado:** CU-01 a CU-10 implementados con MVVM: registro, inicio/restauración/cierre de sesión; búsqueda de profesionales con filtros y paginación sobre Catálogo; disponibilidad, inicio, teléfono y verificación de reserva sobre Turnos; y consulta, apertura y cancelación de reservas propias. El área autenticada navega con una BottomBar de dos pestañas —Buscar y Cuenta— y pantallas secundarias para disponibilidad y proceso. Ver resultados, límites y verificaciones en los planes de [registro](docs/features/registro-usuario/PLAN.md), [sesión](docs/features/sesion-usuario/PLAN.md), [búsqueda](docs/features/busqueda-profesionales/PLAN.md), [disponibilidad](docs/features/disponibilidad-profesional/PLAN.md), [inicio de reserva](docs/features/iniciar-reserva/PLAN.md), [teléfono](docs/features/completar-telefono/PLAN.md), [consulta](docs/features/consultar-reservas/PLAN.md) y [cancelación](docs/features/cancelar-reserva/PLAN.md).
 
 ## Requisitos
 
@@ -18,7 +18,7 @@ Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gesti�
 - Android SDK API 37 y Build Tools 36.0.0.
 - Emulador o dispositivo desde API 24 para ejecutar. La primera descarga de dependencias requiere Internet.
 
-Se conserva el stack generado: Kotlin 2.4.21, Compose Multiplatform/Material 1.12.2, Lifecycle 2.11.0, Navigation Compose 2.10.0, Material Icons 1.7.3 y Gradle Wrapper 9.5.1. Las versiones están en `gradle/libs.versions.toml`.
+El proyecto usa Kotlin 2.4.21, Compose Multiplatform 1.12.2, Material 3 1.12.0-alpha03, Lifecycle 2.11.0, Navigation Compose 2.10.0, Material Icons 1.7.3 y Gradle Wrapper 9.5.1. La versión de Material 3 coincide con la del ejemplo docente de navegación. Las versiones están en `gradle/libs.versions.toml`.
 
 ## Configuración local
 
@@ -75,7 +75,7 @@ Con un dispositivo o emulador conectado, ejecutar además las pruebas de Keystor
 
 Seleccionar `androidApp` y un emulador/dispositivo en Android Studio y pulsar **Run**. Ingresar usuario o correo y contraseña de una cuenta activa de Turnos. «Recordarme» solicita 30 días en lugar de 24 horas; la app respeta el vencimiento recibido en ambos casos.
 
-Con la sesión iniciada, la BottomBar permite alternar entre **Buscar** (CU-04/05 y acceso al flujo de reserva) y **Cuenta**, que contiene «Mis reservas» (CU-09/10) y «Cerrar sesión». Disponibilidad y proceso se abren como pantallas secundarias; el botón Atrás del sistema vuelve dentro de la app y «Volver» en un proceso regresa a Cuenta o a Buscar según su origen. Entrar a Cuenta relee las reservas propias. Cambiar de pestaña conserva filtros, resultados, selección y proceso porque los ViewModels viven a nivel de Activity. Cerrar sesión descarta esos estados y vuelve al login. En búsqueda, «Seleccionar fecha» abre el calendario nativo, permite quitarla y conserva el formato `AAAA-MM-DD` que espera Catálogo. En disponibilidad, el mismo calendario no permite elegir días pasados. Los vencimientos que el servicio informa en UTC se presentan en `DD/MM/AAAA · HH:mm` con la misma zona horaria de atención que los turnos.
+Con la sesión iniciada, la BottomBar permite alternar entre **Buscar** (CU-04/05 y acceso al flujo de reserva) y **Cuenta**, que contiene «Mis reservas» (CU-09/10) y «Cerrar sesión». Disponibilidad y proceso se abren como pantallas secundarias; el botón Atrás del sistema vuelve dentro de la app y «Volver» en un proceso regresa a Cuenta o a Buscar según su origen. Entrar a Cuenta relee las reservas propias. Cambiar de pestaña conserva filtros, resultados, selección y proceso porque los ViewModels viven a nivel de Activity. Cerrar sesión descarta esos estados y vuelve al login. Buscar y Disponibilidad comparten un selector de cuatro días. En Buscar, la fecha es opcional y se aplica al pulsar «Buscar». En Disponibilidad, tocar un día consulta sus horarios. Los procesos pendientes se retoman desde Cuenta, sin consulta automática al iniciar sesión. Los vencimientos que el servicio informa en UTC se presentan en `DD/MM/AAAA · HH:mm` con la misma zona horaria de atención que los turnos.
 
 Para instalar y abrir desde la terminal, con un dispositivo conectado:
 
@@ -85,8 +85,6 @@ adb -s <serial> shell am start -n com.prog2.frontend/.MainActivity
 ```
 
 Si `adb` no está en el PATH, usar el ejecutable de `platform-tools` del SDK. Las verificaciones de cada revisión están en el plan de la funcionalidad; instalar o compilar no sustituye comprobar el comportamiento.
-
-`LoginScreen.kt` incluye `LoginScreenPreview`, estática y sin ViewModel/red/almacenamiento. Su código compila; el renderizado en el IDE no forma parte de la evidencia de ejecución.
 
 La contraseña/formulario se mantienen solo en el ViewModel; no se restauran tras terminar el proceso Android. Se conserva únicamente el JWT cifrado con Android Keystore en un archivo privado excluido del backup. Logout y vencimiento/invalidez detectados retiran la sesión y el estado temporal, sin cancelar procesos o reservas. No hay renovación automática, consultas de negocio offline ni cola de solicitudes.
 

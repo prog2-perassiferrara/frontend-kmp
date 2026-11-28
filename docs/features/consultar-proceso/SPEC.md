@@ -6,7 +6,7 @@
 
 ## Objetivo
 
-Mostrar el progreso que Turnos informa para el proceso propio, permitir actualizarlo y recuperar el pendiente al iniciar sesión o reabrir la app, sin repetir operaciones ni replicar la reconciliación del backend.
+Mostrar el progreso que Turnos informa para el proceso propio, permitir actualizarlo y retomar el pendiente desde Cuenta, sin repetir operaciones ni replicar la reconciliación del backend.
 
 ## Alcance
 
@@ -15,9 +15,9 @@ Mostrar el progreso que Turnos informa para el proceso propio, permitir actualiz
 - **RF-03 · Vencimiento:** mostrar `expiresAt` mientras la solicitud siga abierta, convertido a la zona horaria de atención con la que la aplicación presenta las fechas y horas de los turnos. El contrato lo informa en UTC; un proceso finalizado puede conservarlo en el DTO, pero ya no es relevante. El reloj del dispositivo no se usa para declarar vencido, cancelado ni confirmado un proceso.
 - **RF-04 · Teléfono:** cuando `requiredField=PHONE_NUMBER` o `canSubmitPhone=true`, avisar que falta el teléfono y dejar la acción para CU-07. No se envía ni se solicita el número.
 - **RF-05 · Actualización:** permitir actualizar el proceso conocido sin polling permanente. La actualización no crea efectos.
-- **RF-06 · Pendiente propio:** al iniciar sesión o reabrir la app, consultar `GET /api/reservations?page=0&size=1` y abrir el `pending` solo si Turnos lo devuelve.
-- **RF-07 · Descubrimiento no bloqueante:** si la consulta inicial falla, abrir la búsqueda y mostrar un aviso con “Reintentar”; no deducir ausencia de proceso.
-- **RF-08 · Salir y volver:** salir de la pantalla no cancela ni abandona el proceso. El regreso conserva el origen: vuelve a Cuenta si el proceso se abrió allí y a Buscar si se abrió desde el flujo de búsqueda. Desde la búsqueda, un aviso permite volver a consultarlo.
+- **RF-06 · Pendiente propio:** al entrar en Cuenta, la consulta de reservas muestra el pendiente informado por Turnos y permite abrir su progreso.
+- **RF-07 · Error de consulta:** si falla el listado, informar el error y permitir actualización sin interpretar ausencia de proceso.
+- **RF-08 · Salir y volver:** salir de la pantalla no cancela ni abandona el proceso. «Volver» y Atrás regresan a Cuenta si el proceso se abrió allí, o a Buscar en el flujo de búsqueda. Si el inicio fue rechazado o no quedó registrado y se abrió desde Disponibilidad, ambas acciones vuelven a Disponibilidad y actualizan los horarios. Desde Buscar se puede verificar un inicio incierto.
 - **RF-09 · Sesión y respuestas tardías:** una respuesta de una sesión anterior no reabre el proceso ni publica datos de otra cuenta. Un `401` conserva el cierre de sesión existente.
 - **RF-10 · Sin estado local nuevo:** el progreso no se persiste; al reabrir se consulta Turnos. No hay cola offline, polling ni reconciliación propia.
 
@@ -30,18 +30,18 @@ Mostrar el progreso que Turnos informa para el proceso propio, permitir actualiz
 
 ## Flujo de usuario
 
-1. Al entrar con sesión válida, la app consulta el pendiente propio sin bloquear la búsqueda.
-2. Si Turnos devuelve un pendiente, se abre su progreso con la fase y el vencimiento recibidos.
+1. La sesión abre Buscar. Entrar en Cuenta consulta las reservas propias.
+2. Si Turnos devuelve un pendiente, la persona puede abrir su progreso con la fase y el vencimiento recibidos.
 3. La persona puede actualizar el estado, volver a la búsqueda o salir de la app; el proceso sigue en Turnos.
 4. Si Turnos pide teléfono, se muestra el aviso correspondiente sin habilitar el envío.
 5. Si un proceso termina, se muestra el resultado informado y no se ofrecen acciones incompatibles.
-6. Si la consulta inicial o una actualización falla, se informa y se permite reintentar.
+6. Si el listado o una actualización falla, se informa y se permite reintentar.
 
 ## Reglas y casos alternativos
 
 - Un `404` de consulta informa que el proceso no existe o no es propio, sin exponer datos ajenos.
 - Un fallo de red no se interpreta como ausencia del proceso ni como resultado final.
-- El pendiente se abre una sola vez por instancia del ViewModel; rotar la pantalla no repite la consulta ni reabre un proceso que la persona dejó.
+- El pendiente se abre desde Cuenta por una acción explícita.
 - El proceso Android puede descartar el estado temporal; la recuperación se apoya en la sesión conservada y en Turnos.
 - Las fases abiertas se distinguen en pantalla: espera de la solicitud del teléfono, teléfono pendiente y teléfono enviado. Solo `CONFIRMED` anuncia una reserva confirmada.
 - La app no usa `processId` de otra cuenta ni mezcla procesos anteriores con el pendiente.
@@ -53,9 +53,9 @@ Mostrar el progreso que Turnos informa para el proceso propio, permitir actualiz
 - **CA-03 · RF-03:** `expiresAt` se muestra como `DD/MM/AAAA · HH:mm` en la zona de atención, con el mismo criterio que las fechas de los turnos, solo mientras el proceso está abierto y sin usar el reloj local para declarar vencimiento.
 - **CA-04 · RF-04:** `requiredField` o `canSubmitPhone` producen un aviso, sin campo ni envío de teléfono.
 - **CA-05 · RF-05:** “Actualizar” repite el `GET` y conserva el último proceso si la actualización falla.
-- **CA-06 · RF-06:** al iniciar sesión o reabrir, un `pending` de Turnos abre el proceso; sin `pending` se muestra la búsqueda.
-- **CA-07 · RF-07:** un fallo de descubrimiento no bloquea la búsqueda y ofrece “Reintentar”.
-- **CA-08 · RF-08:** salir del proceso deja un aviso “Ver estado” y no cancela el proceso. “Volver” regresa a la pestaña Cuenta cuando el proceso se abrió allí, y a Buscar cuando se abrió desde el flujo de búsqueda.
+- **CA-06 · RF-06:** iniciar sesión abre Buscar. Cuenta muestra el pendiente de Turnos y permite abrirlo.
+- **CA-07 · RF-07:** un fallo en Cuenta permite actualizar el listado.
+- **CA-08 · RF-08:** salir no cancela el proceso y un inicio incierto se puede verificar desde Buscar. «Volver» y Atrás aplican la misma regla de regreso a Cuenta, Buscar o Disponibilidad.
 - **CA-09 · RF-09:** una respuesta tardía tras cerrar sesión no publica el proceso.
 - **CA-10 · RF-10:** no se agrega almacenamiento local, cola, polling ni reconciliación propia.
 
