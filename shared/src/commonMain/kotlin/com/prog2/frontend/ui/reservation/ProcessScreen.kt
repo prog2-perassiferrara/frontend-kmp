@@ -5,13 +5,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -37,21 +37,21 @@ class ProcessScreen {
         backLabel: String,
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Reserva", style = MaterialTheme.typography.h5)
+            Text("Reserva", style = MaterialTheme.typography.headlineSmall)
             if (state.start != StartStatus.SENDING) {
                 TextButton(onClick = onBack) { Text(backLabel) }
             }
         }
         if (state.professionalName.isNotBlank()) {
-            Text(state.professionalName, style = MaterialTheme.typography.subtitle1)
+            Text(state.professionalName, style = MaterialTheme.typography.titleMedium)
         }
         val selectionText = listOf(state.date, displayTime(state.startTime))
             .filter { it.isNotBlank() }
             .joinToString(" · ")
         if (selectionText.isNotBlank()) {
-            Text(selectionText, style = MaterialTheme.typography.body2)
+            Text(selectionText, style = MaterialTheme.typography.bodyMedium)
         }
-        Divider()
+        HorizontalDivider()
 
         val process = state.process
         if (process != null) {
@@ -60,9 +60,9 @@ class ProcessScreen {
                 PhoneStatus.UNCERTAIN -> "Actualizá el estado antes de volver a enviar el teléfono."
                 PhoneStatus.IDLE -> processStatusLabel(process)
             }
-            Text(status, style = MaterialTheme.typography.subtitle1)
-            processReason(process.reasonCode)?.let { Text(it, style = MaterialTheme.typography.body2) }
-            expirationNotice(process)?.let { Text(it, style = MaterialTheme.typography.body2) }
+            Text(status, style = MaterialTheme.typography.titleMedium)
+            processReason(process.reasonCode)?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+            expirationNotice(process)?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
             if (state.phone == PhoneStatus.IDLE && process.canSubmitPhone) {
                 PhoneForm(state, onPhoneChange, onSubmitPhone)
             }
@@ -124,7 +124,7 @@ class ProcessScreen {
     private fun Message(message: String) {
         Text(
             message,
-            color = MaterialTheme.colors.error,
+            color = MaterialTheme.colorScheme.error,
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
         )
     }

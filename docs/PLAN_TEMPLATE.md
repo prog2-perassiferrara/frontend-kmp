@@ -19,7 +19,7 @@ TASKS.md con tareas, dependencias y comprobaciones.
 - Propón una solución proporcional al alcance y coherente con el proyecto.
   Reutiliza lo existente y justifica nuevas dependencias o cambios de arquitectura.
 - Aplicá la arquitectura documentada en `AGENTS.md`: KMP con `androidApp`/`shared`,
-  Compose Material 1, MVVM ligero, Ktor y kotlinx. No traslades la arquitectura
+  Compose Material 3, MVVM ligero, Ktor y kotlinx. No traslades la arquitectura
   hexagonal de los backends ni agregues módulos, capas, frameworks de DI o
   dependencias sin justificarlo.
 - Distingue hechos, decisiones confirmadas y propuestas. Consulta las decisiones

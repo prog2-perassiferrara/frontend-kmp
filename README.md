@@ -18,7 +18,7 @@ Cliente de Catálogo y Turnos para registro, búsqueda de profesionales y gesti�
 - Android SDK API 37 y Build Tools 36.0.0.
 - Emulador o dispositivo desde API 24 para ejecutar. La primera descarga de dependencias requiere Internet.
 
-Se conserva el stack generado: Kotlin 2.4.21, Compose Multiplatform/Material 1.12.2, Lifecycle 2.11.0, Navigation Compose 2.10.0, Material Icons 1.7.3 y Gradle Wrapper 9.5.1. Las versiones están en `gradle/libs.versions.toml`.
+El proyecto usa Kotlin 2.4.21, Compose Multiplatform 1.12.2, Material 3 1.12.0-alpha03, Lifecycle 2.11.0, Navigation Compose 2.10.0, Material Icons 1.7.3 y Gradle Wrapper 9.5.1. La versión de Material 3 coincide con la del ejemplo docente de navegación. Las versiones están en `gradle/libs.versions.toml`.
 
 ## Configuración local
 

@@ -5,13 +5,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
@@ -42,18 +42,18 @@ class AvailabilityScreen {
         val enabled = !state.isLoading
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Disponibilidad", style = MaterialTheme.typography.h5)
+            Text("Disponibilidad", style = MaterialTheme.typography.headlineSmall)
             TextButton(onClick = onBack) { Text("Volver") }
         }
-        Text(state.professionalName, style = MaterialTheme.typography.subtitle1)
+        Text(state.professionalName, style = MaterialTheme.typography.titleMedium)
         if (state.categoryName.isNotBlank()) {
-            Text(state.categoryName, style = MaterialTheme.typography.body2)
+            Text(state.categoryName, style = MaterialTheme.typography.bodyMedium)
         }
 
         key(state.professionalId) {
             dateSelector.Content(state.date, onDate)
         }
-        Divider()
+        HorizontalDivider()
         if (state.isLoading) {
             Text("Consultando…")
             CircularProgressIndicator()
@@ -68,15 +68,15 @@ class AvailabilityScreen {
             if (state.isEmptyResult) {
                 Text("No hay horarios para el ${displayDate(state.date)}.")
             } else {
-                Text("Horarios disponibles", style = MaterialTheme.typography.subtitle1)
-                Text(displayDate(state.date), style = MaterialTheme.typography.body2)
+                Text("Horarios disponibles", style = MaterialTheme.typography.titleMedium)
+                Text(displayDate(state.date), style = MaterialTheme.typography.bodyMedium)
                 state.times.forEach { time ->
                     TimeRow(
                         time = time,
                         selected = state.selectedTime == time,
                         onClick = { onTime(time) },
                     )
-                    Divider()
+                    HorizontalDivider()
                 }
                 Button(
                     onClick = onReserve,
@@ -86,11 +86,11 @@ class AvailabilityScreen {
                     Text("Solicitar reserva")
                 }
                 reservationBlocked?.let {
-                    Text(it, style = MaterialTheme.typography.body2)
+                    Text(it, style = MaterialTheme.typography.bodyMedium)
                 }
                 Text(
                     "El horario se asegura al confirmar la reserva.",
-                    style = MaterialTheme.typography.body2,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
         }
@@ -105,7 +105,7 @@ class AvailabilityScreen {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             RadioButton(selected = selected, onClick = null)
-            Text(displayTime(time), style = MaterialTheme.typography.body1)
+            Text(displayTime(time), style = MaterialTheme.typography.bodyLarge)
         }
     }
 

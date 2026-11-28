@@ -6,12 +6,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import com.prog2.frontend.ui.components.FieldError
 import androidx.compose.ui.Modifier
@@ -34,7 +34,7 @@ class RegistrationScreen {
         onBackToLogin: () -> Unit,
     ) {
         val enabled = !state.isSubmitting && !state.accountCreated
-        Text("Crear cuenta", style = MaterialTheme.typography.h5)
+        Text("Crear cuenta", style = MaterialTheme.typography.headlineSmall)
         OutlinedTextField(
             value = state.login,
             onValueChange = onLogin,
@@ -100,7 +100,7 @@ class RegistrationScreen {
         if (state.accountCreated) {
             Text(
                 "Cuenta creada. No pudimos iniciar sesión automáticamente; volvé a ingresar con tus credenciales.",
-                style = MaterialTheme.typography.body2,
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
         if (!state.accountCreated) {

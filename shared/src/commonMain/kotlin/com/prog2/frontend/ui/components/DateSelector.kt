@@ -6,11 +6,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,9 +43,9 @@ internal class DateSelector {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
-                    Text(label, style = MaterialTheme.typography.subtitle1)
+                    Text(label, style = MaterialTheme.typography.titleMedium)
                     if (onClear != null && date.isNotEmpty()) {
-                        Text(displayDate(date), style = MaterialTheme.typography.body2)
+                        Text(displayDate(date), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
                 if (onClear != null && date.isNotEmpty()) {
@@ -61,13 +61,13 @@ internal class DateSelector {
                         modifier = Modifier.weight(1f).semantics { selected = isSelected },
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 6.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            backgroundColor = if (isSelected) MaterialTheme.colors.primary.copy(alpha = 0.12f)
-                            else MaterialTheme.colors.surface,
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            else MaterialTheme.colorScheme.surface,
                         ),
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(day.label, style = MaterialTheme.typography.body2)
-                            Text(displayDate(day.date).take(5), style = MaterialTheme.typography.body2)
+                            Text(day.label, style = MaterialTheme.typography.bodyMedium)
+                            Text(displayDate(day.date).take(5), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }

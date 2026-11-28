@@ -8,13 +8,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.Checkbox
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import com.prog2.frontend.ui.components.FieldError
 import androidx.compose.ui.Alignment
@@ -40,7 +40,7 @@ class LoginScreen {
         onRegister: () -> Unit,
     ) {
         val enabled = !state.isSubmitting
-        Text("Iniciar sesión", style = MaterialTheme.typography.h5)
+        Text("Iniciar sesión", style = MaterialTheme.typography.headlineSmall)
         OutlinedTextField(
             value = state.username,
             onValueChange = onUsername,
@@ -74,7 +74,7 @@ class LoginScreen {
             Checkbox(checked = state.rememberMe, onCheckedChange = null, enabled = enabled)
             Text("Recordarme", modifier = Modifier.padding(start = 8.dp))
         }
-        Text("Recordarme amplía la sesión de 24 horas a 30 días.", style = MaterialTheme.typography.body2)
+        Text("Recordarme amplía la sesión de 24 horas a 30 días.", style = MaterialTheme.typography.bodyMedium)
         (state.error ?: state.session.error)?.let { FieldError(it.message) }
         Button(onClick = onSubmit, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
             Text(if (state.isSubmitting) "Iniciando sesión…" else "Iniciar sesión")

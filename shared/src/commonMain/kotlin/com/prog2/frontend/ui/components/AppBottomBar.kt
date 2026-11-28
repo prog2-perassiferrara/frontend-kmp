@@ -1,15 +1,16 @@
 package com.prog2.frontend.ui.components
 
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.prog2.frontend.navigation.AppDestination
 
 /**
- * Barra de navegación inferior (Material 1 `BottomNavigation`), presentacional:
+ * Barra de navegación inferior (Material 3 `NavigationBar`), presentacional:
  * no conoce el `NavController`; solo recibe los destinos, la ruta activa y el
  * callback de selección.
  */
@@ -29,9 +30,9 @@ class AppBottomBar {
         onSelect: (AppDestination) -> Unit,
         modifier: Modifier = Modifier,
     ) {
-        BottomNavigation(modifier = modifier) {
+        NavigationBar(modifier = modifier, windowInsets = WindowInsets(0, 0, 0, 0)) {
             destinations.forEach { destination ->
-                BottomNavigationItem(
+                NavigationBarItem(
                     selected = currentRoute == destination.route,
                     onClick = { onSelect(destination) },
                     icon = {

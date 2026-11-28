@@ -9,16 +9,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.Composable
@@ -60,7 +60,7 @@ class SearchScreen {
         LaunchedEffect(Unit) { onLoad() }
         val enabled = !state.isSearching
 
-        Text("Buscar profesionales", style = MaterialTheme.typography.h5)
+        Text("Buscar profesionales", style = MaterialTheme.typography.headlineSmall)
 
         OutlinedTextField(
             value = state.name,
@@ -91,7 +91,7 @@ class SearchScreen {
         )
         Text(
             "Filtra por día de atención. Los horarios libres se ven en la ficha.",
-            style = MaterialTheme.typography.body2,
+            style = MaterialTheme.typography.bodyMedium,
         )
 
         Button(onClick = onSearch, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
@@ -109,8 +109,8 @@ class SearchScreen {
                 Text(
                     "Aviso: la información de profesionales puede estar desactualizada; " +
                         "se muestran los últimos datos disponibles.",
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
             if (state.isEmptyResult) {
@@ -118,7 +118,7 @@ class SearchScreen {
             }
             state.results.forEach { professional ->
                 ProfessionalRow(professional, enabled, onSelect)
-                Divider()
+                HorizontalDivider()
             }
             PageControls(
                 state.page, state.totalPages, state.totalElements,
@@ -170,7 +170,7 @@ class SearchScreen {
     ) {
         var expanded by remember { mutableStateOf(false) }
         Column {
-            Text(label, style = MaterialTheme.typography.body2)
+            Text(label, style = MaterialTheme.typography.bodyMedium)
             Box {
                 OutlinedButton(
                     onClick = { expanded = true },
@@ -184,11 +184,12 @@ class SearchScreen {
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     options.forEach { (value, text) ->
                         DropdownMenuItem(
+                            text = { Text(text) },
                             onClick = {
                                 expanded = false
                                 onSelect(value)
                             },
-                        ) { Text(text) }
+                        )
                     }
                 }
             }
@@ -208,23 +209,23 @@ class SearchScreen {
         ) {
             Text(
                 "${professional.firstName} ${professional.lastName}",
-                style = MaterialTheme.typography.subtitle1,
+                style = MaterialTheme.typography.titleMedium,
             )
-            Text(professional.category.name, style = MaterialTheme.typography.body2)
+            Text(professional.category.name, style = MaterialTheme.typography.bodyMedium)
             if (!professional.category.enabled) {
-                Text("Categoría deshabilitada", style = MaterialTheme.typography.body2)
+                Text("Categoría deshabilitada", style = MaterialTheme.typography.bodyMedium)
             }
             if (!professional.enabled) {
                 Text(
                     "Profesional deshabilitado",
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
             Text(
                 "Ver disponibilidad ›",
-                style = MaterialTheme.typography.body2,
-                color = MaterialTheme.colors.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
             )
         }
     }

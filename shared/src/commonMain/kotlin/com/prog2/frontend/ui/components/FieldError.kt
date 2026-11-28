@@ -1,7 +1,7 @@
 package com.prog2.frontend.ui.components
 
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -12,7 +12,7 @@ import androidx.compose.ui.semantics.semantics
 internal fun FieldError(message: String) {
     Text(
         message,
-        color = MaterialTheme.colors.error,
+        color = MaterialTheme.colorScheme.error,
         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
     )
 }
